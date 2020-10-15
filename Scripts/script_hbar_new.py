@@ -11,7 +11,7 @@ filename = 'test'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshhold = 200000
-compliance = 0.5
+compliance = 5e-3
 ramp_rate = 1e-2
 
 keithley1 = qt.instruments.get('keithley1')
@@ -27,6 +27,11 @@ device = 2
 V_in = 100e-6
 lockin1.set_amplitude(0.1)
 R_sense = 992
+
+start1 = -2
+end1 = 2
+xstep1 = 0.04
+rev = False
 
 class Script():
 	def __init__(self):
@@ -406,8 +411,8 @@ class Script():
 		qt.msleep(intrasweep_delay)
 
 	def yoko_gateset(self, xend):
-		#yoko.set_source_function(0)
-		#yoko.set_source_voltage_range(110) # vrange
+		yoko.set_source_function(0)
+		yoko.set_source_voltage_range(xend)
 		yoko.set_source_protection_linkage(1)
 		yoko.set_source_current_protection_upper_limit(compliance)
 
@@ -421,7 +426,7 @@ class Script():
 		yoko.set_source_delay(yoko.get_source_delay_minimum())
 		yoko.set_sense_delay(yoko.get_sense_delay_minimum())
 
-		#yoko.set_output(1)
+		yoko.set_output(1)
 
 		xcurrent = yoko.get_source_voltage_level()
 
@@ -442,3 +447,5 @@ class Script():
 a = Script()
 a.yoko_gateset(0.5)
 a.yoko_gateset(1)
+
+a.qdac_1gate(1, 'Midgate', start1, end1, xstep1, rev, threshhold, compliance)
