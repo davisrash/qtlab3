@@ -1,0 +1,12 @@
+MAGIC 3001
+LINES 5
+"burst_0.wfm",0,0,0,-1
+"burst_1.wfm",0,0,0,-1
+"burst_2.wfm",0,0,0,-1
+"burst_3.wfm",0,0,0,-1
+"burst_4.wfm",0,0,0,-1
+TABLE_JUMP 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+LOGIC_JUMP -1,-1,-1,-1
+JUMP_MODE SOFTWARE
+JUMP_TIMING SYNC
+STROBE 0
