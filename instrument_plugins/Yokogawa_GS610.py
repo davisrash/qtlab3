@@ -2675,7 +2675,6 @@ class Yokogawa_GS610(Instrument):
 			value (str) : measured results
 		"""
 		return (float)(self._visainstrument.query(':READ?').replace('\n', ''))
-
 	
 	def identify(self):
 		"""
