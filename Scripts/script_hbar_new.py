@@ -192,7 +192,7 @@ class Script():
         qt.mstart()
 
         if ((xstart - xend) / xstep) % 2 == 0:
-            xnum = np.int(np.ceil(np.abs(xstart - xend) / xstep + 1))
+            xnum = np.int(np.ceil(np.abs(xstart - xend) / xstep) + 1)
         else:
             xnum = np.int(np.ceil(np.abs((xstart - xend) / xstep)))
 
@@ -244,7 +244,7 @@ class Script():
             qt.msleep(intrasweep_delay)
             data_values = self.take_data(x)
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
+            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
             if threshhold is not None:
                 if data_values[13] > threshhold:
@@ -277,7 +277,7 @@ class Script():
                 qt.msleep(intrasweep_delay)
                 data_values = self.take_data(x1)
 
-                data_bck.add_data_point(x, 0, 0, data_values[0], data_values[1], 0, 0, data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
+                data_bck.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
             data_bck._write_settings_file()
             data_bck.close_file()
