@@ -24,7 +24,7 @@ class Superlum_BS_1060(Instrument):
         self._name = name
         self._visainstrument = visa.instrument(self._address)
         self._visainstrument.baud_rate = 57600
-        self._visainstrument.term_chars = '\r\n'	
+        self._visainstrument.term_chars = '\r\n'    
 
         self._visainstrument.clear()
         self._visainstrument.ask('') # It always returns 'AE' after the clear command
@@ -46,9 +46,9 @@ class Superlum_BS_1060(Instrument):
         self.add_parameter('power',
             type=types.StringType,
             flags=Instrument.FLAG_GET,
-	    option_list=(
-		    'low',
-		    'high'))
+        option_list=(
+            'low',
+            'high'))
         self.add_parameter('master_key_control',
             type=types.BooleanType,
             flags=Instrument.FLAG_GET)
@@ -58,11 +58,11 @@ class Superlum_BS_1060(Instrument):
         self.add_parameter('operating_mode',
             type=types.StringType,
             flags=Instrument.FLAG_GETSET,
-	    option_list=(
-		    'manual',
-		    'external',
-		    'automatic',
-		    'modulation'))
+        option_list=(
+            'manual',
+            'external',
+            'automatic',
+            'modulation'))
         self.add_parameter('manual_mode_wavelength',
             type=types.FloatType,
             flags=Instrument.FLAG_GETSET, minval=1024.0, maxval=1094.0, units='nm')
@@ -84,7 +84,7 @@ class Superlum_BS_1060(Instrument):
         self.add_parameter('modulation_mode_frequency',
             type=types.FloatType,
             flags=Instrument.FLAG_GETSET, units='Hz',
-	    option_list=freqs)
+        option_list=freqs)
 
         self.get_all()
 
@@ -476,22 +476,22 @@ class Superlum_BS_1060(Instrument):
               Any query except the control change query is denied.
         <AE>: General error.
         
-	If any of these errors occur the program should throw an exception
+    If any of these errors occur the program should throw an exception
         because the errors are avoidable.
         Input:
             Reply from the instrument
         Output:
             Reply from the instrument
         '''
-	if reply == 'AL':
+    if reply == 'AL':
             logging.warning('%s responded with AL.' % self._name)
             raise Warning(
-	        'The function could not be executed becase %s is under local control.'
+            'The function could not be executed becase %s is under local control.'
                 % self._name)
-	elif reply == 'AE':
+    elif reply == 'AE':
             logging.warning('%s responded with AE.' % self._name)
             raise Warning(
                 'The function could not be executed becase %s responded with a general error.' 
-		% self._name)
+        % self._name)
         else:
             return reply

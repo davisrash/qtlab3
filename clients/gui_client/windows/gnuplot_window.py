@@ -246,7 +246,7 @@ class GnuplotWindow(qtwindow.QTWindow):
             gui.pack_hbox([
                 self._autorange_xy,
                 self._autorange_xyz], True, True),
-    	], False, False)
+        ], False, False)
         vbox.set_border_width(4)
         self.add(vbox)
 

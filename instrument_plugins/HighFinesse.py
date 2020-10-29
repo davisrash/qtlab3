@@ -41,14 +41,14 @@ class HighFinesse(Instrument):
                 type=types.FloatType,
                 flags=Instrument.FLAG_GET,
                 units='nm')
-	self.add_parameter('frequency',
-	        type=types.FloatType,
-		flags=Instrument.FLAG_GET,
-		units='THz')
-	self.add_parameter('linewidth',
-		type=types.FloatType,
-		flags=Instrument.FLAG_GET,
-		units='THz')
+    self.add_parameter('frequency',
+            type=types.FloatType,
+        flags=Instrument.FLAG_GET,
+        units='THz')
+    self.add_parameter('linewidth',
+        type=types.FloatType,
+        flags=Instrument.FLAG_GET,
+        units='THz')
         self.add_parameter('power',
                 type=types.FloatType,
                 flags=Instrument.FLAG_GET,
@@ -67,20 +67,20 @@ class HighFinesse(Instrument):
     def get_all(self):
         print __name__ + ' : reading all settings from instrument'
         self.get_wavelength()
-	self.get_frequency()
+    self.get_frequency()
 
 #### communication with machine
 
     def do_get_wavelength(self):
-	Wavelength = GetWvl(c_double(0))
+    Wavelength = GetWvl(c_double(0))
         return Wavelength
 
     def do_get_power(self):
         return GetPwr(c_long(1), c_double(0))
 
     def do_get_frequency(self):
-	return GetFrq(c_double(0))
+    return GetFrq(c_double(0))
 
     def do_get_linewidth(self):
-	return GetLw(c_char_p(cReturnFrequency),c_double(0))
+    return GetLw(c_char_p(cReturnFrequency),c_double(0))
 

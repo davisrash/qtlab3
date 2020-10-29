@@ -47,10 +47,10 @@ class Bristol_621(Instrument):
                 type=types.FloatType,
                 flags=Instrument.FLAG_GET,
                 units='nm')
-#	self.add_parameter('frequency',
-#	        type=types.FloatType,
-#		flags=Instrument.FLAG_GET,
-#		units='THz')
+#    self.add_parameter('frequency',
+#            type=types.FloatType,
+#        flags=Instrument.FLAG_GET,
+#        units='THz')
         self.add_parameter('power',
                 type=types.FloatType,
                 flags=Instrument.FLAG_GET,

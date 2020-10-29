@@ -56,7 +56,7 @@ class Fluke_PM5138A(Instrument):
 
   def _write(self, letter):
     self._visainstrument.write(letter)
-	  
+      
   def _ask(self, question):
     return self._visainstrument.ask(question)
 
@@ -67,7 +67,7 @@ class Fluke_PM5138A(Instrument):
     self._write("DCOFF")
     self._write("DUTYC 50")
     self._write("SYM ON")
-	  
+      
   def get_all(self):
     logging.info(__name__ + ' : get all')
     self.get_dc_amplitude()

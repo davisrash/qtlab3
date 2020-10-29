@@ -77,15 +77,15 @@ class USMC_Mode(Structure):
         ('SyncOUTR', c_bool),
         ('SyncINOp', c_bool),
 
-	    ('SyncCount', c_long),
-	    ('SyncInvert', c_bool),
+        ('SyncCount', c_long),
+        ('SyncInvert', c_bool),
 
-	    ('EncoderEn', c_bool),
-	    ('EncoderInv', c_bool),
-	    ('ResBEnc', c_bool),
-	    ('ResEnc', c_bool),
+        ('EncoderEn', c_bool),
+        ('EncoderInv', c_bool),
+        ('ResBEnc', c_bool),
+        ('ResEnc', c_bool),
 
-	    ('Reserved', c_char * 8),
+        ('Reserved', c_char * 8),
     ]
 
 class USMC_Parameters(Structure):

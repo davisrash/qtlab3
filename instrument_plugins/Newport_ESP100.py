@@ -59,7 +59,7 @@ class Newport_ESP100(Instrument):
       flags=Instrument.FLAG_GET, type=types.StringType)    
 
     #self.init_default()
-	  
+      
     if reset:
       self.init_default()
 
@@ -78,10 +78,10 @@ class Newport_ESP100(Instrument):
     self._visainstrument.write('1DH;WS\r')
     print "Finished initialization ESP100"
     self.get_position()
-	
+    
   def do_get_position(self):
     return self._visainstrument.ask('1PA?\r')
-	
+    
   def define_home(self, position=0.0):
     self._visainstrument.write('1DH%f;WS\r'%position)
 
@@ -106,7 +106,7 @@ class Newport_ESP100(Instrument):
   def move_0001mu_p(self):
     self._visainstrument.write('1PR+0.001')
     return self.get_position()
-	
+    
   def move_1000mu_n(self):
     self._visainstrument.write('1PR-1')
     return self.get_position()

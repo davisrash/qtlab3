@@ -93,12 +93,12 @@ class S1():
                 #K1 = keithley1.get_readnextval()                                     # Read out Keithley1            
                 #K1_value = K1/GainK1                                                 # Use explained at bottom of the script
                 L1_X = lockin1.get_X()                                                 # Read out Lockin1
-				
-                if (L1_X==0.0):			
+                
+                if (L1_X==0.0):            
                     L1_X_pro = (V_in-L1_X)/(1e-9) * R_sense
                 else:
                     L1_X_pro = (V_in-L1_X)/L1_X * R_sense
-				
+                
                 L1_Y = lockin1.get_Y()
                 
                 

@@ -120,8 +120,8 @@ class FlowControl:
         '''
         start = exact_time()
         dt = 0
-	# TODO possibly this implementation of event handling using threads
-	# can be done in a better way using ipython-0.11 inputhook support?
+    # TODO possibly this implementation of event handling using threads
+    # can be done in a better way using ipython-0.11 inputhook support?
         #gtk.gdk.threads_enter()
         #gdk.threads_enter()
         #while gtk.events_pending() and (not exact or (dt + 0.001) < delay):

@@ -219,8 +219,8 @@ class RS_FSL6(Instrument):
         #self._visainstrument.write('POW:ACH:SPAC:ALT1 100KHZ')      
         #self._visainstrument.write('POW:ACH:SPAC:ALT2 140KHZ')        
         self._visainstrument.write('POW:ACH:MODE ABS')      # Switches on absolute power measurement.     
-        self._visainstrument.write('INIT:CONT ON')    	# Switches over to single sweep mode (for OFF!!).     
-        self._visainstrument.write('INIT;*WAI')    		# Starts a sweep and waits for the end of the sweep.
+        self._visainstrument.write('INIT:CONT ON')        # Switches over to single sweep mode (for OFF!!).     
+        self._visainstrument.write('INIT;*WAI')            # Starts a sweep and waits for the end of the sweep.
 
     def stop_power_measurement(self):
         '''
@@ -233,7 +233,7 @@ class RS_FSL6(Instrument):
             None
         '''
         logging.debug(__name__ + ' : stop channel power measurement') 
-        self._visainstrument.write('INIT:CONT ON')    	# Switches over to continuous sweep mode.   
+        self._visainstrument.write('INIT:CONT ON')        # Switches over to continuous sweep mode.   
 
     def init_zero_span(self,resbw,vidbw):
         '''
@@ -326,7 +326,7 @@ class RS_FSL6(Instrument):
 #            None
 #        '''
 #        logging.debug(__name__ + ' : set to local control') 
-#        self._visainstrument.write('INIT:CONT OFF')    	#GPIB  COMMAND  ??????
+#        self._visainstrument.write('INIT:CONT OFF')        #GPIB  COMMAND  ??????
 
 
 
@@ -498,7 +498,7 @@ class RS_FSL6(Instrument):
         
         In measurement, call self.init_power_measurement() before reading channelpower!
 
-	    Documentation for remote control command in 'Operating manual', p. 821
+        Documentation for remote control command in 'Operating manual', p. 821
 
         Input:
             None
@@ -507,7 +507,7 @@ class RS_FSL6(Instrument):
             channelpower (float) : channel power in ??unit
         '''
         logging.debug(__name__ + ' : reading channelpower from instrument')
-        self._visainstrument.write('*WAI')    		# Starts a sweep and waits for the end of the sweep.
+        self._visainstrument.write('*WAI')            # Starts a sweep and waits for the end of the sweep.
         return float(self._visainstrument.ask('CALC:MARK:FUNC:POW:RES? ACP'))
 
 
@@ -518,7 +518,7 @@ class RS_FSL6(Instrument):
         
         In measurement, call init_zero_span() before reading mean power!
 
-	    Documentation for remote control command in 'Operating manual', p. 1609
+        Documentation for remote control command in 'Operating manual', p. 1609
 
         Input:
             None
@@ -527,6 +527,6 @@ class RS_FSL6(Instrument):
             timetracemarkerpower (float) : marker power in V!! (even if display shows dBuV)
         '''
         logging.debug(__name__ + ' : reading marker power in zero span mode from instrument')
-        self._visainstrument.write('INIT;*WAI')    		# Starts a sweep and waits for the end of the sweep.
+        self._visainstrument.write('INIT;*WAI')            # Starts a sweep and waits for the end of the sweep.
         return float(self._visainstrument.ask('CALC:MARK:FUNC:SUMM:PPE:RES?'))
 

@@ -2,7 +2,7 @@
 # PyUSB definitions
 #
 
-#	Copyright (C) 2007 Pablo Bleyer Kocik
+#    Copyright (C) 2007 Pablo Bleyer Kocik
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -48,15 +48,15 @@ OPEN_BY_DESCRIPTION = 2
 OPEN_BY_LOCATION = 4
 
 # ListDevices Flags (used in conjunction with OpenEx Flags
-LIST_NUMBER_ONLY	= 0x80000000
+LIST_NUMBER_ONLY    = 0x80000000
 LIST_BY_INDEX = 0x40000000
 LIST_ALL = 0x20000000
 LIST_MASK = (LIST_NUMBER_ONLY | LIST_BY_INDEX | LIST_ALL)
 
 
 # Baud Rates
-BAUD_300	= 300
-BAUD_600	= 600
+BAUD_300    = 300
+BAUD_600    = 600
 BAUD_1200 = 1200
 BAUD_2400 = 2400
 BAUD_4800 = 4800
@@ -109,7 +109,7 @@ DEFAULT_TX_TIMEOUT = 300
 
 
 # Device types
-# typedef ULONG	DEVICE;
+# typedef ULONG    DEVICE;
 DEVICE_BM = 0
 DEVICE_AM = 1
 DEVICE_100AX = 2

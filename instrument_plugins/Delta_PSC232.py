@@ -25,7 +25,7 @@ class Delta_PSC232(Instrument):
         Instrument.__init__(self, name, tags=['measure'])
 
         self._address = address
-#	self._term_chars = '\n\r\x04'
+#    self._term_chars = '\n\r\x04'
         self._channel = channel
         self._visains = visa.instrument(address) #, term_chars = "\n\r\x04") # Hoo Rah
         self._visains.baud_rate = 4800L

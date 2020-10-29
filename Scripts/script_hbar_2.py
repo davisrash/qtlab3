@@ -122,7 +122,7 @@ class S1():
                 if DMM==False :
                     L1_X = lockin1.get_X()                                                 # Read out Lockin1
                     
-                    if (L1_X==0.0):			
+                    if (L1_X==0.0):            
                         L1_X_pro = (V_in-L1_X)/(1e-9) * R_sense
                     else:
                         L1_X_pro = (V_in-L1_X)/L1_X * R_sense
@@ -132,7 +132,7 @@ class S1():
                 elif DMM==True : 
                     L1_X = keithley1.readnext()/10*LIsens                                                 # Read out Lockin1
                     
-                    if (L1_X==0.0):			
+                    if (L1_X==0.0):            
                         L1_X_pro = (V_in-L1_X)/(1e-9) * R_sense
                     else:
                         L1_X_pro = (V_in-L1_X)/L1_X * R_sense
@@ -196,7 +196,7 @@ class S1():
             if DMM==False :
                 L1_X = lockin1.get_X()                                                 # Read out Lockin1
                 
-                if (L1_X==0.0):			
+                if (L1_X==0.0):            
                     L1_X_pro = (V_in-L1_X)/(1e-9) * R_sense
                 else:
                     L1_X_pro = (V_in-L1_X)/L1_X * R_sense
@@ -206,7 +206,7 @@ class S1():
             elif DMM==True : 
                 L1_X = keithley1.readnext()/10*LIsens                                                 # Read out Lockin1
                 
-                if (L1_X==0.0):			
+                if (L1_X==0.0):            
                     L1_X_pro = (V_in-L1_X)/(1e-9) * R_sense
                 else:
                     L1_X_pro = (V_in-L1_X)/L1_X * R_sense

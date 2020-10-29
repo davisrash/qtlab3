@@ -47,7 +47,7 @@ class instrument(object):
 
     CONNECTIONS = {}
 
-    def __init__(self, gpib, **kwargs):	
+    def __init__(self, gpib, **kwargs):    
         self.conn = None
 
         # for compatibility with NI visa

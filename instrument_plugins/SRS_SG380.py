@@ -52,35 +52,35 @@ class SRS_SG380(Instrument):
         # Add some global constants
         self._address = address
         self._visainstrument = visa.instrument(self._address)
-	try:
-	    identity = self._visainstrument.ask('*IDN?')
-	    model = identity[26:31]
-	except IndexError:
-	    raise Warning('The instrument is not a SRS RF signal generator. %s' % model)
+    try:
+        identity = self._visainstrument.ask('*IDN?')
+        model = identity[26:31]
+    except IndexError:
+        raise Warning('The instrument is not a SRS RF signal generator. %s' % model)
 
-	if model not in ['SG382','SG384','SG386']:
-	    raise Warning('The instrument is not a SRS RF signal generator.')
+    if model not in ['SG382','SG384','SG386']:
+        raise Warning('The instrument is not a SRS RF signal generator.')
         logging.info('The model is %s' % model)
 
         options = {'1':'Rear clock outputs', '2':'RF doubler and DC outputs', '3':'IQ modulation inputs and outputs', '4':'OCXO timebase','5':'Rubidium timebase'}
-	for idx in range(1,5):
-	    option_installed = bool(int(self._visainstrument.ask('OPTN? %i' % idx)))
-	    if option_installed:
-	        logging.info('Option %s is installed' % options[str(idx)])
+    for idx in range(1,5):
+        option_installed = bool(int(self._visainstrument.ask('OPTN? %i' % idx)))
+        if option_installed:
+            logging.info('Option %s is installed' % options[str(idx)])
 
-	minfreq_ntype = 950e3      
-	if model == 'SG382':
-	    maxfreq_ntype = 2.025e9
-	elif model == 'SG384':
-	    maxfreq_ntype = 4.050e9
-	else:
-	    maxfreq_ntype = 6.075e9
+    minfreq_ntype = 950e3      
+    if model == 'SG382':
+        maxfreq_ntype = 2.025e9
+    elif model == 'SG384':
+        maxfreq_ntype = 4.050e9
+    else:
+        maxfreq_ntype = 6.075e9
 
         self.add_parameter('ntype_power',
             flags=Instrument.FLAG_GETSET, units='dBm', minval=-110, maxval=16.5, type=types.FloatType)
-	self.add_parameter('bnc_power',
+    self.add_parameter('bnc_power',
             flags=Instrument.FLAG_GETSET, units='dBm', minval=-110, maxval=16.5, type=types.FloatType)
-	self.add_parameter('bnc_output_status',
+    self.add_parameter('bnc_output_status',
             flags=Instrument.FLAG_GETSET, type=types.BooleanType)
 
         self.add_parameter('frequency',
@@ -239,22 +239,22 @@ class SRS_SG380(Instrument):
 
     def do_get_bnc_output_status(self):
         '''
-	Get the output status of the BNC connector.
-	'''
-	logging.debug(__name__ + ' : get the bnc output status')
-	return bool(self._visainstrument.ask('ENBL?'))
+    Get the output status of the BNC connector.
+    '''
+    logging.debug(__name__ + ' : get the bnc output status')
+    return bool(self._visainstrument.ask('ENBL?'))
 
     def do_set_bnc_output_status(self, status):
         '''
-	Set the output status of the BNC connector.
-	Input:
-	    True : On
-	    False : Off
-	Output:
-	    None
-	'''
-	logging.debug(__name__ + ' : set the bnc output status to %s' % status)
-	self._visainstrument.write('ENBL %i' % status)
+    Set the output status of the BNC connector.
+    Input:
+        True : On
+        False : Off
+    Output:
+        None
+    '''
+    logging.debug(__name__ + ' : set the bnc output status to %s' % status)
+    self._visainstrument.write('ENBL %i' % status)
 
     def do_get_frequency(self):
         '''
@@ -485,16 +485,16 @@ class SRS_SG380(Instrument):
 
     def do_get_rf_output_block_temperature(self):
         '''
-	Get the temperature of the RF output block.
-	'''
-	return float(self._visainstrument.ask('TEMP?'))
+    Get the temperature of the RF output block.
+    '''
+    return float(self._visainstrument.ask('TEMP?'))
 
     def do_get_timebase(self):
-	'''
-	Get the timebase of the instrument.
-	'''
-	timebase_dict = {'0':'Crystal', '1':'OCXO', '2':'Rubidium', '3':'External'}
-	return timebase_dict[self._visainstrument.ask('TIMB?')]
+    '''
+    Get the timebase of the instrument.
+    '''
+    timebase_dict = {'0':'Crystal', '1':'OCXO', '2':'Rubidium', '3':'External'}
+    return timebase_dict[self._visainstrument.ask('TIMB?')]
 
     def trigger(self):
         '''

@@ -570,7 +570,7 @@ class regs():
     PCIBIT_CA = 0x00001000
     PCIBIT_XIO = 0x00002000
     PCIBIT_AMPLIFIER = 0x00004000
-    PCIBIT_DIFFMODE	= 0x00008000
+    PCIBIT_DIFFMODE    = 0x00008000
 
     PCIBIT_ELISA = 0x10000000
 
@@ -584,7 +584,7 @@ class regs():
     SPCM_FEAT_STARHUB16 = 0x00000040      #  starhub for 16 cards installed
     SPCM_FEAT_ABA = 0x00000080      #  ABA mode installed
     SPCM_FEAT_BASEXIO = 0x00000100      #  extra I/O on base card installed
-    SPCM_FEAT_AMPLIFIER_10V	= 0x00000200      #  external amplifier for 60/61
+    SPCM_FEAT_AMPLIFIER_10V    = 0x00000200      #  external amplifier for 60/61
     SPCM_FEAT_STARHUBSYSMASTER = 0x00000400      #  system starhub master installed
     SPCM_FEAT_DIFFMODE = 0x00000800      #  Differential mode installed
     SPCM_FEAT_CUSTOMMOD_MASK = 0xF0000000      #  mask for custom modification code, meaning of code depends on type and customer
@@ -602,7 +602,7 @@ class regs():
     #  ***** Register and Command Structure
     SPC_COMMAND = 0l
     SPC_RESET = 0l
-#define		SPC_SOFTRESET			1l
+#define        SPC_SOFTRESET            1l
     SPC_WRITESETUP = 2l
     SPC_START = 10l
     SPC_STARTANDWAIT = 11l
@@ -653,28 +653,28 @@ class regs():
 
     #  commands for M2 cards
     SPC_M2CMD = 100l      #  write a command
-    M2CMD_CARD_RESET = 0x00000001l		    #  hardware reset =
-    M2CMD_CARD_WRITESETUP	 = 0x00000002l 	    #  write setup only
-    M2CMD_CARD_START		=	0x00000004l		    #  start of card (including writesetup)
-    M2CMD_CARD_ENABLETRIGGER =	0x00000008l		    #  enable trigger engine
-    M2CMD_CARD_FORCETRIGGER	=	0x00000010l		    #  force trigger
-    M2CMD_CARD_DISABLETRIGGER =	0x00000020l		    #  disable trigger engine again (multi or gate)
-    M2CMD_CARD_STOP			=	0x00000040l		    #  stop run
-    M2CMD_CARD_FLUSHFIFO	=	0x00000080l		    #  flush fifos to memory
+    M2CMD_CARD_RESET = 0x00000001l            #  hardware reset =
+    M2CMD_CARD_WRITESETUP     = 0x00000002l         #  write setup only
+    M2CMD_CARD_START        =    0x00000004l            #  start of card (including writesetup)
+    M2CMD_CARD_ENABLETRIGGER =    0x00000008l            #  enable trigger engine
+    M2CMD_CARD_FORCETRIGGER    =    0x00000010l            #  force trigger
+    M2CMD_CARD_DISABLETRIGGER =    0x00000020l            #  disable trigger engine again (multi or gate)
+    M2CMD_CARD_STOP            =    0x00000040l            #  stop run
+    M2CMD_CARD_FLUSHFIFO    =    0x00000080l            #  flush fifos to memory
 
     M2CMD_ALL_STOP = 0x00440060l      #  stops card and all running transfers
 
-    M2CMD_CARD_WAITPREFULL = 0x00001000l		    #  wait until pretrigger is full
-    M2CMD_CARD_WAITTRIGGER	=	0x00002000l		    #  wait for trigger recognition
-    M2CMD_CARD_WAITREADY	=	0x00004000l		    #  wait for card ready
+    M2CMD_CARD_WAITPREFULL = 0x00001000l            #  wait until pretrigger is full
+    M2CMD_CARD_WAITTRIGGER    =    0x00002000l            #  wait for trigger recognition
+    M2CMD_CARD_WAITREADY    =    0x00004000l            #  wait for card ready
 
-    M2CMD_DATA_STARTDMA	 = 0x00010000l		    #  start of DMA transfer for data
-    M2CMD_DATA_WAITDMA		 = 0x00020000l		    #  wait for end of data transfer / next block ready
+    M2CMD_DATA_STARTDMA     = 0x00010000l            #  start of DMA transfer for data
+    M2CMD_DATA_WAITDMA         = 0x00020000l            #  wait for end of data transfer / next block ready
     M2CMD_DATA_STOPDMA = 0x00040000l      #  abort the data transfer
     M2CMD_DATA_POLL = 0x00080000l      #  transfer data using single access and polling
 
-    M2CMD_EXTRA_STARTDMA = 0x00100000l		    #  start of DMA transfer for extra (ABA + timestamp) data
-    M2CMD_EXTRA_WAITDMA = 0x00200000l		    #  wait for end of extra (ABA + timestamp) data transfer / next block ready
+    M2CMD_EXTRA_STARTDMA = 0x00100000l            #  start of DMA transfer for extra (ABA + timestamp) data
+    M2CMD_EXTRA_WAITDMA = 0x00200000l            #  wait for end of extra (ABA + timestamp) data transfer / next block ready
     M2CMD_EXTRA_STOPDMA = 0x00400000l      #  abort the extra (ABA + timestamp) data transfer
     M2CMD_EXTRA_POLL = 0x00800000l      #  transfer data using single access and polling
 
@@ -683,16 +683,16 @@ class regs():
     #  status for M2 cards (bitmask)
     SPC_M2STATUS = 110l      #  read the current status
     M2STAT_NONE = 0x00000000l      #  status empty
-    M2STAT_CARD_PRETRIGGER		= 0x00000001l		    #  pretrigger area is full
-    M2STAT_CARD_TRIGGER			= 0x00000002l		    #  trigger recognized
-    M2STAT_CARD_READY			= 0x00000004l		    #  card is ready, run finished
+    M2STAT_CARD_PRETRIGGER        = 0x00000001l            #  pretrigger area is full
+    M2STAT_CARD_TRIGGER            = 0x00000002l            #  trigger recognized
+    M2STAT_CARD_READY            = 0x00000004l            #  card is ready, run finished
 
-    M2STAT_DATA_BLOCKREADY	=	0x00000100l		    #  next data block is available
+    M2STAT_DATA_BLOCKREADY    =    0x00000100l            #  next data block is available
     M2STAT_DATA_END = 0x00000200l      #  data transfer has ended
     M2STAT_DATA_OVERRUN = 0x00000400l      #  FIFO overrun (record) or underrun (replay)
     M2STAT_DATA_ERROR = 0x00000800l      #  internal error
 
-    M2STAT_EXTRA_BLOCKREADY		= 0x00001000l		    #  next extra data (ABA and timestamp) block is available
+    M2STAT_EXTRA_BLOCKREADY        = 0x00001000l            #  next extra data (ABA and timestamp) block is available
     M2STAT_EXTRA_END = 0x00002000l      #  extra data (ABA and timestamp) transfer has ended
     M2STAT_EXTRA_OVERRUN = 0x00004000l     #  FIFO overrun
     M2STAT_EXTRA_ERROR = 0x00008000l      #  internal error
@@ -1498,7 +1498,7 @@ class regs():
     SPC_SINGLESHOT = 41000l
     SPC_OUTONTRIGGER = 41100l
     SPC_RESTARTCONT = 41200l
-    SPC_SINGLERESTART		=	41300l
+    SPC_SINGLERESTART        =    41300l
 
     SPC_TRIGGERLEVEL = 42000l
     SPC_TRIGGERLEVEL0 = 42000l
@@ -1777,7 +1777,7 @@ class regs():
     ADJ_ALL = 0l
     ADJ_CURRENT = 1l
     ADJ_EXTERNAL = 2l
-    ADJ_1MOHM	 = 3l
+    ADJ_1MOHM     = 3l
 
     SPC_ADJ_SOURCE_CALLBACK = 50021l
     SPC_ADJ_PROGRESS_CALLBACK = 50022l
@@ -1785,19 +1785,19 @@ class regs():
     SPC_ADJ_SET = 50030l
     SPC_ADJ_FAILMASK = 50040l
 
-    SPC_ADJ_CALIBSOURCE			=50050l
-#define		ADJ_CALSRC_OFF				0l
-#define		ADJ_CALSRC_GND			 = -1l
-#define		ADJ_CALSRC_GNDOFFS		 = -2l
+    SPC_ADJ_CALIBSOURCE            =50050l
+#define        ADJ_CALSRC_OFF                0l
+#define        ADJ_CALSRC_GND             = -1l
+#define        ADJ_CALSRC_GNDOFFS         = -2l
 
-    SPC_ADJ_CALIBVALUE0			=50060l
-    SPC_ADJ_CALIBVALUE1			=50061l
-    SPC_ADJ_CALIBVALUE2			=50062l
-    SPC_ADJ_CALIBVALUE3			=50063l
-    SPC_ADJ_CALIBVALUE4			=50064l
-    SPC_ADJ_CALIBVALUE5			=50065l
-    SPC_ADJ_CALIBVALUE6			=50066l
-    SPC_ADJ_CALIBVALUE7			=50067l
+    SPC_ADJ_CALIBVALUE0            =50060l
+    SPC_ADJ_CALIBVALUE1            =50061l
+    SPC_ADJ_CALIBVALUE2            =50062l
+    SPC_ADJ_CALIBVALUE3            =50063l
+    SPC_ADJ_CALIBVALUE4            =50064l
+    SPC_ADJ_CALIBVALUE5            =50065l
+    SPC_ADJ_CALIBVALUE6            =50066l
+    SPC_ADJ_CALIBVALUE7            =50067l
 
 
     SPC_ADJ_OFFSET0 = 51000l
@@ -1883,7 +1883,7 @@ class regs():
     SPC_MICXCOMPATIBILITYMODE = 200120l
     SPC_TEST_FIFOSPEED = 200121l
     SPC_RELOADDEMO = 200122l
-    SPC_OVERSAMPLINGFACTOR	=	200123l
+    SPC_OVERSAMPLINGFACTOR    =    200123l
     SPC_XYZMODE = 200200l
     SPC_INVERTDATA = 200300l
     SPC_GATEMARKENABLE = 200400l
@@ -1928,7 +1928,7 @@ class regs():
     SPC_DIFFMODE = 206030l
     SPC_DACADJUST = 206040l
 
-#define	SPC_AMP_MODE				207000l
+#define    SPC_AMP_MODE                207000l
 
     SPCM_FW_CTRL = 210000l
     SPCM_FW_CLOCK = 210010l
