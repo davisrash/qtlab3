@@ -49,18 +49,9 @@ class Script():
         """
         qt.Data.set_filename_generator(self.generator)
         data = qt.Data(name=self.filename)
-        data.add_coordinate(x_parameter + ' (' + x_coordinate + ')',
-                            size=len(x_vector),
-                            start=x_vector[0],
-                            end=x_vector[-1])
-        data.add_coordinate(y_parameter + ' (' + y_coordinate + ')',
-                            size=len(y_vector),
-                            start=y_vector[0],
-                            end=y_vector[-1])
-        data.add_coordinate(z_parameter + ' (' + z_coordinate + ')',
-                            size=len(z_vector),
-                            start=z_vector[0],
-                            end=z_vector[-1])
+        data.add_coordinate(x_parameter + ' (' + x_coordinate + ')', size=len(x_vector), start=x_vector[0], end=x_vector[-1])
+        data.add_coordinate(y_parameter + ' (' + y_coordinate + ')', size=len(y_vector), start=y_vector[0], end=y_vector[-1])
+        data.add_coordinate(z_parameter + ' (' + z_coordinate + ')', size=len(z_vector), start=z_vector[0], end=z_vector[-1])
 
         # Gate 1
         data.add_value('Gate 1 V meas')

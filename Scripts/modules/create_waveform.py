@@ -14,7 +14,7 @@ burst_amplitude = 1
 pulse_length = 2e-3
 
 if pulse_length < burst_long:
-    print "The burst is longer than the pulse"
+    print("The burst is longer than the pulse")
 
 
 pulse_length_pts = round(pulse_length*AWG_clock)
