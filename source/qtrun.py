@@ -21,42 +21,42 @@ import copy
 from lib import calltimer
 
 def qtrun(filepath, name=''):
-    if not os.path.isfile(filepath):
-        raise ValueError("file '%s' does not exist" % filepath)
+	if not os.path.isfile(filepath):
+		raise ValueError("file '%s' does not exist" % filepath)
 
-    dir, filename = os.path.split(filepath)
-    name, ext = os.path.splitext(filename)
+	dir, filename = os.path.split(filepath)
+	name, ext = os.path.splitext(filename)
 
-    if ext != '.py':
-        raise ValueError("file '%s' is not of type .py" % filepath)
+	if ext != '.py':
+		raise ValueError("file '%s' is not of type .py" % filepath)
 
-    data = qt.data[name]
-    data.create_datafile(name)
-    tstr_filename = data.get_filename() + '.py'
-    fulldir = data.get_fulldir()
+	data = qt.data[name]
+	data.create_datafile(name)
+	tstr_filename = data.get_filename() + '.py'
+	fulldir = data.get_fulldir()
 
-    if os.path.isfile(tstr_filename):
-        raise ValueError("file '%s' already exists, could not copy" % tstr_filename)
-    shutil.copy(filepath, fulldir + '/' + tstr_filename)
+	if os.path.isfile(tstr_filename):
+		raise ValueError("file '%s' already exists, could not copy" % tstr_filename)
+	shutil.copy(filepath, fulldir + '/' + tstr_filename)
 
-    try:
-        fn = fulldir + '/' + tstr_filename
+	try:
+		fn = fulldir + '/' + tstr_filename
 
-        # Make sure we don't mess up our globals
-        gvars = copy.copy(globals())
-        execfile(fn, gvars)
-    except Exception, e:
-        data.close_datafile()
-        print '\n    => Measurement Aborted: %s <=' % e
-    finally:
-        data.close_datafile()
+		# Make sure we don't mess up our globals
+		gvars = copy.copy(globals())
+		execfile(fn, gvars)
+	except Exception, e:
+		data.close_datafile()
+		print '\n	=> Measurement Aborted: %s <=' % e
+	finally:
+		data.close_datafile()
 
 def qtrun_thread(filepath, name=''):
-    '''
-    Run a script using qtrun() in a separate thread.
-    '''
+	'''
+	Run a script using qtrun() in a separate thread.
+	'''
 
-    if config.get('threading_warning', True):
-        logging.warning('Using threading functions could result in QTLab becoming unstable!')
+	if config.get('threading_warning', True):
+		logging.warning('Using threading functions could result in QTLab becoming unstable!')
 
-    calltimer.ThreadCall(qtrun, filepath, name)
+	calltimer.ThreadCall(qtrun, filepath, name)
