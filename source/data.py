@@ -31,9 +31,9 @@ import shutil
 
 from gettext import gettext as _L
 
-from lib import namedlist, temp
-from lib.misc import dict_to_ordered_tuples, get_arg_type
-from lib.config import get_config
+from source.lib import namedlist, temp
+from source.lib.misc import dict_to_ordered_tuples, get_arg_type
+from source.lib.config import get_config
 config = get_config()
 in_qtlab = config.get('qtlab', False)
 #from lib.network.object_sharer import SharedGObject, cache_result
@@ -240,8 +240,8 @@ class Data:
         },
     }
 
-    _META_STEPRE = re.compile('^#.*[ \t](\d+) steps', re.I)
-    _META_COLRE = re.compile('^#.*Column ?(\d+)', re.I)
+    _META_STEPRE = re.compile('^#.*[ \t](\\d+) steps', re.I)
+    _META_COLRE = re.compile('^#.*Column ?(\\d+)', re.I)
     _META_COMMENTRE = re.compile('^#(.*)', re.I)
 
     '''
@@ -459,7 +459,7 @@ class Data:
 
         if 'instrument' in info and 'parameter' in info:
             insname = info['instrument']
-            if type(insname) not in (types.StringType, types.UnicodeType):
+            if type(insname) not in (bytes, str):
                 insname = insname.get_name()
 
             label += ' (%s.%s' % (insname, info['parameter'])
@@ -1144,9 +1144,9 @@ class Data:
         for tagname, metainfo in self._METADATA_INFO.iteritems():
             m = metainfo['re'].match(line)
             if m is not None:
-                if metainfo['type'] == types.FloatType:
+                if metainfo['type'] == float:
                     self._dimensions[colnum][tagname] = float(m.group(1))
-                elif metainfo['type'] == types.IntType:
+                elif metainfo['type'] == int:
                     self._dimensions[colnum][tagname] = int(m.group(1))
                 else:
                     try:
