@@ -3,13 +3,13 @@ import visa
 
 #################################
 # To Do:
-#  - add radians option to reference_phase_shift parameter
-#  - find external_SR540_chopper_phase minval and maxval
-#  - fix the following preset commands
-#     - frequency_preset
-#     - sine_out_amplitude_preset
-#     - sine_out_dc_level_preset
-#    to work with multiple arguments
+#  - Add radians option to reference_phase_shift parameter.
+#  - Find external_SR540_chopper_phase minval and maxval.
+#  - Fix the preset commands
+#     - frequency_preset,
+#     - sine_out_amplitude_preset, and
+#     - sine_out_dc_level_preset,
+#    to work with multiple arguments.
 #################################
 
 class SR860(Instrument):
@@ -67,3 +67,85 @@ class SR860(Instrument):
 
 		# reference functions
 		self.add_function('auto_phase_shift')
+
+	def do_get_timebase_mode(self):
+		"""
+		Queries the current external 10 MHz timebase mode (auto or internal).
+
+		Input:
+			None
+
+		Output:
+			mode (int) : timebase mode
+		"""
+		map = self.get_parameters()['timebase_mode']['format_map']
+		return list(map.keys())[list(map.values()).index(self._visainstrument.query(':TBMODE?').replace('\n', ''))]
+	
+	def do_set_timebase_mode(self, mode):
+		"""
+		Sets the external 10 MHz timebase mode (auto or internal).
+
+		Input:
+			mode (int) : timebase mode
+
+		Output:
+			None
+		"""
+		self._visainstrument.write(':TBMODE {}'.format(self.get_parameters()['timebase_mode']['format_map'][mode]))
+	
+	def do_get_timebase_source(self):
+		"""
+		Queries the current 10 MHz timebase source (external (0) or internal (1)).
+
+		Input:
+			None
+		
+		Output:
+			source (int) : timebase source
+		"""
+		self._visainstrument.query(':TBSTAT?').replace('\n', '')
+	
+	def do_get_reference_phase_shift(self):
+		"""
+		Queries the current reference phase shift.
+
+		Input:
+			None
+		
+		Output:
+			phase_shift (float) : reference phase shift in degrees
+		"""
+		self._visainstrument.query(':PHAS?').replace('\n', '')
+	
+	def do_set_reference_phase_shift(self, phase_shift):
+		"""
+		Sets the reference phase shift.
+
+		Input:
+			phase_shift (float) : reference phase shift in degrees
+		
+		Output:
+			None
+		"""
+		self._visainstrument.write(':PHAS {}'.format(phase_shift))
+	
+	def do_get_frequency(self):
+		"""
+		Queries the current internal frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external frequency.
+		
+		"""
+		self._visainstrument.query(':FREQ?').replace('\n', '')
+	
+	############
+
+	def auto_phase_shift(self):
+		"""
+		Performs the Auto Phase function.
+
+		Input:
+			None
+		
+		Output:
+			None
+		"""
+		self._visainstrument.write(':APHS')

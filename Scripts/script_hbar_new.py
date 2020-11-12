@@ -7,7 +7,7 @@ import numpy as np
 import source.data as d
 import modules.traces as traces
 
-filename = 'test'
+filename = 'VA_485_Ebase_F'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshhold = 200000
@@ -22,7 +22,7 @@ yoko = qt.instruments.get('yoko')
 # device = 0 is keithley1
 # device = 1 is qdac1
 # device = 2 is yoko
-device = 2
+device = 0
 
 V_in = 100e-6
 lockin1.set_amplitude(0.1)
@@ -436,7 +436,18 @@ class Script():
 		qt.msleep(intrasweep_delay)
 
 a = Script()
-a.yoko_gateset(0.5)
-a.yoko_gateset(1)
+#a.yoko_gateset(1)
+#a.yoko_gateset(1)
+start1 = -.83
+end1 = .65
+xstep1 = .01
+#start2 = 0
+#end2 = -1.3
+#xstep2 = 5e-2
+rev = False
 
-a.qdac_1gate(1, 'Midgate', start1, end1, xstep1, rev, threshhold, compliance)
+threshold = 1.5E5
+compliance = 20.0e-6
+ramprate = 1E-2
+
+a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, None, compliance)

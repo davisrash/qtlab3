@@ -400,6 +400,58 @@ class S1():
             
         qt.msleep(delay2)     
         ##### end
+    def record(self,channel, voltage, time0, timestep):
+        
+        
+        print('waiting 30 sec')
+        wait=1
+        
+        #while (wait<10):        #so magnet doesn't time out, we measure it every second
+         #   B_now = magnet.get_fieldZ()
+          #  wait = wait + 1
+           # qt.msleep(delay)
+        
+        qt.mstart()
+        currenttime= time()
+       
+        # Create sweep vectors
+        x_vector = np.arange(0,time0,timestep)
+        y_vector = [0]
+        z_vector = [0]
+        
+        vals = []
+        
+        
+        data = self.create_data(x_vector,'time','x_parameter',y_vector,'none','y_parameter',z_vector,'none','z_parameter')
+        
+        datavalues = self.take_data(x_vector[0])
+        
+        if (keithon==1):
+            a.keithley_gateset(1,voltage)
+        
+        elif (keithon==0):
+            qdac1.rampDCVoltage(channel,voltage)
+        
+        
+        qt.msleep(delay1)
+        
+       
+        
+        t = 0
+        t_offset = time()
+        
+        while(t<time0):
+            tval = time()
+            datavalues = self.take_data(datavalues)                                                                                                 
+            data.add_data_point(t,0,0,datavalues[0],datavalues[1],datavalues[2],datavalues[3],datavalues[4],datavalues[5],datavalues[6],datavalues[7],datavalues[8],datavalues[9],datavalues[10],datavalues[11],datavalues[12],datavalues[13],datavalues[14])
+            qt.msleep(timestep)
+            t = t+timestep
+            
+            vals.append(datavalues[2])
+            
+            
+        data._write_settings_file()                                                                                                             # Overwrite the settings file created at the beginning, this ensures updating the sweep variable with the latest value
+        data.close_file() 
 
 GainK1 = 1                    # Gain for Keithley 1
 GainL1 = 1
@@ -423,21 +475,21 @@ delay1 = 1
 delay2 = 0.1
 
 
-filename = 'VA182_ugrad2'
+filename = 'VA_485_Ebase_F'
 number_gates = 1
 
 a = S1()
 keithon=1       # Keithon = 1 means you are measuring with Keithley
 
-start1 = -4.8
+start1 = -.56
 end1 = 0
-xstep1 = .04
+xstep1 = .01
 #start2 = 0
 #end2 = -1.3
 #xstep2 = 5e-2
 rev = False
 
-threshold = 200000
+threshold = 1.5E5
 compliance = 20.0e-6
 ramprate = 1E-2
 
@@ -446,7 +498,8 @@ ramprate = 1E-2
 print('Voltage 1 is:' )
 print(keithley1.get_voltage())
 #a.keithley_gateset(1,0)
-a.qdac_1gate(1, 'Midgate', start1, end1, xstep1, rev, threshold, compliance)
+a.qdac_1gate(1, 'Gate 23', start1, end1, xstep1, rev, None, compliance)
 #a.keithley_gateset(1,0)
 #a.qdac_2gate(1, 3, 'gate_left', start1, end1, xstep1, 'gate_right', start2, end2, xstep2, threshold, compliance)
+#a.record(1,0,600,delay1)
 

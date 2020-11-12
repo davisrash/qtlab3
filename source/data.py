@@ -38,8 +38,10 @@ config = get_config()
 in_qtlab = config.get('qtlab', False)
 #from lib.network.object_sharer import SharedGObject, cache_result
 
-if in_qtlab:
-    import qt
+#if in_qtlab:
+import qt
+import instrument
+import instruments
 
 # Filename generator classes
 

@@ -8,6 +8,7 @@ import visa
 #     - adds ability for yoko.get_source_delay('MIN') = yoko.get_source_delay_minimum(), etc.
 #  - fix sweep file management parameters/functions
 #  - make save/recall parameters back into functions
+#  - change deprecated string % notation to .format()
 #################################
 
 class Yokogawa_GS610(Instrument):

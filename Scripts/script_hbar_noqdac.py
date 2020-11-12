@@ -731,7 +731,7 @@ delay1 = 2.
 delay2 = 0.01
 
 
-filename = 'VA_485_Ebase_C'
+filename = 'VA_485_Ebase_F'
 number_gates = 1
 
 a = S1()
@@ -783,7 +783,7 @@ a.qdac_1gate(1,'gate_left',start1,end1,xstep1,rev,None,compliance)
 Bramp = .04   #Ramp rate in T/Min
 B_end = .1
 V_Gate = .52
-keithon=1
+keithon = 1
 delay = .7
 tstop = 100000
 
@@ -792,7 +792,7 @@ V_end = -5
 Step = .05
 thresh = 1E5
 
-
+#print('hello')
 a.qdac_1gate(1,'gate_center',V_start,V_end,Step,False,thresh,compliance)
 #a.record(1,0.57,40000,delay)
 #a.Magnet_sweep(2.3,1,0.57,delay,Bramp)
