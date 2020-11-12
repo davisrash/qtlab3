@@ -18,7 +18,7 @@ class SR860(Instrument):
 
 	Usage:
 	Initialize with
-	<name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>', reset=<bool>)
+	<name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>'[, <bool>])
 	"""
 	def __init__(self, name, address, reset=False):
 		"""
@@ -39,7 +39,7 @@ class SR860(Instrument):
 		self.add_parameter('timebase_mode', type=int, flags=Instrument.FLAG_GETSET, minval=0, maxval=1, format_map={0: 'AUTO', 1: 'IN'})
 		self.add_parameter('timebase_source', type=int, flags=Instrument.FLAG_GET, minval=0, maxval=1)
 		self.add_parameter('reference_phase_shift', type=float, flags=Instrument.FLAG_GETSET, minval=-360000, maxval=360000, units='DEG')
-		self.add_parameter('frequency', type=float, flags=Instrument.FLAG_GETSET, minval=1e-3, maxval=500e6, units='HZ')
+		self.add_parameter('reference_frequency', type=float, flags=Instrument.FLAG_GETSET, minval=1e-3, maxval=500e6, units='HZ')
 		self.add_parameter('internal_reference_frequency', type=float, flags=Instrument.FLAG_GETSET, minval=1e-3, maxval=500e6, units='HZ')
 		self.add_parameter('external_reference_frequency', type=float, flags=Instrument.FLAG_GET, minval=1e-3, maxval=500e6, units='HZ')
 		self.add_parameter('detection_frequency', type=float, flags=Instrument.FLAG_GET, minval=1e-3, maxval=500e6, units='HZ')
@@ -129,21 +129,22 @@ class SR860(Instrument):
 		"""
 		self._visainstrument.write(':PHAS {}'.format(phase_shift))
 	
-	def do_get_frequency(self):
+	def do_get_reference_frequency(self):
 		"""
-		Queries the current internal frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external frequency.
+		Queries the current internal reference frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external reference frequency.
 		
 		Input:
 			None
 		
 		Output:
-			frequency (float) : internal or external frequency in hertz
+			frequency (float) : internal or external reference frequency in hertz
 		"""
+		print('Hello')
 		self._visainstrument.query(':FREQ?').replace('\n', '')
 	
-	def do_set_frequency(self, frequency):
+	def do_set_reference_frequency(self, frequency):
 		"""
-		Sets the internal frequency.
+		Sets the internal reference frequency.
 
 		Input:
 			frequency (float) : internal frequency in hertz
@@ -151,6 +152,30 @@ class SR860(Instrument):
 			None
 		"""
 		self._visainstrument.write(':FREQ {}'.format(frequency))
+	
+	def do_get_internal_reference_frequency(self):
+		"""
+		Queries the current internal reference frequency.
+
+		Input:
+			None
+		
+		Output:
+			frequency (float) : internal frequency in hertz
+		"""
+		self._visainstrument.query(':FREQINT?').replace('\n', '')
+	
+	def do_set_internal_reference_frequency(self, frequency):
+		"""
+		Sets the internal reference frequency.
+
+		Input:
+			frequency (float) : internal frequency in hertz
+		
+		Output:
+			None
+		"""
+		self._visainstrument.write(':FREQINT {}'.format(frequency))
 	
 	############
 

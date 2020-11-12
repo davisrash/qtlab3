@@ -41,6 +41,10 @@ keithley1 = qt.instruments.create('keithley1', 'Keithley_2400', address='GPIB::2
 print("Setting up Yokogawa GS610...")
 yoko = qt.instruments.create('yoko', 'Yokogawa_GS610', address='GPIB::1')
 
+# SR860
+print("Setting up SR860...")
+sr860 = qt.instruments.create('sr860', 'SR860', address='GPIB::4')
+
 print('All instruments set up and good to go!')
 
 #b = qdac1.getSerialNumber()
