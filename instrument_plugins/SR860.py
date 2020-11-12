@@ -133,8 +133,24 @@ class SR860(Instrument):
 		"""
 		Queries the current internal frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external frequency.
 		
+		Input:
+			None
+		
+		Output:
+			frequency (float) : internal or external frequency in hertz
 		"""
 		self._visainstrument.query(':FREQ?').replace('\n', '')
+	
+	def do_set_frequency(self, frequency):
+		"""
+		Sets the internal frequency.
+
+		Input:
+			frequency (float) : internal frequency in hertz
+		Output:
+			None
+		"""
+		self._visainstrument.write(':FREQ {}'.format(frequency))
 	
 	############
 
