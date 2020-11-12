@@ -36,7 +36,7 @@ class SR860(Instrument):
 		self._visainstrument = visa.ResourceManager().get_instrument(address)
 
 		# reference parameters
-		self.add_parameter('timebase_mode', type=int, flags=Instrument.FLAG_GETSET, minval=0, maxval=1, format_map={0: 'AUTO', 1: 'IN'})
+		self.add_parameter('timebase_mode', type=int, flags=Instrument.FLAG_GETSET, minval=0, maxval=1)
 		self.add_parameter('timebase_source', type=int, flags=Instrument.FLAG_GET, minval=0, maxval=1)
 		self.add_parameter('reference_phase_shift', type=float, flags=Instrument.FLAG_GETSET, minval=-360000, maxval=360000, units='DEG')
 		self.add_parameter('reference_frequency', type=float, flags=Instrument.FLAG_GETSET, minval=1e-3, maxval=500e6, units='HZ')
@@ -78,8 +78,7 @@ class SR860(Instrument):
 		Output:
 			mode (int) : timebase mode
 		"""
-		map = self.get_parameters()['timebase_mode']['format_map']
-		return list(map.keys())[list(map.values()).index(self._visainstrument.query(':TBMODE?').replace('\n', ''))]
+		return self._visainstrument.query(':TBMODE?').replace('\n', '')
 	
 	def do_set_timebase_mode(self, mode):
 		"""
@@ -91,7 +90,7 @@ class SR860(Instrument):
 		Output:
 			None
 		"""
-		self._visainstrument.write(':TBMODE {}'.format(self.get_parameters()['timebase_mode']['format_map'][mode]))
+		self._visainstrument.write(':TBMODE {}'.format(mode))
 	
 	def do_get_timebase_source(self):
 		"""
@@ -103,7 +102,7 @@ class SR860(Instrument):
 		Output:
 			source (int) : timebase source
 		"""
-		self._visainstrument.query(':TBSTAT?').replace('\n', '')
+		return self._visainstrument.query(':TBSTAT?').replace('\n', '')
 	
 	def do_get_reference_phase_shift(self):
 		"""
@@ -115,7 +114,7 @@ class SR860(Instrument):
 		Output:
 			phase_shift (float) : reference phase shift in degrees
 		"""
-		self._visainstrument.query(':PHAS?').replace('\n', '')
+		return self._visainstrument.query(':PHAS?').replace('\n', '')
 	
 	def do_set_reference_phase_shift(self, phase_shift):
 		"""
@@ -139,8 +138,7 @@ class SR860(Instrument):
 		Output:
 			frequency (float) : internal or external reference frequency in hertz
 		"""
-		print('Hello')
-		self._visainstrument.query(':FREQ?').replace('\n', '')
+		return self._visainstrument.query(':FREQ?').replace('\n', '')
 	
 	def do_set_reference_frequency(self, frequency):
 		"""
@@ -163,7 +161,7 @@ class SR860(Instrument):
 		Output:
 			frequency (float) : internal frequency in hertz
 		"""
-		self._visainstrument.query(':FREQINT?').replace('\n', '')
+		return self._visainstrument.query(':FREQINT?').replace('\n', '')
 	
 	def do_set_internal_reference_frequency(self, frequency):
 		"""
