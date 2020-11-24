@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\physics-svc-laroche\\.conda\\envs\\qtlab3\\python.exe",
+    "python.pythonPath": "C:\\Users\\davis\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
     "python.formatting.provider": "black"
 }
