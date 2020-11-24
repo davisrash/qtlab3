@@ -18,7 +18,9 @@ class SR860(Instrument):
 
 	Usage:
 	Initialize with
-	<name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>'[, <bool>])
+	<name> = qt.instruments.create('<name>', 'SR860',
+								   address='<GPIB address>',
+								   reset=<bool>)
 	"""
 	def __init__(self, name, address, reset=False):
 		"""
