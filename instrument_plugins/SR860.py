@@ -3,8 +3,6 @@ import visa
 
 #################################
 # To Do:
-#  - Add radians option to reference_phase_shift parameter.
-#  - Find external_SR540_chopper_phase minval and maxval.
 #  - Fix the preset commands
 #     - frequency_preset,
 #     - sine_out_amplitude_preset, and
