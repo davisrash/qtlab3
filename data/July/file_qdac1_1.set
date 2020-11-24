@@ -1,0 +1,37 @@
+Filename: file_qdac1_1.dat
+Timestamp: Sun Jul 14 22:22:30 2019
+
+Instrument: lockin1
+	P: 0.456
+	R: 0.000100762
+	X: 0.000100796
+	Y: 8.27018e-07
+	amplitude: 0.098
+	ext_trigger: 0
+	filter_slope: 1
+	frequency: 15.348
+	harmonic: 1
+	in1: None
+	in2: None
+	in3: None
+	in4: None
+	input_config: 1
+	input_coupling: False
+	input_overload: False
+	input_shield: False
+	mode: None
+	notch_filter: 0
+	out1: None
+	out2: None
+	out3: None
+	out4: None
+	output_overload: False
+	phase: 0.0
+	ref_input: True
+	reserve: 2
+	sensitivity: 14
+	sync_filter: False
+	tau: 9
+	time_constant_overload: False
+	unlocked: False
+Instrument: qdac1
