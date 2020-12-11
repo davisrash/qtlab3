@@ -7,7 +7,7 @@ import numpy as np
 import source.data as d
 import modules.traces as traces
 
-filename = 'VA_485_Ebase_F'
+filename = '80nm-SiGe-A'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshhold = 200000
@@ -438,8 +438,8 @@ class Script():
 a = Script()
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
-start1 = -.83
-end1 = .65
+start1 = 0
+end1 = -2
 xstep1 = .01
 #start2 = 0
 #end2 = -1.3
@@ -447,7 +447,7 @@ xstep1 = .01
 rev = False
 
 threshold = 1.5E5
-compliance = 20.0e-6
+compliance = 2e-9
 ramprate = 1E-2
 
 a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, None, compliance)
