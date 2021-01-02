@@ -110,7 +110,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=-5.0, maxval=5.0, units='V')
 
-        # signal commands
+        # signal parameters
         self.add_parameter('signal_input', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
@@ -164,7 +164,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GET,
                            units='HZ')
 
-        # ch1/ch2 output commands
+        # ch1/ch2 output parameters
         self.add_parameter('channel_output', type=(int, int),
                            flags=Instrument.FLAG_GETSET,
                            minval=(0, 0), maxval=(1, 1))
@@ -186,10 +186,32 @@ class SR860(Instrument):
                            minval=(0, 0), maxval=(2, 1))
 
         # aux input and output commands
-        # ...
+        self.add_parameter('aux_input_voltage', type=int,
+                           flags=Instrument.FLAG_GET,
+                           minval=0, maxval=3)
+        self.add_parameter('aux_output_voltage', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, -10.5), maxval=(3, 10.5),
+                           units=('', 'V'))
 
-        # reference functions
-        self.add_function('auto_phase_shift')
+        # display parameters
+        self.add_parameter('front_panel_blanking', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('screen_layout', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=5)
+        self.add_parameter('assign_param_to_channel', type=(int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 0), maxval=(3, 16))
+
+        # auto functions
+        self.add_function('auto_phase')
+        self.add_function('auto_range')
+        self.add_function('auto_scale')
+
+        # display functions
+        self.add_function('screenshot')
 
     def do_get_timebase_mode(self):
         """
@@ -376,7 +398,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 slots (int) : blade slot setting
         """
@@ -388,7 +410,7 @@ class SR860(Instrument):
 
         Input:
                 slots (int) : blade slot setting
-        
+
         Output:
                 None
         """
@@ -550,7 +572,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 gain (int) : current input gain setting
         """
@@ -562,7 +584,7 @@ class SR860(Instrument):
 
         Input:
                 gain (int) : current input gain setting
-        
+
         Output:
                 None
         """
@@ -574,7 +596,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 strength (int) : signal strength indicator
         """
@@ -616,7 +638,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 s (int) : sensitivity setting
         """
@@ -658,7 +680,7 @@ class SR860(Instrument):
 
         Input:
                 s (int) : sensitivity setting
-        
+
         Output:
                 None
         """
@@ -691,10 +713,10 @@ class SR860(Instrument):
         19  3 ks
         20  10 ks
         21  30 ks
-        
+
         Input:
                 None
-        
+
         Output:
                 t (int) : time constant setting
         """
@@ -727,10 +749,10 @@ class SR860(Instrument):
         19  3 ks
         20  10 ks
         21  30 ks
-        
+
         Input:
                 t (int) : time constant setting
-        
+
         Output:
                 None
         """
@@ -747,7 +769,7 @@ class SR860(Instrument):
 
         Input:
                 slope (int) : filter slope setting
-        
+
         Output:
                 None
         """
@@ -757,32 +779,32 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':SYNC?').replace('\n', '')
-    
+
     def do_set_synchronous_filter(self, setting):
         """
         """
         self._visainstrument.write(':SYNC {}'.format(setting))
-    
+
     def do_get_advanced_filter(self):
         """
         """
         return self._visainstrument.query(':ADVFILT?').replace('\n', '')
-    
+
     def do_set_advanced_filter(self, setting):
         """
         """
         self._visainstrument.write(':ADVFILT {}'.format(setting))
-    
+
     def do_get_equivalent_noise_bandwidth(self):
         """
         """
         return self._visainstrument.query(':ENBW?').replace('\n', '')
-    
+
     def do_get_channel_output(self, channel):
         """
         """
         return self._visainstrument.query(':COUT? {}'.format(channel)).replace('\n', '')
-    
+
     def do_set_channel_output(self, channel, output):
         """
         Sets either the Channel 1 for channel == 1 or the Channel 2 for channel == 2 output mode to either rectangular (XY) for output == 0 or polar (Rθ) for output == 1. 
@@ -793,57 +815,72 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':CEXP? {}'.format(axis)).replace('\n', '')
-    
+
     def do_set_output_expand(self, axis, mode):
         """
         """
         self._visainstrument.write(':CEXP {}, {}'.format(axis, mode))
-    
+
     def do_get_output_offset(self, axis):
         """
         """
         return self._visainstrument.query(':COFA? {}'.format(axis)).replace('\n', '')
-    
+
     def do_set_output_offset(self, axis, offset):
         """
         """
         self._visainstrument.write(':COFA {}, {}'.format(axis, offset))
-    
+
     def do_get_output_offset_percentage(self, axis):
         """
         """
         return self._visainstrument.query(':COFP? {}'.format(axis)).replace('\n', '')
-    
+
     def do_set_output_offset_percentage(self, axis, percentage):
         """
         """
         self._visainstrument.write(':COFP {}, {}'.format(axis, percentage))
-    
+
     def do_get_auto_offset(self):
         """
         """
         return self._visainstrument.query(':OAUT?').replace('\n', '')
-    
+
     def do_set_auto_offset(self, axis):
         """
         """
         self._visainstrument.write(':OAUT {}'.format(axis))
-    
+
     def do_get_ratio_function(self, axis):
         """
         """
         return self._visainstrument.query(':CRAT? {}'.format(axis)).replace('\n', '')
-    
+
     def do_set_ratio_function(self, axis, mode):
         """
         """
         self._visainstrument.write(':CRAT {}, {}'.format(axis, mode))
 
-    ############
-
-    def auto_phase_shift(self):
+    def do_get_aux_input_voltage(self):
         """
-        Performs the Auto Phase function. This command is the same as pressing the [Auto Phase] key. The outputs will take many time constants to reach their new values. Do not send the command again without waiting the appropriate amount of time.
+        """
+        return self._visainstrument.query(':OAUX?').replace('\n', '')
+    
+    def do_get_aux_output_voltage(self, output):
+        """
+        """
+        return self._visainstrument.query(':AUXV? {}'.format(output)).replace('\n', '')
+    
+    def do_set_aux_output_voltage(self, output, level):
+        """
+        """
+        self._visainstrument.write(':AUXV {}, {}'.format(output, level))
+    
+
+
+    def auto_phase(self):
+        """
+        Performs the Auto Phase function. This command is the same as pressing the [Auto Phase] key. The outputs may take many time constants to reach their new values. Do not send the command again without waiting the appropriate amount of time.
 
         Input:
                 None
@@ -852,3 +889,27 @@ class SR860(Instrument):
                 None
         """
         self._visainstrument.write(':APHS')
+
+    def auto_range(self):
+        """
+        Performs the Auto Range function. This command is the same as pressing the [Auto Range] key. The outputs may take many time constants to return to their steady-state values.
+
+        Input:
+                None
+        
+        Output:
+                None
+        """
+        self._visainstrument.write(':ARNG')
+    
+    def auto_scale(self):
+        """
+        Performs the Auto Scale function. This command is the same as pressing the [Auto Scale] key. This automatically sets the sensitivity. Measurements with the synchronous filter on or measurements of Xnoise or Ynoise may take many time constants to return to their steady-state values.
+
+        Input:
+                None
+        
+        Output:
+                None
+        """
+        self._visainstrument.write(':ASCL')
