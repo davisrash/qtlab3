@@ -3,6 +3,9 @@ import visa
 
 #################################
 # To Do:
+#  - SR860 Driver almost certainly will fail for functions with multiple arguments. Look into the channels parameter and others in the docstring.
+#  - It may be the case that all do_get and do_set functions should really be _do_get and _do_set.
+#
 #  - Fix the preset commands
 #     - frequency_preset,
 #     - sine_out_amplitude_preset, and
@@ -201,9 +204,15 @@ class SR860(Instrument):
         self.add_parameter('screen_layout', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=5)
-        self.add_parameter('assign_param_to_channel', type=(int, int),
+        self.add_parameter('channel_param', type=(int, int),
                            flags=Instrument.FLAG_GETSET,
                            minval=(0, 0), maxval=(3, 16))
+        self.add_parameter('channel_strip_chart_graph', type=(int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 0), maxval=(3, 1))
+        
+        # strip chart parameters
+        self.add_parameter('')
 
         # auto functions
         self.add_function('auto_phase')
@@ -212,6 +221,7 @@ class SR860(Instrument):
 
         # display functions
         self.add_function('screenshot')
+        #self.add_function('get_screen')
 
     def do_get_timebase_mode(self):
         """
@@ -876,6 +886,46 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':AUXV {}, {}'.format(output, level))
     
+    def do_get_front_panel_blanking(self):
+        """
+        """
+        return self._visainstrument.query(':DBLK?').replace('\n', '')
+    
+    def do_set_front_panel_blanking(self, setting):
+        """
+        """
+        self._visainstrument.write(':DBLK {}'.format(setting))
+    
+    def do_get_screen_layout(self):
+        """
+        """
+        return self._visainstrument.query(':DLAY?').replace('\n', '')
+    
+    def do_set_screen_layout(self, layout):
+        """
+        """
+        self._visainstrument.write(':DLAY {}'.format(layout))
+    
+    def do_get_channel_param(self, channel):
+        """
+        """
+        return self._visainstrument.query(':CDSP? {}'.format(channel)).replace('\n', '')
+    
+    def do_set_channel_param(self, channel, param):
+        """
+        """
+        self._visainstrument.write(':CDSP {}, {}'.format(channel, param))
+    
+    def do_get_channel_strip_chart_graph(self, channel):
+        """
+        """
+        return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
+    
+    def do_set_channel_strip_chart_graph(self, channel, setting):
+        """
+        """
+        self._visainstrument.write(':CGRF {}, {}'.format(channel, setting))
+    
 
 
     def auto_phase(self):
@@ -913,3 +963,10 @@ class SR860(Instrument):
                 None
         """
         self._visainstrument.write(':ASCL')
+    
+    def screenshot(self):
+        """
+        """
+        self._visainstrument.write(':DCAP')
+    
+    #def get_screen(self):
