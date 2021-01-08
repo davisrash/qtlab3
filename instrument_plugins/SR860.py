@@ -11,6 +11,7 @@ import visa
 #     - sine_out_amplitude_preset, and
 #     - sine_out_dc_level_preset,
 #    to work with multiple arguments.
+#  - Change sensible 0/1 commands to True/False and add wrapper to convert.
 #################################
 
 
@@ -212,7 +213,49 @@ class SR860(Instrument):
                            minval=(0, 0), maxval=(3, 1))
         
         # strip chart parameters
-        self.add_parameter('')
+        self.add_parameter('horizontal_time_scale', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=16)
+        self.add_parameter('channel_vertical_scale', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           #minval=(0, 0+), maxval=(3, x)  unknown max
+                           )
+        self.add_parameter('channel_vertical_offset', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           #minval=(0, -x), maxval=(3, x)  unknown range
+                           )
+        self.add_parameter('channel_graph', type=(int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 0), maxval=(3, 1))
+        self.add_parameter('strip_chart', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('strip_chart_cursor_pos', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=639)
+        self.add_parameter('strip_chart_cursor_mode', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('strip_chart_cursor_display_mode', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('strip_chart_cursor_readout_mode', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('strip_chart_cursor_width', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('channel_strip_chart_cursor_value', type=(int, float),
+                           flags=Instrument.FLAG_GET,
+                           #minval=(0, -x), maxval=(4, x)  unknown range
+                           )
+        self.add_parameter('strip_chart_cursor_horizontal_time', type=str,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('strip_chart_cursor_horizontal_pos', type=str,
+                           flags=Instrument.FLAG_GET)
+        
+        # FFT screen parameters
+        # ...
 
         # auto functions
         self.add_function('auto_phase')
@@ -222,6 +265,11 @@ class SR860(Instrument):
         # display functions
         self.add_function('screenshot')
         #self.add_function('get_screen')
+
+        # strip chart functions
+        self.add_function('channel_auto_scale')
+        self.add_function('channel_auto_scale_zero_center')
+        self.add_function('channel_auto_find')
 
     def do_get_timebase_mode(self):
         """
@@ -926,6 +974,120 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':CGRF {}, {}'.format(channel, setting))
     
+    def do_get_horizontal_time_scale(self):
+        """
+        """
+        return self._visainstrument.query(':GSPD?').replace('\n', '')
+    
+    def do_set_horizontal_time_scale(self, scale):
+        """
+        """
+        self._visainstrument.write(':GSPD {}'.format(scale))
+    
+    def do_get_channel_vertical_scale(self, channel):
+        """
+        """
+        return self._visainstrument.query(':GSCL? {}'.format(channel)).replace('\n', '')
+
+    def do_set_channel_vertical_scale(self, channel, scale):
+        """
+        """
+        self._visainstrument.write(':GSCL {}, {}'.format(channel, scale))
+
+    def do_get_channel_vertical_offset(self, channel):
+        """
+        """
+        return self._visainstrument.query(':GOFF? {}'.format(channel)).replace('\n', '')
+    
+    def do_set_channel_vertical_offset(self, channel, offset):
+        """
+        """
+        self._visainstrument.write(':GOFF {}, {}'.format(channel, offset))
+    
+    def do_get_channel_graph(self, channel):
+        """
+        """
+        return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
+    
+    def do_set_channel_graph(self, channel, setting):
+        """
+        """
+        self._visainstrument.write(':CGRF {}, {}'.format(channel, setting))
+    
+    def do_get_strip_chart(self):
+        """
+        """
+        return self._visainstrument.query(':GLIV?').replace('\n', '')
+    
+    def do_set_strip_chart(self, setting):
+        """
+        """
+        self._visainstrument.write(':GLIV {}'.format(setting))
+    
+    def do_get_strip_chart_cursor_pos(self):
+        """
+        """
+        return self._visainstrument.query(':PCUR?').replace('\n', '')
+    
+    def do_set_strip_chart_cursor_pos(self, pos):
+        """
+        """
+        self._visainstrument.write(':PCUR {}'.format(pos))
+    
+    def do_get_strip_chart_cursor_mode(self):
+        """
+        """
+        return self._visainstrument.query(':CURREL?').replace('\n', '')
+    
+    def do_set_strip_chart_cursor_mode(self, mode):
+        """
+        """
+        self._visainstrument.write(':CURREL {}'.format(mode))
+    
+    def do_get_strip_chart_cursor_display_mode(self):
+        """
+        """
+        return self._visainstrument.query(':CURDISP?').replace('\n', '')
+    
+    def do_set_strip_chart_cursor_display_mode(self, mode):
+        """
+        """
+        self._visainstrument.write(':CURDISP {}'.format(mode))
+    
+    def do_get_strip_chart_cursor_readout_mode(self):
+        """
+        """
+        return self._visainstrument.query(':CURBUG?').replace('\n', '')
+    
+    def do_set_strip_chart_cursor_readout_mode(self, mode):
+        """
+        """
+        self._visainstrument.write(':CURBUG {}'.format(mode))
+    
+    def do_get_strip_chart_cursor_width(self):
+        """
+        """
+        return self._visainstrument.query(':FCRW?').replace('\n', '')
+    
+    def do_set_strip_chart_cursor_width(self, width):
+        """
+        """
+        self._visainstrument.write(':FCRW {}'.format(width))
+    
+    def do_get_channel_strip_chart_cursor_value(self, channel):
+        """
+        """
+        return self._visainstrument.query(':SCRY? {}'.format(channel)).replace('\n', '')
+    
+    def do_get_strip_chart_cursor_horizontal_time(self):
+        """
+        """
+        return self._visainstrument.query(':CURDATTIM?').replace('\n', '')
+    
+    def do_get_strip_chart_cursor_horizontal_pos(self):
+        """
+        """
+        return self._visainstrument.query(':CURINTERVAL?').replace('\n', '')
 
 
     def auto_phase(self):
@@ -970,3 +1132,21 @@ class SR860(Instrument):
         self._visainstrument.write(':DCAP')
     
     #def get_screen(self):
+        """
+        """
+        # ...
+    
+    def channel_auto_scale(self, channel):
+        """
+        """
+        self._visainstrument.write(':GAUT {}'.format(channel))
+    
+    def channel_auto_scale_zero_center(self, channel):
+        """
+        """
+        self._visainstrument.write(':GACT {}'.format(channel))
+    
+    def channel_auto_find(self, channel):
+        """
+        """
+        self._visainstrument.write(':GAUF {}'.format(channel))
