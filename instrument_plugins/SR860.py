@@ -285,7 +285,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GET,
                            #minval=?, maxval=?,  unknown range
                            units='HZ')
-        self.add_parameter('FFT_cursor_amplitude',
+        self.add_parameter('FFT_cursor_amp',
                            #type=float,  unknown if float or int
                            flags=Instrument.FLAG_GET,
                            #minval=0, maxval=0  unknown range
@@ -293,7 +293,54 @@ class SR860(Instrument):
                            )
         
         # scan parameters
-        # ...
+        self.add_parameter('scan_param', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=4)
+        self.add_parameter('scan_type', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('scan_end_mode', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('scan_time', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           #minval=0,  minval unknown
+                           maxval=1728000)
+        self.add_parameter('scan_out_attenuator_op_mode_sine_out_amp',
+                           type=int, flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('scan_out_attenuator_op_mode_dc_level',
+                           type=int, flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('scan_param_update_interval', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=16)
+        self.add_parameter('scan_enabled', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('scan_state', type=int,
+                           flags=Instrument.FLAG_GET,
+                           minval=0, maxval=4)
+        self.add_parameter('scan_freq', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 1e-3), maxval=(1, 500e3),
+                           units='HZ')
+        self.add_parameter('scan_amp', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 1e-9), maxval=(1, 2),
+                           units='V')
+        self.add_parameter('scan_ref_dc_level', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, -5), maxval=(1, 5),
+                           units='V')
+        self.add_parameter('scan_aux_out_1_level', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, -10.5), maxval=(1, 10.5),
+                           units='V')
+        self.add_parameter('scan_aux_out_2_level', type=(int, float),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, -10.5), maxval=(1, 10.5),
+                           units='V')
 
         # auto functions
         self.add_function('auto_phase')
@@ -311,6 +358,11 @@ class SR860(Instrument):
 
         # FFT functions
         self.add_function('FFT_auto_scale')
+
+        # scan functions
+        self.add_function('start_scan')
+        self.add_function('pause_scan')
+        self.add_function('reset_scan')
 
     def do_get_timebase_mode(self):
         """
@@ -1215,12 +1267,145 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':FCRX {}'.format(frequency))
     
-    def do_get_FFT_cursor_amplitude(self):
+    def do_get_FFT_cursor_amp(self):
         """
         """
         return self._visainstrument.query(':FCRY?').replace('\n', '')
 
-    # ...
+    def do_get_scan_param(self):
+        """
+        """
+        return self._visainstrument.query(':SCNPAR?').replace('\n', '')
+    
+    def do_set_scan_param(self, param):
+        """
+        """
+        self._visainstrument.write(':SCNPAR {}'.format(param))
+    
+    def do_get_scan_type(self):
+        """
+        """
+        return self._visainstrument.query(':SCNLOG?').replace('\n', '')
+    
+    def do_set_scan_type(self, setting):
+        """
+        """
+        self._visainstrument.write(':SCNLOG {}'.format(setting))
+    
+    def do_get_scan_end_mode(self):
+        """
+        """
+        return self._visainstrument.query(':SCNEND?').replace('\n', '')
+    
+    def do_set_scan_end_mode(self, mode):
+        """
+        """
+        self._visainstrument.write(':SCNEND {}'.format(mode))
+    
+    def do_get_scan_time(self):
+        """
+        """
+        return self._visainstrument.query(':SCNSEC?').replace('\n', '')
+    
+    def do_set_scan_time(self, time):
+        """
+        """
+        self._visainstrument.write(':SCNSEC {}'.format(time))
+    
+    def do_get_scan_out_attenuator_op_mode_sine_out_amp(self):
+        """
+        """
+        return self._visainstrument.query(':SCNAMPATTN?').replace('\n', '')
+    
+    def do_set_scan_out_attenuator_op_mode_sine_out_amp(self, mode):
+        """
+        """
+        self._visainstrument.write(':SCNAMPATTN {}'.format(mode))
+    
+    def do_get_scan_out_attenuator_op_mode_dc_level(self):
+        """
+        """
+        return self._visainstrument.query(':SCNDCATTN?').replace('\n', '')
+    
+    def do_set_scan_out_attenuator_op_mode_dc_level(self, mode):
+        """
+        """
+        self._visainstrument.query(':SCNDCATTN {}'.format(mode))
+    
+    def do_get_scan_param_update_interval(self):
+        """
+        """
+        return self._visainstrument.query(':SCNINRVL?').replace('\n', '')
+    
+    def do_set_scan_param_update_interval(self, interval):
+        """
+        """
+        self._visainstrument.write(':SCNINRVL {}'.format(interval))
+    
+    def do_get_scan_enabled(self):
+        """
+        """
+        return self._visainstrument.query(':SCNENBL?').replace('\n', '')
+    
+    def do_set_scan_enabled(self, enabled):
+        """
+        """
+        self._visainstrument.write(':SCNENBL {}'.format(enabled))
+    
+    def do_get_scan_state(self):
+        """
+        """
+        return self._visainstrument.query(':SCNSTATE?').replace('\n', '')
+    
+    def do_get_scan_freq(self):
+        """
+        """
+        return self._visainstrument.query(':SCNFREQ?').replace('\n', '')
+    
+    def do_set_scan_freq(self, freq):
+        """
+        """
+        self._visainstrument.write(':SCNFREQ {}'.format(freq))
+    
+    def do_get_scan_amp(self):
+        """
+        """
+        return self._visainstrument.query(':SCNAMP?').replace('\n', '')
+    
+    def do_set_scan_amp(self, amp):
+        """
+        """
+        self._visainstrument.write(':SCNAMP {}'.format(amp))
+    
+    def do_get_scan_ref_dc_level(self):
+        """
+        """
+        return self._visainstrument.query(':SCNDC?').replace('\n', '')
+    
+    def do_set_scan_ref_dc_level(self, level):
+        """
+        """
+        self._visainstrument.write(':SCNDC {}'.format(level))
+    
+    def do_get_scan_aux_out_1_level(self):
+        """
+        """
+        return self._visainstrument.query(':SCNAUX1?').replace('\n', '')
+    
+    def do_set_scan_aux_out_1_level(self, level):
+        """
+        """
+        self._visainstrument.write(':SCNAUX1 {}'.format(level))
+    
+    def do_get_scan_aux_out_2_level(self):
+        """
+        """
+        return self._visainstrument.query(':SCNAUX2?').replace('\n', '')
+    
+    def do_set_scan_aux_out_2_level(self, level):
+        """
+        """
+        self._visainstrument.write(':SCNAUX2 {}'.format(level))
 
     def auto_phase(self):
         """
@@ -1287,3 +1472,18 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':FAUT')
+    
+    def start_scan(self):
+        """
+        """
+        self._visainstrument.write(':SCNRUN')
+    
+    def pause_scan(self):
+        """
+        """
+        self._visainstrument.write(':SCNPAUSE')
+    
+    def reset_scan(self):
+        """
+        """
+        self._visainstrument.write(':SCNRST')
