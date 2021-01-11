@@ -255,6 +255,44 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GET)
         
         # FFT screen parameters
+        self.add_parameter('FFT_source', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('FFT_vertical_scale', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=-20, maxval=20)
+        self.add_parameter('FFT_vertical_offset', type=float,
+                           flags=Instrument.FLAG_GETSET,
+                           #minval=?, maxval=?  unknown range
+                           )
+        self.add_parameter('FFT_max_span', type=float,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('FFT_span', type=float,
+                           flags=Instrument.FLAG_GETSET,
+                           #minval=?,  unknown min
+                           maxval=float(self.do_get_FFT_max_span()))
+        self.add_parameter('FFT_averaging', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=4)
+        self.add_parameter('FFT_graph', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('FFT_cursor_width', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('FFT_cursor_frequency',
+                           #type=float,  unknown if float or int
+                           flags=Instrument.FLAG_GET,
+                           #minval=?, maxval=?,  unknown range
+                           units='HZ')
+        self.add_parameter('FFT_cursor_amplitude',
+                           #type=float,  unknown if float or int
+                           flags=Instrument.FLAG_GET,
+                           #minval=0, maxval=0  unknown range
+                           #units='DB'  valid unit? necessary?
+                           )
+        
+        # scan parameters
         # ...
 
         # auto functions
@@ -270,6 +308,9 @@ class SR860(Instrument):
         self.add_function('channel_auto_scale')
         self.add_function('channel_auto_scale_zero_center')
         self.add_function('channel_auto_find')
+
+        # FFT functions
+        self.add_function('FFT_auto_scale')
 
     def do_get_timebase_mode(self):
         """
@@ -1089,6 +1130,97 @@ class SR860(Instrument):
         """
         return self._visainstrument.query(':CURINTERVAL?').replace('\n', '')
 
+    def do_get_FFT_source(self):
+        """
+        """
+        return self._visainstrument.query(':FFTR?').replace('\n', '')
+
+    def do_set_FFT_source(self, source):
+        """
+        """
+        self._visainstrument.write(':FFTR {}'.format(source))
+    
+    def do_get_FFT_vertical_scale(self):
+        """
+        """
+        return self._visainstrument.query(':FFTS?').replace('\n', '')
+    
+    def do_set_FFT_vertical_scale(self, scale):
+        """
+        """
+        self._visainstrument.write(':FFTS {}'.format(scale))
+
+    def do_get_FFT_vertical_offset(self):
+        """
+        """
+        return self._visainstrument.query(':FFTO?').replace('\n', '')
+
+    def do_set_FFT_vertical_offset(self, offset):
+        """
+        """
+        self._visainstrument.write(':FFTO {}'.format(offset))
+    
+    def do_get_FFT_max_span(self):
+        """
+        """
+        return self._visainstrument.query(':FFTMAXSPAN?').replace('\n', '')
+    
+    def do_get_FFT_span(self):
+        """
+        """
+        return self._visainstrument.query(':FFTSPAN?').replace('\n', '')
+    
+    def do_set_FFT_span(self, span):
+        """
+        """
+        self._visainstrument.write(':FFTSPAN {}'.format(span))
+    
+    def do_get_FFT_averaging(self):
+        """
+        """
+        return self._visainstrument.query(':FFTA?').replace('\n', '')
+    
+    def do_set_FFT_averaging(self, averaging):
+        """
+        """
+        self._visainstrument.write(':FFTA {}'.format(averaging))
+    
+    def do_get_FFT_graph(self):
+        """
+        """
+        return self._visainstrument.query(':FFTL?').replace('\n', '')
+    
+    def do_set_FFT_graph(self, paused):
+        """
+        """
+        self._visainstrument.write(':FFTL {}'.format(paused))
+    
+    def do_get_FFT_cursor_width(self):
+        """
+        """
+        return self._visainstrument.query(':FCRW?').replace('\n', '')
+
+    def do_set_FFT_cursor_width(self, width):
+        """
+        """
+        self._visainstrument.write(':FCRW {}'.format(width))
+    
+    def do_get_FFT_cursor_frequency(self):
+        """
+        """
+        return self._visainstrument.query(':FCRX?').replace('\n', '')
+    
+    def do_set_FFT_cursor_frequency(self, frequency):
+        """
+        """
+        self._visainstrument.write(':FCRX {}'.format(frequency))
+    
+    def do_get_FFT_cursor_amplitude(self):
+        """
+        """
+        return self._visainstrument.query(':FCRY?').replace('\n', '')
+
+    # ...
 
     def auto_phase(self):
         """
@@ -1150,3 +1282,8 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':GAUF {}'.format(channel))
+    
+    def FFT_auto_scale(self):
+        """
+        """
+        self._visainstrument.write(':FAUT')
