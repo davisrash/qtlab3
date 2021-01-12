@@ -364,6 +364,12 @@ class SR860(Instrument):
         self.add_function('pause_scan')
         self.add_function('reset_scan')
 
+        # data transfer functions
+        self.add_function('get_channel_val')
+        self.add_function('get_param')
+        self.add_function('get_multi_params')
+        self.add_function('get_data_params')
+
     def do_get_timebase_mode(self):
         """
         Queries the current external timebase mode at 10 MHz. Returns either auto (0) or internal (1).
@@ -1487,3 +1493,24 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':SCNRST')
+
+    def get_channel_val(self, channel):
+        """
+        """
+        return self._visainstrument.query(':OUTR? {}'.format(channel)).replace('\n', '')
+    
+    def get_param(self, param):
+        """
+        """
+        return self._visainstrument.query(':OUTP? {}'.format(param)).replace('\n', '')
+    
+    def get_multi_params(self, param1, param2, param3=None):
+        """
+        """
+        return self._visainstrument.query(':SNAP? {}, {}, {}'.format(param1, param2, param3)).replace('\n', '')
+    
+    def get_data_params(self):
+        """
+        """
+        return self._visainstrument.query(':SNAPD?').replace('\n', '')
+
