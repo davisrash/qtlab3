@@ -24,7 +24,7 @@ class SR860(Instrument):
     <name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>', reset=<bool>)
     """
 
-    def __init__(self, name, address, reset=False):
+    def __init__(self, name: str, address: str, reset=False):
         """
         Initializes the SR860.
 
@@ -342,6 +342,29 @@ class SR860(Instrument):
                            minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
 
+        # data capture commands
+        self.add_parameter('capture_length', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=1, maxval=4096)
+        self.add_parameter('capture_config', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=3)
+        self.add_parameter('capture_rate_max', type=int,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('capture_rate', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=20)
+        self.add_parameter('capture_state', type=int,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('num_bytes_captured', type=int,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('num_kbytes_written', type=float,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('capture_buffer_ascii', type=int,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('capture_buffer_bin', type=(int, int),
+                           flags=Instrument.FLAG_GET)
+
         # auto functions
         self.add_function('auto_phase')
         self.add_function('auto_range')
@@ -369,6 +392,10 @@ class SR860(Instrument):
         self.add_function('get_param')
         self.add_function('get_multi_params')
         self.add_function('get_data_params')
+
+        # data capture functions
+        self.add_function('start_capture')
+        self.add_function('stop_capture')
 
     def do_get_timebase_mode(self):
         """
@@ -1412,6 +1439,66 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':SCNAUX2 {}'.format(level))
+    
+    def do_get_capture_length(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTURELEN?').replace('\n', '')
+    
+    def do_set_capture_length(self, length):
+        """
+        """
+        self._visainstrument.write(':CAPTURELEN {}'.format(length))
+    
+    def do_get_capture_config(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTURECFG?').replace('\n', '')
+    
+    def do_set_capture_config(self, config):
+        """
+        """
+        self._visainstrument.write(':CAPTURECFG {}'.format(config))
+    
+    def do_get_capture_rate_max(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTURERATEMAX?').replace('\n', '')
+    
+    def do_get_capture_rate(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTURERATE?').replace('\n', '')
+    
+    def do_set_capture_rate(self, rate):
+        """
+        """
+        self._visainstrument.write(':CAPTURERATE {}'.format(rate))
+
+    def do_get_capture_state(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTURESTAT?').replace('\n', '')
+    
+    def do_get_num_bytes_captured(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTUREBYTES?').replace('\n', '')
+    
+    def do_get_num_kbytes_written(self):
+        """
+        """
+        return self._visainstrument.query(':CAPTUREPROG?').replace('\n', '')
+    
+    def do_get_capture_buffer_ascii(self, pos):
+        """
+        """
+        return self._visainstrument.query(':CAPTUREVAL? {}'.format(pos)).replace('\n', '')
+    
+    def do_get_capture_buffer_bin(self, offset, length):
+        """
+        """
+        return self._visainstrument.query(':CAPTUREGET? {}, {}'.format(offset, length)).replace('\n', '')
 
     def auto_phase(self):
         """
@@ -1514,3 +1601,12 @@ class SR860(Instrument):
         """
         return self._visainstrument.query(':SNAPD?').replace('\n', '')
 
+    def start_capture(self, acquisition, start):
+        """
+        """
+        self._visainstrument.write(':CAPTURESTART {}, {}'.format(acquisition, start))
+    
+    def stop_capture(self):
+        """
+        """
+        self._visainstrument.write(':CAPTURESTOP')
