@@ -431,6 +431,44 @@ class SR860(Instrument):
         self.add_parameter('GPIB_override_remote', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1)
+        
+        # status reporting parameters
+        self.add_parameter('standard_event_enable_register',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0 | (0, 0), maxval=255 | (1, 7))
+        self.add_parameter('standard_event_status_byte', type=int,
+                           flags=Instrument.FLAG_GET,
+                           minval=0, maxval=255)
+        self.add_parameter('serial_poll_enable_register',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0 | (0, 0), maxval=255 | (1, 7))
+        self.add_parameter('serial_poll_status_byte', type=int,
+                           flags=Instrument.FLAG_GET,
+                           minval=0, maxval=255)
+        self.add_parameter('power_on_status_clear_bit', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('error_status_enable_register',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0 | (0, 0), maxval=255 | (1, 7))
+        self.add_parameter('error_status_byte',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GET,
+                           minval=0 | (0, 0), maxval=255 | (1, 7))
+        self.add_parameter('LIA_status_enable_register',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0 | (0, 0), maxval=4095 | (1, 11))
+        self.add_parameter('LIA_status_word',
+                           type=int | (int, int),
+                           flags=Instrument.FLAG_GET,
+                           minval=0 | (0, 0), maxval=4095 | (1, 11))
+        self.add_parameter('overload_states', type=int,
+                           flags=Instrument.FLAG_GET,
+                           minval=0, maxval=4095)
 
         # auto functions
         self.add_function('auto_phase')
@@ -471,6 +509,9 @@ class SR860(Instrument):
         # interface functions
         self.add_function('reset')
         self.add_function('test')
+
+        # status reporting functions
+        self.add_function('clear')
 
     def do_get_timebase_mode(self):
         """
@@ -1773,6 +1814,81 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':OVRM {}'.format(override))
+    
+    def do_get_standard_event_enable_register(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':*ESE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESE?').replace('\n', '')
+    
+    def do_set_standard_event_enable_register(self, value, bit=None):
+        """
+        """
+        self._visainstrument.write(':*ESE {}, {}'.format(value, bit)) if bit is not None else self._visainstrument.write(':*ESE {}'.format(value))
+    
+    def do_get_standard_event_status_byte(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':*ESR? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESR?').replace('\n', '')
+    
+    def do_get_serial_poll_enable_register(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':*SRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*SRE?').replace('\n', '')
+    
+    def do_set_serial_poll_enable_register(self, value, bit=None):
+        """
+        """
+        self._visainstrument.write(':*SRE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':*SRE {}'.format(value))
+    
+    def do_get_serial_poll_status_byte(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':*STB? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*STB?').replace('\n', '')
+    
+    def do_get_power_on_status_clear_bit(self):
+        """
+        """
+        return self._visainstrument.query(':*PSC?').replace('\n', '')
+    
+    def do_set_power_on_status_clear_bit(self, bit):
+        """
+        """
+        self._visainstrument.write(':*PSC {}'.format(bit))
+    
+    def do_get_error_status_enable_register(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':ERRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRE?').replace('\n', '')
+    
+    def do_set_error_status_enable_register(self, value, bit=None):
+        """
+        """
+        self._visainstrument.write(':ERRE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':ERRE {}'.format(value))
+    
+    def do_get_error_status_byte(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':ERRS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRS?').replace('\n', '')
+    
+    def do_get_LIA_status_enable_register(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':LIAE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAE?').replace('\n', '')
+    
+    def do_set_LIA_status_enable_register(self, value, bit=None):
+        """
+        """
+        self._visainstrument.write(':LIAE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':LIAE {}'.format(value))
+    
+    def do_get_LIA_status_word(self, bit=None):
+        """
+        """
+        return self._visainstrument.query(':LIAS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAS?').replace('\n', '')
+    
+    def do_get_overload_states(self):
+        """
+        """
+        return self._visainstrument.query(':CUROVLDSTAT?').replace('\n', '')
 
     def auto_phase(self):
         """
@@ -1901,3 +2017,8 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':*TST?').replace('\n', '')
+    
+    def clear(self):
+        """
+        """
+        self._visainstrument.write(':*CLS')
