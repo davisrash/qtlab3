@@ -391,7 +391,46 @@ class SR860(Instrument):
                            minval=0, maxval=1)
 
         # system parameters
-        # ...
+        self.add_parameter('time', type=(int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 0), maxval=(1, 59) | (2, 23))
+        self.add_parameter('date', type=(int, int),
+                           flags=Instrument.FLAG_GETSET,
+                           minval=(0, 0),
+                           maxval=(0, 31) | (1, 12) | (2, 99))
+        #self.add_parameter('') tbmode move from earlier
+        #self.add_parameter('') tbstat
+        self.add_parameter('BlazeX_output', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('sounds', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('screenshot_mode', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('data_file_format', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('filename_prefix', type=str,
+                           flags=Instrument.FLAG_GETSET)
+        self.add_parameter('filename_suffix', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0)
+        self.add_parameter('next_filename', type=str,
+                           flags=Instrument.FLAG_GET)
+
+        # interface parameters
+        self.add_parameter('identification', type=str,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('op_complete_bit', type=int,
+                           flags=Instrument.FLAG_GETSET)
+        self.add_parameter('local_remote', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=2)
+        self.add_parameter('GPIB_override_remote', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
 
         # auto functions
         self.add_function('auto_phase')
@@ -424,6 +463,14 @@ class SR860(Instrument):
         # data capture functions
         self.add_function('start_capture')
         self.add_function('stop_capture')
+
+        # system functions
+        #self.add_function('screenshot')
+        self.add_function('save_data')
+
+        # interface functions
+        self.add_function('reset')
+        self.add_function('test')
 
     def do_get_timebase_mode(self):
         """
@@ -1602,6 +1649,130 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':STREAM {}'.format(enabled))
+    
+    def do_get_time(self):
+        """
+        """
+        return self._visainstrument.query(':TIME?').replace('\n', '')
+    
+    def do_set_time(self, setting, time):
+        """
+        """
+        self._visainstrument.write(':TIME {}, {}'.format(setting, time))
+    
+    def do_get_date(self):
+        """
+        """
+        return self._visainstrument.query(':DATE?').replace('\n', '')
+    
+    def do_set_date(self, setting, time):
+        """
+        """
+        self._visainstrument.write(':DATE {}, {}'.format(setting, time))
+    
+    #def do_get_timebase_mode
+    #def do_set_timebase_mode
+    #def do_get_timebase_source
+
+    def do_get_BlazeX_output(self):
+        """
+        """
+        return self._visainstrument.query(':BLAZEX?').replace('\n', '')
+    
+    def do_set_BlazeX_output(self, setting):
+        """
+        """
+        self._visainstrument.write(':BLAZEX {}'.format(setting))
+    
+    def do_get_sounds(self):
+        """
+        """
+        return self._visainstrument.query(':KEYC?').replace('\n', '')
+    
+    def do_set_sounds(self, setting):
+        """
+        """
+        self._visainstrument.write(':KEYC {}'.format(setting))
+    
+    def do_get_screenshot_mode(self):
+        """
+        """
+        return self._visainstrument.query(':PRMD?').replace('\n', '')
+    
+    def do_set_screenshot_mode(self, mode):
+        """
+        """
+        self._visainstrument.write(':PRMD {}'.format(mode))
+    
+    def do_get_data_file_format(self):
+        """
+        """
+        return self._visainstrument.query(':SDFM?').replace('\n', '')
+    
+    def do_set_data_file_format(self, fmt):
+        """
+        """
+        self._visainstrument.write(':SDFM {}'.format(fmt))
+    
+    def do_get_filename_prefix(self):
+        """
+        """
+        return self._visainstrument.query(':FBAS?').replace('\n', '')
+    
+    def do_set_filename_prefix(self, prefix):
+        """
+        """
+        self._visainstrument.write(':FBAS {}'.format(prefix))
+    
+    def do_get_filename_suffix(self):
+        """
+        """
+        return self._visainstrument.query(':FNUM?').replace('\n', '')
+    
+    def do_set_filename_suffix(self, suffix):
+        """
+        """
+        self._visainstrument.write(':FNUM {}'.format(suffix))
+    
+    def do_get_next_filename(self):
+        """
+        """
+        return self._visainstrument.query(':FNXT?').replace('\n', '')
+    
+    def do_get_identification(self):
+        """
+        """
+        return self._visainstrument.query(':*IDN?').replace('\n', '')
+    
+    def do_get_op_complete_bit(self):
+        """
+        """
+        return self._visainstrument.query(':*OPC?').replace('\n', '')
+    
+    def do_set_op_complete_bit(self, bit):
+        """
+        """
+        self._visainstrument.write(':*OPC {}'.format(bit))
+    
+    def do_get_local_remote(self):
+        """
+        """
+        return self._visainstrument.query(':LOCL?').replace('\n', '')
+    
+    def do_set_local_remote(self, mode):
+        """
+        """
+        self._visainstrument.write(':LOCL {}'.format(mode))
+    
+    def do_get_GPIB_override_remote(self):
+        """
+        """
+        return self._visainstrument.query(':OVRM?').replace('\n', '')
+    
+    def do_set_GPIB_override_remote(self, override):
+        """
+        """
+        self._visainstrument.write(':OVRM {}'.format(override))
 
     def auto_phase(self):
         """
@@ -1713,3 +1884,20 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':CAPTURESTOP')
+
+    #def screenshot(self):
+
+    def save_data(self):
+        """
+        """
+        self._visainstrument.write(':SVDT')
+    
+    def reset(self):
+        """
+        """
+        self._visainstrument.write(':*RST')
+    
+    def test(self):
+        """
+        """
+        return self._visainstrument.query(':*TST?').replace('\n', '')
