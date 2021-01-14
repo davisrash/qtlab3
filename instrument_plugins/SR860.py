@@ -365,6 +365,34 @@ class SR860(Instrument):
         self.add_parameter('capture_buffer_bin', type=(int, int),
                            flags=Instrument.FLAG_GET)
 
+        # data streaming parameters
+        self.add_parameter('stream_config', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=3)
+        self.add_parameter('stream_rate_max', type=int,
+                           flags=Instrument.FLAG_GET)
+        self.add_parameter('stream_rate', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=20)
+        self.add_parameter('stream_format', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('stream_packet_size', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('stream_port', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('stream_option', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+        self.add_parameter('stream_enabled', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           minval=0, maxval=1)
+
+        # system parameters
+        # ...
+
         # auto functions
         self.add_function('auto_phase')
         self.add_function('auto_range')
@@ -1499,6 +1527,81 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':CAPTUREGET? {}, {}'.format(offset, length)).replace('\n', '')
+    
+    def do_get_stream_config(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMCH?').replace('\n', '')
+    
+    def do_set_stream_config(self, config):
+        """
+        """
+        self._visainstrument.write(':STREAMCH {}'.format(config))
+    
+    def do_get_stream_rate_max(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMRATEMAX?').replace('\n', '')
+    
+    def do_get_stream_rate(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMRATE?').replace('\n', '')
+    
+    def do_set_stream_rate(self, rate):
+        """
+        """
+        self._visainstrument.write(':STREAMRATE {}'.format(rate))
+    
+    def do_get_stream_format(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMFMT?').replace('\n', '')
+    
+    def do_set_stream_format(self, fmt):
+        """
+        """
+        self._visainstrument.write(':STREAMFMT {}'.format(fmt))
+    
+    def do_get_stream_packet_size(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMPCKT?').replace('\n', '')
+    
+    def do_set_stream_packet_size(self, size):
+        """
+        """
+        self._visainstrument.write(':STREAMPCKT {}'.format(size))
+    
+    def do_get_stream_port(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMPORT?').replace('\n', '')
+    
+    def do_set_stream_port(self, port):
+        """
+        """
+        self._visainstrument.write(':STREAMPORT {}'.format(port))
+    
+    def do_get_stream_option(self):
+        """
+        """
+        return self._visainstrument.query(':STREAMOPTION?').replace('\n', '')
+    
+    def do_set_stream_option(self, option):
+        """
+        """
+        self._visainstrument.write(':STREAMOPTION {}'.format(option))
+    
+    def do_get_stream_enabled(self):
+        """
+        """
+        return self._visainstrument.query(':STREAM?').replace('\n', '')
+    
+    def do_set_stream_enabled(self, enabled):
+        """
+        """
+        self._visainstrument.write(':STREAM {}'.format(enabled))
 
     def auto_phase(self):
         """
