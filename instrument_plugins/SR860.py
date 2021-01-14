@@ -211,18 +211,18 @@ class SR860(Instrument):
         self.add_parameter('channel_strip_chart_graph', type=(int, int),
                            flags=Instrument.FLAG_GETSET,
                            minval=(0, 0), maxval=(3, 1))
-        
+
         # strip chart parameters
         self.add_parameter('horizontal_time_scale', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=16)
         self.add_parameter('channel_vertical_scale', type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0+), maxval=(3, x)  unknown max
+                           # minval=(0, 0+), maxval=(3, x)  unknown max
                            )
         self.add_parameter('channel_vertical_offset', type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -x), maxval=(3, x)  unknown range
+                           # minval=(0, -x), maxval=(3, x)  unknown range
                            )
         self.add_parameter('channel_graph', type=(int, int),
                            flags=Instrument.FLAG_GETSET,
@@ -247,13 +247,13 @@ class SR860(Instrument):
                            minval=0, maxval=2)
         self.add_parameter('channel_strip_chart_cursor_value', type=(int, float),
                            flags=Instrument.FLAG_GET,
-                           #minval=(0, -x), maxval=(4, x)  unknown range
+                           # minval=(0, -x), maxval=(4, x)  unknown range
                            )
         self.add_parameter('strip_chart_cursor_horizontal_time', type=str,
                            flags=Instrument.FLAG_GET)
         self.add_parameter('strip_chart_cursor_horizontal_pos', type=str,
                            flags=Instrument.FLAG_GET)
-        
+
         # FFT screen parameters
         self.add_parameter('FFT_source', type=int,
                            flags=Instrument.FLAG_GETSET,
@@ -263,13 +263,13 @@ class SR860(Instrument):
                            minval=-20, maxval=20)
         self.add_parameter('FFT_vertical_offset', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           #minval=?, maxval=?  unknown range
+                           # minval=?, maxval=?  unknown range
                            )
         self.add_parameter('FFT_max_span', type=float,
                            flags=Instrument.FLAG_GET)
         self.add_parameter('FFT_span', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           #minval=?,  unknown min
+                           # minval=?,  unknown min
                            maxval=float(self.do_get_FFT_max_span()))
         self.add_parameter('FFT_averaging', type=int,
                            flags=Instrument.FLAG_GETSET,
@@ -281,17 +281,17 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=2)
         self.add_parameter('FFT_cursor_frequency',
-                           #type=float,  unknown if float or int
+                           # type=float,  unknown if float or int
                            flags=Instrument.FLAG_GET,
-                           #minval=?, maxval=?,  unknown range
+                           # minval=?, maxval=?,  unknown range
                            units='HZ')
         self.add_parameter('FFT_cursor_amp',
-                           #type=float,  unknown if float or int
+                           # type=float,  unknown if float or int
                            flags=Instrument.FLAG_GET,
-                           #minval=0, maxval=0  unknown range
-                           #units='DB'  valid unit? necessary?
+                           # minval=0, maxval=0  unknown range
+                           # units='DB'  valid unit? necessary?
                            )
-        
+
         # scan parameters
         self.add_parameter('scan_param', type=int,
                            flags=Instrument.FLAG_GETSET,
@@ -304,7 +304,7 @@ class SR860(Instrument):
                            minval=0, maxval=2)
         self.add_parameter('scan_time', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           #minval=0,  minval unknown
+                           # minval=0,  minval unknown
                            maxval=1728000)
         self.add_parameter('scan_out_attenuator_op_mode_sine_out_amp',
                            type=int, flags=Instrument.FLAG_GETSET,
@@ -398,8 +398,8 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=(0, 0),
                            maxval=(0, 31) | (1, 12) | (2, 99))
-        #self.add_parameter('') tbmode move from earlier
-        #self.add_parameter('') tbstat
+        # self.add_parameter('') tbmode move from earlier
+        # self.add_parameter('') tbstat
         self.add_parameter('BlazeX_output', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=2)
@@ -431,7 +431,7 @@ class SR860(Instrument):
         self.add_parameter('GPIB_override_remote', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1)
-        
+
         # status reporting parameters
         self.add_parameter('standard_event_enable_register',
                            type=int | (int, int),
@@ -477,7 +477,7 @@ class SR860(Instrument):
 
         # display functions
         self.add_function('screenshot')
-        #self.add_function('get_screen')
+        # self.add_function('get_screen')
 
         # strip chart functions
         self.add_function('channel_auto_scale')
@@ -503,7 +503,7 @@ class SR860(Instrument):
         self.add_function('stop_capture')
 
         # system functions
-        #self.add_function('screenshot')
+        # self.add_function('screenshot')
         self.add_function('save_data')
 
         # interface functions
@@ -1165,67 +1165,67 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':OAUX?').replace('\n', '')
-    
+
     def do_get_aux_output_voltage(self, output):
         """
         """
         return self._visainstrument.query(':AUXV? {}'.format(output)).replace('\n', '')
-    
+
     def do_set_aux_output_voltage(self, output, level):
         """
         """
         self._visainstrument.write(':AUXV {}, {}'.format(output, level))
-    
+
     def do_get_front_panel_blanking(self):
         """
         """
         return self._visainstrument.query(':DBLK?').replace('\n', '')
-    
+
     def do_set_front_panel_blanking(self, setting):
         """
         """
         self._visainstrument.write(':DBLK {}'.format(setting))
-    
+
     def do_get_screen_layout(self):
         """
         """
         return self._visainstrument.query(':DLAY?').replace('\n', '')
-    
+
     def do_set_screen_layout(self, layout):
         """
         """
         self._visainstrument.write(':DLAY {}'.format(layout))
-    
+
     def do_get_channel_param(self, channel):
         """
         """
         return self._visainstrument.query(':CDSP? {}'.format(channel)).replace('\n', '')
-    
+
     def do_set_channel_param(self, channel, param):
         """
         """
         self._visainstrument.write(':CDSP {}, {}'.format(channel, param))
-    
+
     def do_get_channel_strip_chart_graph(self, channel):
         """
         """
         return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
-    
+
     def do_set_channel_strip_chart_graph(self, channel, setting):
         """
         """
         self._visainstrument.write(':CGRF {}, {}'.format(channel, setting))
-    
+
     def do_get_horizontal_time_scale(self):
         """
         """
         return self._visainstrument.query(':GSPD?').replace('\n', '')
-    
+
     def do_set_horizontal_time_scale(self, scale):
         """
         """
         self._visainstrument.write(':GSPD {}'.format(scale))
-    
+
     def do_get_channel_vertical_scale(self, channel):
         """
         """
@@ -1240,92 +1240,92 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':GOFF? {}'.format(channel)).replace('\n', '')
-    
+
     def do_set_channel_vertical_offset(self, channel, offset):
         """
         """
         self._visainstrument.write(':GOFF {}, {}'.format(channel, offset))
-    
+
     def do_get_channel_graph(self, channel):
         """
         """
         return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
-    
+
     def do_set_channel_graph(self, channel, setting):
         """
         """
         self._visainstrument.write(':CGRF {}, {}'.format(channel, setting))
-    
+
     def do_get_strip_chart(self):
         """
         """
         return self._visainstrument.query(':GLIV?').replace('\n', '')
-    
+
     def do_set_strip_chart(self, setting):
         """
         """
         self._visainstrument.write(':GLIV {}'.format(setting))
-    
+
     def do_get_strip_chart_cursor_pos(self):
         """
         """
         return self._visainstrument.query(':PCUR?').replace('\n', '')
-    
+
     def do_set_strip_chart_cursor_pos(self, pos):
         """
         """
         self._visainstrument.write(':PCUR {}'.format(pos))
-    
+
     def do_get_strip_chart_cursor_mode(self):
         """
         """
         return self._visainstrument.query(':CURREL?').replace('\n', '')
-    
+
     def do_set_strip_chart_cursor_mode(self, mode):
         """
         """
         self._visainstrument.write(':CURREL {}'.format(mode))
-    
+
     def do_get_strip_chart_cursor_display_mode(self):
         """
         """
         return self._visainstrument.query(':CURDISP?').replace('\n', '')
-    
+
     def do_set_strip_chart_cursor_display_mode(self, mode):
         """
         """
         self._visainstrument.write(':CURDISP {}'.format(mode))
-    
+
     def do_get_strip_chart_cursor_readout_mode(self):
         """
         """
         return self._visainstrument.query(':CURBUG?').replace('\n', '')
-    
+
     def do_set_strip_chart_cursor_readout_mode(self, mode):
         """
         """
         self._visainstrument.write(':CURBUG {}'.format(mode))
-    
+
     def do_get_strip_chart_cursor_width(self):
         """
         """
         return self._visainstrument.query(':FCRW?').replace('\n', '')
-    
+
     def do_set_strip_chart_cursor_width(self, width):
         """
         """
         self._visainstrument.write(':FCRW {}'.format(width))
-    
+
     def do_get_channel_strip_chart_cursor_value(self, channel):
         """
         """
         return self._visainstrument.query(':SCRY? {}'.format(channel)).replace('\n', '')
-    
+
     def do_get_strip_chart_cursor_horizontal_time(self):
         """
         """
         return self._visainstrument.query(':CURDATTIM?').replace('\n', '')
-    
+
     def do_get_strip_chart_cursor_horizontal_pos(self):
         """
         """
@@ -1340,12 +1340,12 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':FFTR {}'.format(source))
-    
+
     def do_get_FFT_vertical_scale(self):
         """
         """
         return self._visainstrument.query(':FFTS?').replace('\n', '')
-    
+
     def do_set_FFT_vertical_scale(self, scale):
         """
         """
@@ -1360,42 +1360,42 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':FFTO {}'.format(offset))
-    
+
     def do_get_FFT_max_span(self):
         """
         """
         return self._visainstrument.query(':FFTMAXSPAN?').replace('\n', '')
-    
+
     def do_get_FFT_span(self):
         """
         """
         return self._visainstrument.query(':FFTSPAN?').replace('\n', '')
-    
+
     def do_set_FFT_span(self, span):
         """
         """
         self._visainstrument.write(':FFTSPAN {}'.format(span))
-    
+
     def do_get_FFT_averaging(self):
         """
         """
         return self._visainstrument.query(':FFTA?').replace('\n', '')
-    
+
     def do_set_FFT_averaging(self, averaging):
         """
         """
         self._visainstrument.write(':FFTA {}'.format(averaging))
-    
+
     def do_get_FFT_graph(self):
         """
         """
         return self._visainstrument.query(':FFTL?').replace('\n', '')
-    
+
     def do_set_FFT_graph(self, paused):
         """
         """
         self._visainstrument.write(':FFTL {}'.format(paused))
-    
+
     def do_get_FFT_cursor_width(self):
         """
         """
@@ -1405,17 +1405,17 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':FCRW {}'.format(width))
-    
+
     def do_get_FFT_cursor_frequency(self):
         """
         """
         return self._visainstrument.query(':FCRX?').replace('\n', '')
-    
+
     def do_set_FFT_cursor_frequency(self, frequency):
         """
         """
         self._visainstrument.write(':FCRX {}'.format(frequency))
-    
+
     def do_get_FFT_cursor_amp(self):
         """
         """
@@ -1425,167 +1425,167 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':SCNPAR?').replace('\n', '')
-    
+
     def do_set_scan_param(self, param):
         """
         """
         self._visainstrument.write(':SCNPAR {}'.format(param))
-    
+
     def do_get_scan_type(self):
         """
         """
         return self._visainstrument.query(':SCNLOG?').replace('\n', '')
-    
+
     def do_set_scan_type(self, setting):
         """
         """
         self._visainstrument.write(':SCNLOG {}'.format(setting))
-    
+
     def do_get_scan_end_mode(self):
         """
         """
         return self._visainstrument.query(':SCNEND?').replace('\n', '')
-    
+
     def do_set_scan_end_mode(self, mode):
         """
         """
         self._visainstrument.write(':SCNEND {}'.format(mode))
-    
+
     def do_get_scan_time(self):
         """
         """
         return self._visainstrument.query(':SCNSEC?').replace('\n', '')
-    
+
     def do_set_scan_time(self, time):
         """
         """
         self._visainstrument.write(':SCNSEC {}'.format(time))
-    
+
     def do_get_scan_out_attenuator_op_mode_sine_out_amp(self):
         """
         """
         return self._visainstrument.query(':SCNAMPATTN?').replace('\n', '')
-    
+
     def do_set_scan_out_attenuator_op_mode_sine_out_amp(self, mode):
         """
         """
         self._visainstrument.write(':SCNAMPATTN {}'.format(mode))
-    
+
     def do_get_scan_out_attenuator_op_mode_dc_level(self):
         """
         """
         return self._visainstrument.query(':SCNDCATTN?').replace('\n', '')
-    
+
     def do_set_scan_out_attenuator_op_mode_dc_level(self, mode):
         """
         """
         self._visainstrument.query(':SCNDCATTN {}'.format(mode))
-    
+
     def do_get_scan_param_update_interval(self):
         """
         """
         return self._visainstrument.query(':SCNINRVL?').replace('\n', '')
-    
+
     def do_set_scan_param_update_interval(self, interval):
         """
         """
         self._visainstrument.write(':SCNINRVL {}'.format(interval))
-    
+
     def do_get_scan_enabled(self):
         """
         """
         return self._visainstrument.query(':SCNENBL?').replace('\n', '')
-    
+
     def do_set_scan_enabled(self, enabled):
         """
         """
         self._visainstrument.write(':SCNENBL {}'.format(enabled))
-    
+
     def do_get_scan_state(self):
         """
         """
         return self._visainstrument.query(':SCNSTATE?').replace('\n', '')
-    
+
     def do_get_scan_freq(self):
         """
         """
         return self._visainstrument.query(':SCNFREQ?').replace('\n', '')
-    
+
     def do_set_scan_freq(self, freq):
         """
         """
         self._visainstrument.write(':SCNFREQ {}'.format(freq))
-    
+
     def do_get_scan_amp(self):
         """
         """
         return self._visainstrument.query(':SCNAMP?').replace('\n', '')
-    
+
     def do_set_scan_amp(self, amp):
         """
         """
         self._visainstrument.write(':SCNAMP {}'.format(amp))
-    
+
     def do_get_scan_ref_dc_level(self):
         """
         """
         return self._visainstrument.query(':SCNDC?').replace('\n', '')
-    
+
     def do_set_scan_ref_dc_level(self, level):
         """
         """
         self._visainstrument.write(':SCNDC {}'.format(level))
-    
+
     def do_get_scan_aux_out_1_level(self):
         """
         """
         return self._visainstrument.query(':SCNAUX1?').replace('\n', '')
-    
+
     def do_set_scan_aux_out_1_level(self, level):
         """
         """
         self._visainstrument.write(':SCNAUX1 {}'.format(level))
-    
+
     def do_get_scan_aux_out_2_level(self):
         """
         """
         return self._visainstrument.query(':SCNAUX2?').replace('\n', '')
-    
+
     def do_set_scan_aux_out_2_level(self, level):
         """
         """
         self._visainstrument.write(':SCNAUX2 {}'.format(level))
-    
+
     def do_get_capture_length(self):
         """
         """
         return self._visainstrument.query(':CAPTURELEN?').replace('\n', '')
-    
+
     def do_set_capture_length(self, length):
         """
         """
         self._visainstrument.write(':CAPTURELEN {}'.format(length))
-    
+
     def do_get_capture_config(self):
         """
         """
         return self._visainstrument.query(':CAPTURECFG?').replace('\n', '')
-    
+
     def do_set_capture_config(self, config):
         """
         """
         self._visainstrument.write(':CAPTURECFG {}'.format(config))
-    
+
     def do_get_capture_rate_max(self):
         """
         """
         return self._visainstrument.query(':CAPTURERATEMAX?').replace('\n', '')
-    
+
     def do_get_capture_rate(self):
         """
         """
         return self._visainstrument.query(':CAPTURERATE?').replace('\n', '')
-    
+
     def do_set_capture_rate(self, rate):
         """
         """
@@ -1595,296 +1595,300 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':CAPTURESTAT?').replace('\n', '')
-    
+
     def do_get_num_bytes_captured(self):
         """
         """
         return self._visainstrument.query(':CAPTUREBYTES?').replace('\n', '')
-    
+
     def do_get_num_kbytes_written(self):
         """
         """
         return self._visainstrument.query(':CAPTUREPROG?').replace('\n', '')
-    
+
     def do_get_capture_buffer_ascii(self, pos):
         """
         """
         return self._visainstrument.query(':CAPTUREVAL? {}'.format(pos)).replace('\n', '')
-    
+
     def do_get_capture_buffer_bin(self, offset, length):
         """
         """
         return self._visainstrument.query(':CAPTUREGET? {}, {}'.format(offset, length)).replace('\n', '')
-    
+
     def do_get_stream_config(self):
         """
         """
         return self._visainstrument.query(':STREAMCH?').replace('\n', '')
-    
+
     def do_set_stream_config(self, config):
         """
         """
         self._visainstrument.write(':STREAMCH {}'.format(config))
-    
+
     def do_get_stream_rate_max(self):
         """
         """
         return self._visainstrument.query(':STREAMRATEMAX?').replace('\n', '')
-    
+
     def do_get_stream_rate(self):
         """
         """
         return self._visainstrument.query(':STREAMRATE?').replace('\n', '')
-    
+
     def do_set_stream_rate(self, rate):
         """
         """
         self._visainstrument.write(':STREAMRATE {}'.format(rate))
-    
+
     def do_get_stream_format(self):
         """
         """
         return self._visainstrument.query(':STREAMFMT?').replace('\n', '')
-    
+
     def do_set_stream_format(self, fmt):
         """
         """
         self._visainstrument.write(':STREAMFMT {}'.format(fmt))
-    
+
     def do_get_stream_packet_size(self):
         """
         """
         return self._visainstrument.query(':STREAMPCKT?').replace('\n', '')
-    
+
     def do_set_stream_packet_size(self, size):
         """
         """
         self._visainstrument.write(':STREAMPCKT {}'.format(size))
-    
+
     def do_get_stream_port(self):
         """
         """
         return self._visainstrument.query(':STREAMPORT?').replace('\n', '')
-    
+
     def do_set_stream_port(self, port):
         """
         """
         self._visainstrument.write(':STREAMPORT {}'.format(port))
-    
+
     def do_get_stream_option(self):
         """
         """
         return self._visainstrument.query(':STREAMOPTION?').replace('\n', '')
-    
+
     def do_set_stream_option(self, option):
         """
         """
         self._visainstrument.write(':STREAMOPTION {}'.format(option))
-    
+
     def do_get_stream_enabled(self):
         """
         """
         return self._visainstrument.query(':STREAM?').replace('\n', '')
-    
+
     def do_set_stream_enabled(self, enabled):
         """
         """
         self._visainstrument.write(':STREAM {}'.format(enabled))
-    
+
     def do_get_time(self):
         """
         """
         return self._visainstrument.query(':TIME?').replace('\n', '')
-    
+
     def do_set_time(self, setting, time):
         """
         """
         self._visainstrument.write(':TIME {}, {}'.format(setting, time))
-    
+
     def do_get_date(self):
         """
         """
         return self._visainstrument.query(':DATE?').replace('\n', '')
-    
+
     def do_set_date(self, setting, time):
         """
         """
         self._visainstrument.write(':DATE {}, {}'.format(setting, time))
-    
-    #def do_get_timebase_mode
-    #def do_set_timebase_mode
-    #def do_get_timebase_source
+
+    # def do_get_timebase_mode
+    # def do_set_timebase_mode
+    # def do_get_timebase_source
 
     def do_get_BlazeX_output(self):
         """
         """
         return self._visainstrument.query(':BLAZEX?').replace('\n', '')
-    
+
     def do_set_BlazeX_output(self, setting):
         """
         """
         self._visainstrument.write(':BLAZEX {}'.format(setting))
-    
+
     def do_get_sounds(self):
         """
         """
         return self._visainstrument.query(':KEYC?').replace('\n', '')
-    
+
     def do_set_sounds(self, setting):
         """
         """
         self._visainstrument.write(':KEYC {}'.format(setting))
-    
+
     def do_get_screenshot_mode(self):
         """
         """
         return self._visainstrument.query(':PRMD?').replace('\n', '')
-    
+
     def do_set_screenshot_mode(self, mode):
         """
         """
         self._visainstrument.write(':PRMD {}'.format(mode))
-    
+
     def do_get_data_file_format(self):
         """
         """
         return self._visainstrument.query(':SDFM?').replace('\n', '')
-    
+
     def do_set_data_file_format(self, fmt):
         """
         """
         self._visainstrument.write(':SDFM {}'.format(fmt))
-    
+
     def do_get_filename_prefix(self):
         """
         """
         return self._visainstrument.query(':FBAS?').replace('\n', '')
-    
+
     def do_set_filename_prefix(self, prefix):
         """
         """
         self._visainstrument.write(':FBAS {}'.format(prefix))
-    
+
     def do_get_filename_suffix(self):
         """
         """
         return self._visainstrument.query(':FNUM?').replace('\n', '')
-    
+
     def do_set_filename_suffix(self, suffix):
         """
         """
         self._visainstrument.write(':FNUM {}'.format(suffix))
-    
+
     def do_get_next_filename(self):
         """
         """
         return self._visainstrument.query(':FNXT?').replace('\n', '')
-    
+
     def do_get_identification(self):
         """
         """
         return self._visainstrument.query(':*IDN?').replace('\n', '')
-    
+
     def do_get_op_complete_bit(self):
         """
         """
         return self._visainstrument.query(':*OPC?').replace('\n', '')
-    
+
     def do_set_op_complete_bit(self, bit):
         """
         """
         self._visainstrument.write(':*OPC {}'.format(bit))
-    
+
     def do_get_local_remote(self):
         """
         """
         return self._visainstrument.query(':LOCL?').replace('\n', '')
-    
+
     def do_set_local_remote(self, mode):
         """
         """
         self._visainstrument.write(':LOCL {}'.format(mode))
-    
+
     def do_get_GPIB_override_remote(self):
         """
         """
         return self._visainstrument.query(':OVRM?').replace('\n', '')
-    
+
     def do_set_GPIB_override_remote(self, override):
         """
         """
         self._visainstrument.write(':OVRM {}'.format(override))
-    
+
     def do_get_standard_event_enable_register(self, bit=None):
         """
         """
         return self._visainstrument.query(':*ESE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESE?').replace('\n', '')
-    
+
     def do_set_standard_event_enable_register(self, value, bit=None):
         """
         """
-        self._visainstrument.write(':*ESE {}, {}'.format(value, bit)) if bit is not None else self._visainstrument.write(':*ESE {}'.format(value))
-    
+        self._visainstrument.write(':*ESE {}, {}'.format(value, bit)
+                                   ) if bit is not None else self._visainstrument.write(':*ESE {}'.format(value))
+
     def do_get_standard_event_status_byte(self, bit=None):
         """
         """
         return self._visainstrument.query(':*ESR? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESR?').replace('\n', '')
-    
+
     def do_get_serial_poll_enable_register(self, bit=None):
         """
         """
         return self._visainstrument.query(':*SRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*SRE?').replace('\n', '')
-    
+
     def do_set_serial_poll_enable_register(self, value, bit=None):
         """
         """
-        self._visainstrument.write(':*SRE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':*SRE {}'.format(value))
-    
+        self._visainstrument.write(':*SRE {}, {}'.format(bit, value)
+                                   ) if bit is not None else self._visainstrument.write(':*SRE {}'.format(value))
+
     def do_get_serial_poll_status_byte(self, bit=None):
         """
         """
         return self._visainstrument.query(':*STB? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*STB?').replace('\n', '')
-    
+
     def do_get_power_on_status_clear_bit(self):
         """
         """
         return self._visainstrument.query(':*PSC?').replace('\n', '')
-    
+
     def do_set_power_on_status_clear_bit(self, bit):
         """
         """
         self._visainstrument.write(':*PSC {}'.format(bit))
-    
+
     def do_get_error_status_enable_register(self, bit=None):
         """
         """
         return self._visainstrument.query(':ERRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRE?').replace('\n', '')
-    
+
     def do_set_error_status_enable_register(self, value, bit=None):
         """
         """
-        self._visainstrument.write(':ERRE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':ERRE {}'.format(value))
-    
+        self._visainstrument.write(':ERRE {}, {}'.format(
+            bit, value)) if bit is not None else self._visainstrument.write(':ERRE {}'.format(value))
+
     def do_get_error_status_byte(self, bit=None):
         """
         """
         return self._visainstrument.query(':ERRS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRS?').replace('\n', '')
-    
+
     def do_get_LIA_status_enable_register(self, bit=None):
         """
         """
         return self._visainstrument.query(':LIAE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAE?').replace('\n', '')
-    
+
     def do_set_LIA_status_enable_register(self, value, bit=None):
         """
         """
-        self._visainstrument.write(':LIAE {}, {}'.format(bit, value)) if bit is not None else self._visainstrument.write(':LIAE {}'.format(value))
-    
+        self._visainstrument.write(':LIAE {}, {}'.format(
+            bit, value)) if bit is not None else self._visainstrument.write(':LIAE {}'.format(value))
+
     def do_get_LIA_status_word(self, bit=None):
         """
         """
         return self._visainstrument.query(':LIAS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAS?').replace('\n', '')
-    
+
     def do_get_overload_states(self):
         """
         """
@@ -1908,64 +1912,64 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 None
         """
         self._visainstrument.write(':ARNG')
-    
+
     def auto_scale(self):
         """
         Performs the Auto Scale function. This command is the same as pressing the [Auto Scale] key. This automatically sets the sensitivity. Measurements with the synchronous filter on or measurements of Xnoise or Ynoise may take many time constants to return to their steady-state values.
 
         Input:
                 None
-        
+
         Output:
                 None
         """
         self._visainstrument.write(':ASCL')
-    
+
     def screenshot(self):
         """
         """
         self._visainstrument.write(':DCAP')
-    
-    #def get_screen(self):
+
+    # def get_screen(self):
         """
         """
         # ...
-    
+
     def channel_auto_scale(self, channel):
         """
         """
         self._visainstrument.write(':GAUT {}'.format(channel))
-    
+
     def channel_auto_scale_zero_center(self, channel):
         """
         """
         self._visainstrument.write(':GACT {}'.format(channel))
-    
+
     def channel_auto_find(self, channel):
         """
         """
         self._visainstrument.write(':GAUF {}'.format(channel))
-    
+
     def FFT_auto_scale(self):
         """
         """
         self._visainstrument.write(':FAUT')
-    
+
     def start_scan(self):
         """
         """
         self._visainstrument.write(':SCNRUN')
-    
+
     def pause_scan(self):
         """
         """
         self._visainstrument.write(':SCNPAUSE')
-    
+
     def reset_scan(self):
         """
         """
@@ -1975,17 +1979,17 @@ class SR860(Instrument):
         """
         """
         return self._visainstrument.query(':OUTR? {}'.format(channel)).replace('\n', '')
-    
+
     def get_param(self, param):
         """
         """
         return self._visainstrument.query(':OUTP? {}'.format(param)).replace('\n', '')
-    
+
     def get_multi_params(self, param1, param2, param3=None):
         """
         """
         return self._visainstrument.query(':SNAP? {}, {}, {}'.format(param1, param2, param3)).replace('\n', '')
-    
+
     def get_data_params(self):
         """
         """
@@ -1994,30 +1998,31 @@ class SR860(Instrument):
     def start_capture(self, acquisition, start):
         """
         """
-        self._visainstrument.write(':CAPTURESTART {}, {}'.format(acquisition, start))
-    
+        self._visainstrument.write(
+            ':CAPTURESTART {}, {}'.format(acquisition, start))
+
     def stop_capture(self):
         """
         """
         self._visainstrument.write(':CAPTURESTOP')
 
-    #def screenshot(self):
+    # def screenshot(self):
 
     def save_data(self):
         """
         """
         self._visainstrument.write(':SVDT')
-    
+
     def reset(self):
         """
         """
         self._visainstrument.write(':*RST')
-    
+
     def test(self):
         """
         """
         return self._visainstrument.query(':*TST?').replace('\n', '')
-    
+
     def clear(self):
         """
         """
