@@ -1,2 +1,3 @@
 .vscode/settings.json
 qtlab.log
+instrument_plugins/__pycache__/SR860.cpython-37.pyc
