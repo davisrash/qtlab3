@@ -40,9 +40,10 @@ class SR860(Instrument):
         self._visainstrument = visa.ResourceManager().get_instrument(address)
 
         # reference parameters
+        # reference testing skipped
         self.add_parameter('timebase_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1)
+                           minval=0, maxval=1) # move to other section, see manual. possibly move others
         self.add_parameter('timebase_source', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=1)
@@ -52,27 +53,33 @@ class SR860(Instrument):
         self.add_parameter('reference_frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('internal_reference_frequency', type=float,
+        self.add_parameter('internal_reference_frequency', 
+                           type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('external_reference_frequency', type=float,
+        self.add_parameter('external_reference_frequency',
+                           type=float,
                            flags=Instrument.FLAG_GET,
                            minval=1e-3, maxval=500e6, units='HZ')
         self.add_parameter('detection_frequency', type=float,
                            flags=Instrument.FLAG_GET,
                            minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('reference_frequency_harmonic_detect', type=int,
+        self.add_parameter('reference_frequency_harmonic_detect',
+                           type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=1, maxval=99)
-        self.add_parameter('external_frequency_harmonic_detect_dual_reference', type=int,
+        self.add_parameter('external_frequency_harmonic_detect_dual_reference',
+                           type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=1, maxval=99)
-        self.add_parameter('external_SR540_chopper_blade_slots', type=int,
+        self.add_parameter('external_SR540_chopper_blade_slots',
+                           type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            format_map={0: 'SLT6',
                                        1: 'SLT30'})
-        self.add_parameter('external_SR540_chopper_phase', type=float,
+        self.add_parameter('external_SR540_chopper_phase',
+                           type=float,
                            flags=Instrument.FLAG_GETSET,
                            units='DEG')
         self.add_parameter('sine_out_amplitude', type=float,
@@ -93,13 +100,15 @@ class SR860(Instrument):
                                        1: 'EXT',
                                        2: 'DUAL',
                                        3: 'CHOP'})
-        self.add_parameter('external_reference_trigger_mode', type=int,
+        self.add_parameter('external_reference_trigger_mode',
+                           type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=2,
                            format_map={0: 'SIN',
                                        1: 'POS',
                                        2: 'NEG'})
-        self.add_parameter('external_reference_trigger_input', type=int,
+        self.add_parameter('external_reference_trigger_input',
+                           type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            format_map={0: '50',
@@ -107,10 +116,12 @@ class SR860(Instrument):
         self.add_parameter('frequency_preset', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('sine_out_amplitude_preset', type=float,
+        self.add_parameter('sine_out_amplitude_preset',
+                           type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-9, maxval=2.0, units='V')
-        self.add_parameter('sine_out_dc_level_preset', type=float,
+        self.add_parameter('sine_out_dc_level_preset',
+                           type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=-5.0, maxval=5.0, units='V')
 
@@ -124,7 +135,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            format_map={0: 'A',
-                                       1: 'A-B'})
+                                       1: 'A-B'}) # TEST END AFTER HERE
         self.add_parameter('voltage_input_coupling', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
