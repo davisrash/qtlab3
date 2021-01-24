@@ -169,33 +169,43 @@ class SR860(Instrument):
                            units='HZ')
 
         # ch1/ch2 output parameters
-        self.add_parameter('channel_output', type=(int, int),
+        self.add_parameter('channel_output',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(1, 1))
-        self.add_parameter('output_expand', type=(int, int),
+                           #minval=(0, 0), maxval=(1, 1)
+                           )
+        self.add_parameter('output_expand',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(2, 2))
-        self.add_parameter('output_offset', type=(int, int),
+                           #minval=(0, 0), maxval=(2, 2)
+                           )
+        self.add_parameter('output_offset',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(2, 1))
+                           #minval=(0, 0), maxval=(2, 1)
+                           )
         self.add_parameter('output_offset_percentage',
-                           type=(int, float),
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, -999.99), maxval=(2, 999.99))
+                           #minval=(0, -999.99), maxval=(2, 999.99)
+                           )
         self.add_parameter('auto_offset', type=int,
                            flags=Instrument.FLAG_SET,
                            minval=0, maxval=2)
-        self.add_parameter('ratio_function', type=(int, int),
+        self.add_parameter('ratio_function',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(2, 1))
+                           #minval=(0, 0), maxval=(2, 1)
+                           )
 
         # aux input and output commands
         self.add_parameter('aux_input_voltage', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=3)
-        self.add_parameter('aux_output_voltage', type=(int, float),
+        self.add_parameter('aux_output_voltage',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, -10.5), maxval=(3, 10.5),
+                           #minval=(0, -10.5), maxval=(3, 10.5),
                            units=('', 'V'))
 
         # display parameters
@@ -205,28 +215,36 @@ class SR860(Instrument):
         self.add_parameter('screen_layout', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=5)
-        self.add_parameter('channel_param', type=(int, int),
+        self.add_parameter('channel_param',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(3, 16))
-        self.add_parameter('channel_strip_chart_graph', type=(int, int),
+                           #minval=(0, 0), maxval=(3, 16)
+                           )
+        self.add_parameter('channel_strip_chart_graph',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(3, 1))
+                           #minval=(0, 0), maxval=(3, 1)
+                           )
 
         # strip chart parameters
         self.add_parameter('horizontal_time_scale', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=16)
-        self.add_parameter('channel_vertical_scale', type=(int, float),
+        self.add_parameter('channel_vertical_scale',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
                            # minval=(0, 0+), maxval=(3, x)  unknown max
                            )
-        self.add_parameter('channel_vertical_offset', type=(int, float),
+        self.add_parameter('channel_vertical_offset',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
                            # minval=(0, -x), maxval=(3, x)  unknown range
                            )
-        self.add_parameter('channel_graph', type=(int, int),
+        self.add_parameter('channel_graph',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(3, 1))
+                           #minval=(0, 0), maxval=(3, 1)
+                           )
         self.add_parameter('strip_chart', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1)
@@ -245,7 +263,8 @@ class SR860(Instrument):
         self.add_parameter('strip_chart_cursor_width', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=2)
-        self.add_parameter('channel_strip_chart_cursor_value', type=(int, float),
+        self.add_parameter('channel_strip_chart_cursor_value',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GET,
                            # minval=(0, -x), maxval=(4, x)  unknown range
                            )
@@ -321,25 +340,30 @@ class SR860(Instrument):
         self.add_parameter('scan_state', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=4)
-        self.add_parameter('scan_freq', type=(int, float),
+        self.add_parameter('scan_freq',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 1e-3), maxval=(1, 500e3),
+                           #minval=(0, 1e-3), maxval=(1, 500e3),
                            units='HZ')
-        self.add_parameter('scan_amp', type=(int, float),
+        self.add_parameter('scan_amp',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 1e-9), maxval=(1, 2),
+                           #minval=(0, 1e-9), maxval=(1, 2),
                            units='V')
-        self.add_parameter('scan_ref_dc_level', type=(int, float),
+        self.add_parameter('scan_ref_dc_level',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, -5), maxval=(1, 5),
+                           #minval=(0, -5), maxval=(1, 5),
                            units='V')
-        self.add_parameter('scan_aux_out_1_level', type=(int, float),
+        self.add_parameter('scan_aux_out_1_level',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, -10.5), maxval=(1, 10.5),
+                           #minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
-        self.add_parameter('scan_aux_out_2_level', type=(int, float),
+        self.add_parameter('scan_aux_out_2_level',
+                           #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, -10.5), maxval=(1, 10.5),
+                           #minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
 
         # data capture commands
@@ -362,7 +386,8 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GET)
         self.add_parameter('capture_buffer_ascii', type=int,
                            flags=Instrument.FLAG_GET)
-        self.add_parameter('capture_buffer_bin', type=(int, int),
+        self.add_parameter('capture_buffer_bin',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GET)
 
         # data streaming parameters
@@ -391,13 +416,16 @@ class SR860(Instrument):
                            minval=0, maxval=1)
 
         # system parameters
-        self.add_parameter('time', type=(int, int),
+        self.add_parameter('time',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0), maxval=(1, 59) | (2, 23))
-        self.add_parameter('date', type=(int, int),
+                           #minval=(0, 0), maxval=(1, 59) | (2, 23)
+                           )
+        self.add_parameter('date',
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=(0, 0),
-                           maxval=(0, 31) | (1, 12) | (2, 99))
+                           #minval=(0, 0), maxval=(0, 31) | (1, 12) | (2, 99)
+                           )
         # self.add_parameter('') tbmode move from earlier
         # self.add_parameter('') tbstat
         self.add_parameter('BlazeX_output', type=int,
@@ -434,16 +462,18 @@ class SR860(Instrument):
 
         # status reporting parameters
         self.add_parameter('standard_event_enable_register',
-                           type=int | (int, int),
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=0 | (0, 0), maxval=255 | (1, 7))
+                           #minval=(0, 0), maxval=(1, 7)
+                           )
         self.add_parameter('standard_event_status_byte', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=255)
         self.add_parameter('serial_poll_enable_register',
-                           type=int | (int, int),
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=0 | (0, 0), maxval=255 | (1, 7))
+                           #minval=(0, 0), maxval=(1, 7)
+                           )
         self.add_parameter('serial_poll_status_byte', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=255)
@@ -451,21 +481,25 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1)
         self.add_parameter('error_status_enable_register',
-                           type=int | (int, int),
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=0 | (0, 0), maxval=255 | (1, 7))
+                           #minval=(0, 0), maxval=(1, 7)
+                           )
         self.add_parameter('error_status_byte',
-                           type=int | (int, int),
+                           #type=(int, int), # different types
                            flags=Instrument.FLAG_GET,
-                           minval=0 | (0, 0), maxval=255 | (1, 7))
+                           #minval=(0, 0), maxval=(1, 7)
+                           )
         self.add_parameter('LIA_status_enable_register',
-                           type=int | (int, int),
+                           #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           minval=0 | (0, 0), maxval=4095 | (1, 11))
+                           #minval=(0, 0), maxval=(1, 11)
+                           )
         self.add_parameter('LIA_status_word',
-                           type=int | (int, int),
+                           #type=int,
                            flags=Instrument.FLAG_GET,
-                           minval=0 | (0, 0), maxval=4095 | (1, 11))
+                           #minval=0, maxval=1
+                           )
         self.add_parameter('overload_states', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=4095)
