@@ -25,7 +25,7 @@ config['allowed_ips'] = (
 config['instrument_server'] = False
 
 ## This sets a default location for data-storage
-config['datadir'] = 'C:\data\80nm-SiGe-A'
+config['datadir'] = 'C:\data\VA485G'
 
 ## This sets a default directory for qtlab to start in
 #config['startdir'] = 'C:\Users\physics-svc-laroche\Desktop\qtlab3\Scripts'

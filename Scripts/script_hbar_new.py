@@ -7,7 +7,11 @@ import numpy as np
 import source.data as d
 import modules.traces as traces
 
-filename = '80nm-SiGe-A'
+##############################################################
+# remember to change the device number to the correct device #
+##############################################################
+
+filename = 'VA_485_Ebase_G'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshhold = 200000
@@ -439,7 +443,7 @@ a = Script()
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
 start1 = 0
-end1 = -2
+end1 = 1
 xstep1 = .01
 #start2 = 0
 #end2 = -1.3
