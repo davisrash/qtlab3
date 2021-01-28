@@ -2,12 +2,14 @@ from source.instrument import Instrument
 import visa
 # import logging
 
-#################################
+###################################
 # To Do:
 #  - add logging
 #  - add doc options
-#  - find blade_phase minval, maxval
-#################################
+#  - find minval and maxval for
+#     - blade_phase
+#     - equivalent_noise_bandwidth
+###################################
 
 
 class SR860(Instrument):
@@ -137,72 +139,157 @@ class SR860(Instrument):
         self.add_parameter('signal_input', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
-                           format_map={0: 'VOLT',
-                                       1: 'CURR'})
+                           doc="",
+                           format_map={0: 'voltage',
+                                       1: 'current'})
         self.add_parameter('voltage_input_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
+                           doc="",
                            format_map={0: 'A',
-                                       1: 'A-B'})  # TEST END AFTER HERE
+                                       1: 'A-B'})
         self.add_parameter('voltage_input_coupling', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
-                           format_map={0: 'AC',
-                                       1: 'DC'})
+                           doc="",
+                           format_map={0: 'ac',
+                                       1: 'dc'})
         self.add_parameter('voltage_input_shields', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
-                           format_map={0: 'FLO',
-                                       1: 'GRO'})
+                           doc="",
+                           format_map={0: 'float',
+                                       1: 'ground'})
         self.add_parameter('voltage_input_range', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=4,
-                           format_map={0: 1.0,
-                                       1: 0.3,
-                                       2: 0.1,
-                                       3: 0.03,
-                                       4: 0.01})
+                           minval=0, maxval=4, units='V',
+                           doc="",
+                           format_map={0: '1 V',
+                                       1: '300 mV',
+                                       2: '100 mV',
+                                       3: '30 mV',
+                                       4: '10 mV'})
         self.add_parameter('current_input_gain', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1)
+                           minval=0, maxval=1, units='Ω',
+                           doc="",
+                           format_map={0: '1 MΩ (1 μA)',
+                                       1: '100 MΩ (10 nA)'})
         self.add_parameter('signal_strength', type=int,
                            flags=Instrument.FLAG_GET,
-                           minval=0, maxval=4)
+                           minval=0, maxval=4,
+                           doc="",
+                           format_map={0: 'lowest',
+                                       1: 'low',
+                                       2: 'medium',
+                                       3: 'high',
+                                       4: 'overload'})
         self.add_parameter('sensitivity', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=27)
+                           minval=0, maxval=27, units='V',
+                           doc="",
+                           format_map={ 0: '1 V [μA]',
+                                        1: '500 mV [nA]',
+                                        2: '200 mV [nA]',
+                                        3: '100 mV [nA]',
+                                        4: '50 mV [nA]',
+                                        5: '20 mV [nA]',
+                                        6: '10 mV [nA]',
+                                        7: '5 mV [nA]',
+                                        8: '2 mV [nA]',
+                                        9: '1 mV [nA]',
+                                       10: '500 μV [pA]',
+                                       11: '200 μV [pA]',
+                                       12: '100 μV [pA]',
+                                       13: '50 μV [pA]',
+                                       14: '20 μV [pA]',
+                                       15: '10 μV [pA]',
+                                       16: '5 μV [pA]',
+                                       17: '2 μV [pA]',
+                                       18: '1 μV [pA]',
+                                       19: '500 nV [fA]',
+                                       20: '200 nV [fA]',
+                                       21: '100 nV [fA]',
+                                       22: '50 nV [fA]',
+                                       23: '20 nV [fA]',
+                                       24: '10 nV [fA]',
+                                       25: '5 nV [fA]',
+                                       26: '2 nV [fA]',
+                                       27: '1 nV [fA]'})
         self.add_parameter('time_constant', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=21)
+                           minval=0, maxval=21, units='s',
+                           doc="",
+                           format_map={ 0: '1 μs',
+                                        1: '3 μs',
+                                        2: '10 μs',
+                                        3: '30 μs',
+                                        4: '100 μs',
+                                        5: '300 μs',
+                                        6: '1 ms',
+                                        7: '3 ms',
+                                        8: '10 ms',
+                                        9: '30 ms',
+                                       10: '100 ms',
+                                       11: '300 ms',
+                                       12: '1 s',
+                                       13: '3 s',
+                                       14: '10 s',
+                                       15: '30 s',
+                                       16: '100 s',
+                                       17: '300 s',
+                                       18: '1 ks',
+                                       19: '3 ks',
+                                       20: '10 ks',
+                                       21: '30 ks'})
         self.add_parameter('filter_slope', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=3)
+                           minval=0, maxval=3, units='dB/oct',
+                           doc="",
+                           format_map={0: '6 dB/oct',
+                                       1: '12 dB/oct',
+                                       2: '18 dB/oct',
+                                       3: '24 dB/oct'})
         self.add_parameter('synchronous_filter', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1)
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'off',
+                                       1: 'on'})
         self.add_parameter('advanced_filter', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1)
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'off',
+                                       1: 'on'})
         self.add_parameter('equivalent_noise_bandwidth', type=float,
                            flags=Instrument.FLAG_GET,
-                           units='HZ')
+                           units='Hz',
+                           doc="")
 
         # ch1/ch2 output parameters
-        self.add_parameter('channel_output',
-                           #type=(int, int),
+        self.add_parameter('channel_output', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           # minval=(0, 0), maxval=(1, 1)
-                           )
-        self.add_parameter('output_expand',
-                           #type=(int, int),
+                           channels=(0, 1),
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'XY',
+                                       1: 'Rθ'})
+        self.add_parameter('output_expand', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           # minval=(0, 0), maxval=(2, 2)
-                           )
-        self.add_parameter('output_offset',
-                           #type=(int, int),
+                           channels=(0, 2),
+                           minval=0, maxval=2,
+                           doc="",
+                           format_map={0: 'off',
+                                       1: 'X10',
+                                       2: 'X100'})
+        self.add_parameter('output_offset', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           # minval=(0, 0), maxval=(2, 1)
-                           )
+                           channels=(0, 2),
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'off',
+                                       1: 'on'})
         self.add_parameter('output_offset_percentage',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
