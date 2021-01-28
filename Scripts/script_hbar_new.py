@@ -443,7 +443,7 @@ a = Script()
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
 start1 = 0
-end1 = 1
+end1 = 1.5
 xstep1 = .01
 #start2 = 0
 #end2 = -1.3

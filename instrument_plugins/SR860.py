@@ -1,17 +1,12 @@
 from source.instrument import Instrument
 import visa
+# import logging
 
 #################################
 # To Do:
-#  - SR860 Driver almost certainly will fail for functions with multiple arguments. Look into the channels parameter and others in the docstring.
-#  - It may be the case that all do_get and do_set functions should really be _do_get and _do_set.
-#
-#  - Fix the preset commands
-#     - frequency_preset,
-#     - sine_out_amplitude_preset, and
-#     - sine_out_dc_level_preset,
-#    to work with multiple arguments.
-#  - Change sensible 0/1 commands to True/False and add wrapper to convert.
+#  - add logging
+#  - add doc options
+#  - find blade_phase minval, maxval
 #################################
 
 
@@ -40,90 +35,103 @@ class SR860(Instrument):
         self._visainstrument = visa.ResourceManager().get_instrument(address)
 
         # reference parameters
-        # reference testing skipped
         self.add_parameter('timebase_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1) # move to other section, see manual. possibly move others
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'auto',
+                                       1: 'internal'})
         self.add_parameter('timebase_source', type=int,
                            flags=Instrument.FLAG_GET,
-                           minval=0, maxval=1)
-        self.add_parameter('reference_phase_shift', type=float,
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'external',
+                                       1: 'internal'})
+        self.add_parameter('phase_shift', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-360000, maxval=360000, units='DEG')
-        self.add_parameter('reference_frequency', type=float,
+                           minval=-360000, maxval=360000, units='deg',
+                           doc="")
+        self.add_parameter('frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('internal_reference_frequency', 
-                           type=float,
+                           minval=1e-3, maxval=500e6, units='Hz',
+                           doc="")
+        self.add_parameter('internal_frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('external_reference_frequency',
-                           type=float,
+                           minval=1e-3, maxval=500e6, units='Hz',
+                           doc="")
+        self.add_parameter('external_frequency', type=float,
                            flags=Instrument.FLAG_GET,
-                           minval=1e-3, maxval=500e6, units='HZ')
+                           minval=1e-3, maxval=500e6, units='Hz',
+                           doc="")
         self.add_parameter('detection_frequency', type=float,
                            flags=Instrument.FLAG_GET,
-                           minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('reference_frequency_harmonic_detect',
-                           type=int,
+                           minval=1e-3, maxval=500e6, units='Hz',
+                           doc="")
+        self.add_parameter('harmonic_detect', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1, maxval=99)
-        self.add_parameter('external_frequency_harmonic_detect_dual_reference',
-                           type=int,
+                           minval=1, maxval=99,
+                           doc="")
+        self.add_parameter('harmonic_detect_dual_reference', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1, maxval=99)
-        self.add_parameter('external_SR540_chopper_blade_slots',
-                           type=int,
+                           minval=1, maxval=99,
+                           doc="")
+        self.add_parameter('blade_slots', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
-                           format_map={0: 'SLT6',
-                                       1: 'SLT30'})
-        self.add_parameter('external_SR540_chopper_phase',
-                           type=float,
+                           doc="",
+                           format_map={0: '6-slot',
+                                       1: '30-slot'})
+        self.add_parameter('blade_phase', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           units='DEG')
+                           units='deg',
+                           doc="")
         self.add_parameter('sine_out_amplitude', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-9, maxval=2.0, units='V')
+                           minval=1e-9, maxval=2.0, units='V',
+                           doc="")
         self.add_parameter('sine_out_dc_level', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-5.0, maxval=5.0, units='V')
+                           minval=-5.0, maxval=5.0, units='V',
+                           doc="")
         self.add_parameter('sine_out_dc_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
-                           format_map={0: 'COM',
-                                       1: 'DIF'})
+                           doc="",
+                           format_map={0: 'common',
+                                       1: 'difference'})
         self.add_parameter('reference_source', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=3,
-                           format_map={0: 'INT',
-                                       1: 'EXT',
-                                       2: 'DUAL',
-                                       3: 'CHOP'})
-        self.add_parameter('external_reference_trigger_mode',
-                           type=int,
+                           doc="",
+                           format_map={0: 'internal',
+                                       1: 'external',
+                                       2: 'dual',
+                                       3: 'chop'})
+        self.add_parameter('external_reference_trigger_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=2,
-                           format_map={0: 'SIN',
-                                       1: 'POS',
-                                       2: 'NEG'})
-        self.add_parameter('external_reference_trigger_input',
-                           type=int,
+                           doc="",
+                           format_map={0: 'sine',
+                                       1: 'positive TTL',
+                                       2: 'negative TTL'})
+        self.add_parameter('external_reference_trigger_input', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1,
-                           format_map={0: '50',
-                                       1: '1M'})
+                           minval=0, maxval=1, units='Ω',
+                           doc="",
+                           format_map={0: '50 Ω',
+                                       1: '1 MΩ'})
         self.add_parameter('frequency_preset', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-3, maxval=500e6, units='HZ')
-        self.add_parameter('sine_out_amplitude_preset',
-                           type=float,
+                           minval=1e-3, maxval=500e6, units='Hz',
+                           doc="")
+        self.add_parameter('sine_out_amplitude_preset', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-9, maxval=2.0, units='V')
-        self.add_parameter('sine_out_dc_level_preset',
-                           type=float,
+                           minval=1e-9, maxval=2.0, units='V',
+                           doc="")
+        self.add_parameter('sine_out_dc_level_preset', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-5.0, maxval=5.0, units='V')
+                           minval=-5.0, maxval=5.0, units='V',
+                           doc="")
 
         # signal parameters
         self.add_parameter('signal_input', type=int,
@@ -135,7 +143,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            format_map={0: 'A',
-                                       1: 'A-B'}) # TEST END AFTER HERE
+                                       1: 'A-B'})  # TEST END AFTER HERE
         self.add_parameter('voltage_input_coupling', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
@@ -183,22 +191,22 @@ class SR860(Instrument):
         self.add_parameter('channel_output',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 1)
+                           # minval=(0, 0), maxval=(1, 1)
                            )
         self.add_parameter('output_expand',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(2, 2)
+                           # minval=(0, 0), maxval=(2, 2)
                            )
         self.add_parameter('output_offset',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(2, 1)
+                           # minval=(0, 0), maxval=(2, 1)
                            )
         self.add_parameter('output_offset_percentage',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -999.99), maxval=(2, 999.99)
+                           # minval=(0, -999.99), maxval=(2, 999.99)
                            )
         self.add_parameter('auto_offset', type=int,
                            flags=Instrument.FLAG_SET,
@@ -206,7 +214,7 @@ class SR860(Instrument):
         self.add_parameter('ratio_function',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(2, 1)
+                           # minval=(0, 0), maxval=(2, 1)
                            )
 
         # aux input and output commands
@@ -216,7 +224,7 @@ class SR860(Instrument):
         self.add_parameter('aux_output_voltage',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -10.5), maxval=(3, 10.5),
+                           # minval=(0, -10.5), maxval=(3, 10.5),
                            units=('', 'V'))
 
         # display parameters
@@ -229,12 +237,12 @@ class SR860(Instrument):
         self.add_parameter('channel_param',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(3, 16)
+                           # minval=(0, 0), maxval=(3, 16)
                            )
         self.add_parameter('channel_strip_chart_graph',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(3, 1)
+                           # minval=(0, 0), maxval=(3, 1)
                            )
 
         # strip chart parameters
@@ -254,7 +262,7 @@ class SR860(Instrument):
         self.add_parameter('channel_graph',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(3, 1)
+                           # minval=(0, 0), maxval=(3, 1)
                            )
         self.add_parameter('strip_chart', type=int,
                            flags=Instrument.FLAG_GETSET,
@@ -354,27 +362,27 @@ class SR860(Instrument):
         self.add_parameter('scan_freq',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 1e-3), maxval=(1, 500e3),
+                           # minval=(0, 1e-3), maxval=(1, 500e3),
                            units='HZ')
         self.add_parameter('scan_amp',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 1e-9), maxval=(1, 2),
+                           # minval=(0, 1e-9), maxval=(1, 2),
                            units='V')
         self.add_parameter('scan_ref_dc_level',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -5), maxval=(1, 5),
+                           # minval=(0, -5), maxval=(1, 5),
                            units='V')
         self.add_parameter('scan_aux_out_1_level',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -10.5), maxval=(1, 10.5),
+                           # minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
         self.add_parameter('scan_aux_out_2_level',
                            #type=(int, float),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, -10.5), maxval=(1, 10.5),
+                           # minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
 
         # data capture commands
@@ -430,12 +438,12 @@ class SR860(Instrument):
         self.add_parameter('time',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 59) | (2, 23)
+                           # minval=(0, 0), maxval=(1, 59) | (2, 23)
                            )
         self.add_parameter('date',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(0, 31) | (1, 12) | (2, 99)
+                           # minval=(0, 0), maxval=(0, 31) | (1, 12) | (2, 99)
                            )
         # self.add_parameter('') tbmode move from earlier
         # self.add_parameter('') tbstat
@@ -475,7 +483,7 @@ class SR860(Instrument):
         self.add_parameter('standard_event_enable_register',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 7)
+                           # minval=(0, 0), maxval=(1, 7)
                            )
         self.add_parameter('standard_event_status_byte', type=int,
                            flags=Instrument.FLAG_GET,
@@ -483,7 +491,7 @@ class SR860(Instrument):
         self.add_parameter('serial_poll_enable_register',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 7)
+                           # minval=(0, 0), maxval=(1, 7)
                            )
         self.add_parameter('serial_poll_status_byte', type=int,
                            flags=Instrument.FLAG_GET,
@@ -494,22 +502,22 @@ class SR860(Instrument):
         self.add_parameter('error_status_enable_register',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 7)
+                           # minval=(0, 0), maxval=(1, 7)
                            )
         self.add_parameter('error_status_byte',
-                           #type=(int, int), # different types
+                           # type=(int, int), # different types
                            flags=Instrument.FLAG_GET,
-                           #minval=(0, 0), maxval=(1, 7)
+                           # minval=(0, 0), maxval=(1, 7)
                            )
         self.add_parameter('LIA_status_enable_register',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
-                           #minval=(0, 0), maxval=(1, 11)
+                           # minval=(0, 0), maxval=(1, 11)
                            )
         self.add_parameter('LIA_status_word',
-                           #type=int,
+                           # type=int,
                            flags=Instrument.FLAG_GET,
-                           #minval=0, maxval=1
+                           # minval=0, maxval=1
                            )
         self.add_parameter('overload_states', type=int,
                            flags=Instrument.FLAG_GET,
@@ -560,7 +568,7 @@ class SR860(Instrument):
 
     def do_get_timebase_mode(self):
         """
-        Queries the current external timebase mode at 10 MHz. Returns either auto (0) or internal (1).
+        Queries the current external 10 MHz timebase mode. Returns either auto (0) or internal (1).
 
         Input:
                 None
@@ -568,11 +576,11 @@ class SR860(Instrument):
         Output:
                 mode (int) : timebase mode
         """
-        return self._visainstrument.query(':TBMODE?').replace('\n', '')
+        return self._visainstrument.query(':TBMODE?')
 
     def do_set_timebase_mode(self, mode):
         """
-        Sets the external timebase mode at 10 MHz to either auto (0) or internal (1).
+        Sets the external 10 MHz timebase mode to either auto (0) or internal (1).
 
         Input:
                 mode (int) : timebase mode
@@ -584,7 +592,7 @@ class SR860(Instrument):
 
     def do_get_timebase_source(self):
         """
-        Queries the current timebase source at 10 MHz. Returns either external (0) or internal (1).
+        Queries the current 10 MHz timebase source. Returns either external (0) or internal (1).
 
         Input:
                 None
@@ -592,9 +600,9 @@ class SR860(Instrument):
         Output:
                 source (int) : timebase source
         """
-        return self._visainstrument.query(':TBSTAT?').replace('\n', '')
+        return self._visainstrument.query(':TBSTAT?')
 
-    def do_get_reference_phase_shift(self):
+    def do_get_phase_shift(self):
         """
         Queries the current reference phase shift. The phase shift has a resolution of ~0.0000001° and is wrapped around at ±180°.
 
@@ -602,23 +610,23 @@ class SR860(Instrument):
                 None
 
         Output:
-                phase_shift (float) : reference phase shift in degrees
+                phase (float) : reference phase shift in degrees
         """
-        return self._visainstrument.query(':PHAS?').replace('\n', '')
+        return self._visainstrument.query(':PHAS?')
 
-    def do_set_reference_phase_shift(self, phase_shift):
+    def do_set_phase_shift(self, phase):
         """
         Sets the reference phase shift. The phase shift has a resolution of ~0.0000001° and is wrapped around at ±180°.
 
         Input:
-                phase_shift (float) : reference phase shift in degrees
+                phase (float) : reference phase shift in degrees
 
         Output:
                 None
         """
-        self._visainstrument.write(':PHAS {}'.format(phase_shift))
+        self._visainstrument.write(':PHAS {}'.format(phase))
 
-    def do_get_reference_frequency(self):
+    def do_get_frequency(self):
         """
         Queries the current internal reference frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external reference frequency. This behavior mirrors the value displayed in the info bar at the top of the display.
 
@@ -628,9 +636,9 @@ class SR860(Instrument):
         Output:
                 frequency (float) : internal or external reference frequency in hertz
         """
-        return self._visainstrument.query(':FREQ?').replace('\n', '')
+        return self._visainstrument.query(':FREQ?')
 
-    def do_set_reference_frequency(self, frequency):
+    def do_set_frequency(self, frequency):
         """
         Sets the internal reference frequency. The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
 
@@ -641,7 +649,7 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':FREQ {}'.format(frequency))
 
-    def do_get_internal_reference_frequency(self):
+    def do_get_internal_frequency(self):
         """
         Queries the current internal reference frequency.
 
@@ -651,9 +659,9 @@ class SR860(Instrument):
         Output:
                 frequency (float) : internal frequency in hertz
         """
-        return self._visainstrument.query(':FREQINT?').replace('\n', '')
+        return self._visainstrument.query(':FREQINT?')
 
-    def do_set_internal_reference_frequency(self, frequency):
+    def do_set_internal_frequency(self, frequency):
         """
         Sets the internal reference frequency. The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
 
@@ -665,7 +673,7 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':FREQINT {}'.format(frequency))
 
-    def do_get_external_reference_frequency(self):
+    def do_get_external_frequency(self):
         """
         Queries the current external reference frequency.
 
@@ -675,7 +683,7 @@ class SR860(Instrument):
         Output:
                 frequency (float) : external reference frequency in hertz
         """
-        return self._visainstrument.query(':FREQEXT?').replace('\n', '')
+        return self._visainstrument.query(':FREQEXT?')
 
     def do_get_detection_frequency(self):
         """
@@ -687,9 +695,9 @@ class SR860(Instrument):
         Output:
                 frequency (float) : detection frequency in hertz
         """
-        return self._visainstrument.query(':FREQDET?').replace('\n', '')
+        return self._visainstrument.query(':FREQDET?')
 
-    def do_get_reference_frequency_harmonic_detect(self):
+    def do_get_harmonic_detect(self):
         """
         Queries the harmonic number of the reference frequency.
 
@@ -699,9 +707,9 @@ class SR860(Instrument):
         Output:
                 harmonic (int) : harmonic number of the reference frequency
         """
-        return self._visainstrument.query(':HARM?').replace('\n', '')
+        return self._visainstrument.query(':HARM?')
 
-    def do_set_reference_frequency_harmonic_detect(self, harmonic):
+    def do_set_harmonic_detect(self, harmonic):
         """
         Sets the lock-in to detect at the given harmonic of the reference frequency.
 
@@ -713,7 +721,7 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':HARM {}'.format(harmonic))
 
-    def do_get_external_frequency_harmonic_detect_dual_reference(self):
+    def do_get_harmonic_detect_dual_reference(self):
         """
         Queries the harmonic number of the external frequency in dual reference mode.
 
@@ -723,9 +731,9 @@ class SR860(Instrument):
         Output:
                 harmonic (int) : harmonic number of the external reference frequency in dual reference mode
         """
-        return self._visainstrument.query(':HARMDUAL?').replace('\n', '')
+        return self._visainstrument.query(':HARMDUAL?')
 
-    def do_set_external_frequency_harmonic_detect_dual_reference(self, harmonic):
+    def do_set_harmonic_detect_dual_reference(self, harmonic):
         """
         Sets the lock-in to detect at the given harmonic of the external frequency in dual reference mode.
 
@@ -737,7 +745,7 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':HARMDUAL {}'.format(harmonic))
 
-    def do_get_external_SR540_chopper_blade_slots(self):
+    def do_get_blade_slots(self):
         """
         Queries the blade slots setting for operation with an external SR540 chopper. Returns either 6-slot (0) or 30-slot (1).
 
@@ -747,9 +755,9 @@ class SR860(Instrument):
         Output:
                 slots (int) : blade slot setting
         """
-        return self._visainstrument.query(':BLADESLOTS?').replace('\n', '')
+        return self._visainstrument.query(':BLADESLOTS?')
 
-    def do_set_external_SR540_chopper_blade_slots(self, slots):
+    def do_set_blade_slots(self, slots):
         """
         Configures the SR860 for either 6-slot (0) or 30-slot (1) operation with an external SR540 chopper.
 
@@ -761,110 +769,253 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':BLADESLOTS {}'.format(slots))
 
-    def do_get_external_SR540_chopper_phase(self):
+    def do_get_blade_phase(self):
         """
-        """
-        return self._visainstrument.query(':BLADEPHASE?').replace('\n', '')
+        Queries the current phase of an external SR540 chopper blade, or, with multiple choppers, the relative phase of the choppers.
 
-    def do_set_external_SR540_chopper_phase(self, phase):
+        Input:
+                None
+        
+        Output:
+                phase (float) : blade phase in degrees
         """
+        return self._visainstrument.query(':BLADEPHASE?')
+
+    def do_set_blade_phase(self, phase):
+        """
+        Sets the phase of an external SR540 chopper blade. When operating a single chopper, this has little effect since the SR860 will follow the chopper, but it can modify the relative phase of multiple choppers in a single experiment.
+
+        Input:
+                phase (float) : blade phase in degrees
+        
+        Output:
+                None
         """
         self._visainstrument.write(':BLADEPHASE {}'.format(phase))
 
     def do_get_sine_out_amplitude(self):
         """
+        Queries the current sine out amplitude. The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+
+        Input:
+                None
+        
+        Output:
+                amplitude (float) : sine out amplitude in volts
         """
-        return self._visainstrument.query(':SLVL?').replace('\n', '')
+        return self._visainstrument.query(':SLVL?')
 
     def do_set_sine_out_amplitude(self, amplitude):
         """
+        Sets the sine out amplitude. The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+
+        Input:
+                amplitude (float) : sine out amplitude in volts
+        
+        Output:
+                None
         """
         self._visainstrument.write(':SLVL {}'.format(amplitude))
 
     def do_get_sine_out_dc_level(self):
         """
+        Queries the current sine out dc level. The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+
+        Input:
+                None
+        
+        Output:
+                level (float) : sine out dc level in volts
         """
-        return self._visainstrument.query(':SOFF?').replace('\n', '')
+        return self._visainstrument.query(':SOFF?')
 
     def do_set_sine_out_dc_level(self, level):
         """
+        Sets the sine out dc level. The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+
+        Input:
+                level (float) : sine out dc level in volts
+        
+        Output:
+                None
         """
         self._visainstrument.write(':SOFF {}'.format(level))
 
     def do_get_sine_out_dc_mode(self):
         """
+        Queries the current sine out dc mode. Returns either common (0) or difference (1).
+
+        Input:
+                None
+        
+        Output:
+                mode (int) : sine out dc mode
         """
-        return self._visainstrument.query(':REFM?').replace('\n', '')
+        return self._visainstrument.query(':REFM?')
 
     def do_set_sine_out_dc_mode(self, mode):
         """
+        Sets the sine out dc mode to either common (0) or difference (1).
+
+        Input:
+                mode (int) : sine out dc mode
+        
+        Output:
+                None
         """
         self._visainstrument.write(':REFM {}'.format(mode))
 
     def do_get_reference_source(self):
         """
+        Queries the current reference source. Returns one of internal (0), external (1), dual (2), and chop (3).
+
+        Input:
+                None
+        
+        Output:
+                source (int) : reference source
         """
-        return self._visainstrument.query(':RSRC?').replace('\n', '')
+        return self._visainstrument.query(':RSRC?')
 
     def do_set_reference_source(self, source):
         """
+        Sets the reference source to one of internal (0), external (1), dual (2), and chop (3).
+
+        Input:
+                source (int) : reference source
+        
+        Output:
+                None
         """
         self._visainstrument.write(':RSRC {}'.format(source))
 
     def do_get_external_reference_trigger_mode(self):
         """
+        Queries the current external reference trigger mode. Returns one of sine (0), positive TTL (1), and negative TTL (2).
+
+        Input:
+                None
+        
+        Output:
+                mode (int) : external reference trigger mode
         """
-        return self._visainstrument.query(':RTRG?').replace('\n', '')
+        return self._visainstrument.query(':RTRG?')
 
     def do_set_external_reference_trigger_mode(self, mode):
         """
+        Sets the external reference trigger mode to one of sine (0), positive TTL (1), and negative TTL (2).
+
+        Input:
+                mode (int) : external reference trigger mode
+        
+        Output:
+                None
         """
         self._visainstrument.write(':RTRG {}'.format(mode))
 
     def do_get_external_reference_trigger_input(self):
         """
-        """
-        return self._visainstrument.query(':REFZ?').replace('\n', '')
+        Queries the current external reference trigger input. Returns either 50 Ω (0) or 1 MΩ (1).
 
-    def do_set_external_reference_trigger_input(self, resistance):
-        """
-        """
-        self._visainstrument.write(':REFZ {}'.format(resistance))
+        Input:
+                None
 
-    def do_get_frequency_preset(self):
+        Output:
+                setting (int) : external reference trigger input
         """
-        """
-        return self._visainstrument.query(':PSTF? 0').replace('\n', '')
+        return self._visainstrument.query(':REFZ?')
 
-    def do_set_frequency_preset(self, frequency):
+    def do_set_external_reference_trigger_input(self, setting):
         """
-        """
-        self._visainstrument.write(':PSTF 0, {}'.format(frequency))
+        Sets the external reference trigger input to either 50 Ω (0) or 1 MΩ (1).
 
-    def do_get_sine_out_amplitude_preset(self):
+        Input:
+                setting (int) : external reference trigger input
+        
+        Output:
+                None
         """
-        """
-        return self._visainstrument.query(':PSTA? 0').replace('\n', '')
+        self._visainstrument.write(':REFZ {}'.format(setting))
 
-    def do_set_sine_out_amplitude_preset(self, amplitude):
+    def do_get_frequency_preset(self, preset):
         """
-        """
-        self._visainstrument.write(':PSTA 0, {}'.format(amplitude))
+        Queries one of the current frequency presets F1 (0), F2 (1), F3 (2), or F4 (3). The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
 
-    def do_get_sine_out_dc_level_preset(self):
+        Input:
+                preset (int) : frequency preset selection
+        
+        Output:
+                frequency (float) : frequency preset in hertz
         """
-        """
-        return self._visainstrument.query(':PSTL? 0').replace('\n', '')
+        return self._visainstrument.query(':PSTF? {}'.format(preset))
 
-    def do_set_sine_out_dc_level_preset(self, level):
+    def do_set_frequency_preset(self, frequency, preset):
         """
+        Sets one of the frequency presets F1 (0), F2 (1), F3 (2), or F3 (3). The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
+
+        Input:
+                frequency (float) : frequency preset in hretz
+                preset (int)      : frequency preset selection
+        
+        Output:
+                None
         """
-        self._visainstrument.write(':PSTL 0, {}'.format(level))
+        self._visainstrument.write(':PSTF {}, {}'.format(preset, frequency))
+
+    def do_get_sine_out_amplitude_preset(self, preset):
+        """
+        Queries one of the current sine out amplitude presets A1 (0), A2 (1), A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+
+        Input:
+                preset (int) : sine out amplitude preset selection
+        
+        Output:
+                amplitude (float) : sine out amplitude preset in volts
+        """
+        return self._visainstrument.query(':PSTA? {}'.format(preset))
+
+    def do_set_sine_out_amplitude_preset(self, amplitude, preset):
+        """
+        Sets one of the sine out amplitude presets A1 (0), A2 (1), A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+        
+        Input:
+                amplitude (float) : sine out amplitude preset in volts
+                preset (int)      : sine out amplitude preset selection
+        
+        Output:
+                None
+        """
+        self._visainstrument.write(':PSTA {}, {}'.format(preset, amplitude))
+
+    def do_get_sine_out_dc_level_preset(self, preset):
+        """
+        Queries one of the current sine out dc level presets L1 (0), L2 (1), L3 (2), or L4 (3). The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+
+        Input:
+                preset (int) : sine out dc level preset selection
+        
+        Output:
+                level (float) : sine out dc level preset in volts
+        """
+        return self._visainstrument.query(':PSTL? {}'.format(preset))
+
+    def do_set_sine_out_dc_level_preset(self, level, preset):
+        """
+        Sets one of the sine out dc level presets L1 (0), L2 (1), L3 (2), or L4 (3). The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+
+        Input:
+                level (float) : sine out dc level preset in volts
+                preset (int)  : sine out dc level preset selection
+        
+        Output:
+                None
+        """
+        self._visainstrument.write(':PSTL {}, {}'.format(preset, level))
 
     def do_get_signal_input(self):
         """
         """
-        return self._visainstrument.query(':IVMD?').replace('\n', '')
+        return self._visainstrument.query(':IVMD?')
 
     def do_set_signal_input(self, signal):
         """
@@ -874,7 +1025,7 @@ class SR860(Instrument):
     def do_get_voltage_input_mode(self):
         """
         """
-        return self._visainstrument.query(':ISRC?').replace('\n', '')
+        return self._visainstrument.query(':ISRC?')
 
     def do_set_voltage_input_mode(self, mode):
         """
@@ -884,7 +1035,7 @@ class SR860(Instrument):
     def do_get_voltage_input_coupling(self):
         """
         """
-        return self._visainstrument.query(':ICPL?').replace('\n', '')
+        return self._visainstrument.query(':ICPL?')
 
     def do_set_voltage_input_coupling(self, coupling):
         """
@@ -894,7 +1045,7 @@ class SR860(Instrument):
     def do_get_voltage_input_shields(self):
         """
         """
-        return self._visainstrument.query(':IGND?').replace('\n', '')
+        return self._visainstrument.query(':IGND?')
 
     def do_set_voltage_input_shields(self, shields):
         """
@@ -904,7 +1055,7 @@ class SR860(Instrument):
     def do_get_voltage_input_range(self):
         """
         """
-        return self._visainstrument.query(':IRNG?').replace('\n', '')
+        return self._visainstrument.query(':IRNG?')
 
     def do_set_voltage_input_range(self, input_range):
         """
@@ -921,7 +1072,7 @@ class SR860(Instrument):
         Output:
                 gain (int) : current input gain setting
         """
-        return self._visainstrument.query(':ICUR?').replace('\n', '')
+        return self._visainstrument.query(':ICUR?')
 
     def do_set_current_input_gain(self, gain):
         """
@@ -945,7 +1096,7 @@ class SR860(Instrument):
         Output:
                 strength (int) : signal strength indicator
         """
-        return self._visainstrument.query(':ILVL?').replace('\n', '')
+        return self._visainstrument.query(':ILVL?')
 
     def do_get_sensitivity(self):
         """
@@ -987,7 +1138,7 @@ class SR860(Instrument):
         Output:
                 s (int) : sensitivity setting
         """
-        return self._visainstrument.query(':SCAL?').replace('\n', '')
+        return self._visainstrument.query(':SCAL?')
 
     def do_set_sensitivity(self, s):
         """
@@ -1065,7 +1216,7 @@ class SR860(Instrument):
         Output:
                 t (int) : time constant setting
         """
-        return self._visainstrument.query(':OFLT?').replace('\n', '')
+        return self._visainstrument.query(':OFLT?')
 
     def do_set_time_constant(self, t):
         """
@@ -1106,7 +1257,7 @@ class SR860(Instrument):
     def do_get_filter_slope(self):
         """
         """
-        return self._visainstrument.query(':OFSL?').replace('\n', '')
+        return self._visainstrument.query(':OFSL?')
 
     def do_set_filter_slope(self, slope):
         """
@@ -1123,7 +1274,7 @@ class SR860(Instrument):
     def do_get_synchronous_filter(self):
         """
         """
-        return self._visainstrument.query(':SYNC?').replace('\n', '')
+        return self._visainstrument.query(':SYNC?')
 
     def do_set_synchronous_filter(self, setting):
         """
@@ -1133,7 +1284,7 @@ class SR860(Instrument):
     def do_get_advanced_filter(self):
         """
         """
-        return self._visainstrument.query(':ADVFILT?').replace('\n', '')
+        return self._visainstrument.query(':ADVFILT?')
 
     def do_set_advanced_filter(self, setting):
         """
@@ -1143,12 +1294,12 @@ class SR860(Instrument):
     def do_get_equivalent_noise_bandwidth(self):
         """
         """
-        return self._visainstrument.query(':ENBW?').replace('\n', '')
+        return self._visainstrument.query(':ENBW?')
 
     def do_get_channel_output(self, channel):
         """
         """
-        return self._visainstrument.query(':COUT? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':COUT? {}'.format(channel))
 
     def do_set_channel_output(self, channel, output):
         """
@@ -1159,7 +1310,7 @@ class SR860(Instrument):
     def do_get_output_expand(self, axis):
         """
         """
-        return self._visainstrument.query(':CEXP? {}'.format(axis)).replace('\n', '')
+        return self._visainstrument.query(':CEXP? {}'.format(axis))
 
     def do_set_output_expand(self, axis, mode):
         """
@@ -1169,7 +1320,7 @@ class SR860(Instrument):
     def do_get_output_offset(self, axis):
         """
         """
-        return self._visainstrument.query(':COFA? {}'.format(axis)).replace('\n', '')
+        return self._visainstrument.query(':COFA? {}'.format(axis))
 
     def do_set_output_offset(self, axis, offset):
         """
@@ -1179,7 +1330,7 @@ class SR860(Instrument):
     def do_get_output_offset_percentage(self, axis):
         """
         """
-        return self._visainstrument.query(':COFP? {}'.format(axis)).replace('\n', '')
+        return self._visainstrument.query(':COFP? {}'.format(axis))
 
     def do_set_output_offset_percentage(self, axis, percentage):
         """
@@ -1189,7 +1340,7 @@ class SR860(Instrument):
     def do_get_auto_offset(self):
         """
         """
-        return self._visainstrument.query(':OAUT?').replace('\n', '')
+        return self._visainstrument.query(':OAUT?')
 
     def do_set_auto_offset(self, axis):
         """
@@ -1199,7 +1350,7 @@ class SR860(Instrument):
     def do_get_ratio_function(self, axis):
         """
         """
-        return self._visainstrument.query(':CRAT? {}'.format(axis)).replace('\n', '')
+        return self._visainstrument.query(':CRAT? {}'.format(axis))
 
     def do_set_ratio_function(self, axis, mode):
         """
@@ -1209,12 +1360,12 @@ class SR860(Instrument):
     def do_get_aux_input_voltage(self):
         """
         """
-        return self._visainstrument.query(':OAUX?').replace('\n', '')
+        return self._visainstrument.query(':OAUX?')
 
     def do_get_aux_output_voltage(self, output):
         """
         """
-        return self._visainstrument.query(':AUXV? {}'.format(output)).replace('\n', '')
+        return self._visainstrument.query(':AUXV? {}'.format(output))
 
     def do_set_aux_output_voltage(self, output, level):
         """
@@ -1224,7 +1375,7 @@ class SR860(Instrument):
     def do_get_front_panel_blanking(self):
         """
         """
-        return self._visainstrument.query(':DBLK?').replace('\n', '')
+        return self._visainstrument.query(':DBLK?')
 
     def do_set_front_panel_blanking(self, setting):
         """
@@ -1234,7 +1385,7 @@ class SR860(Instrument):
     def do_get_screen_layout(self):
         """
         """
-        return self._visainstrument.query(':DLAY?').replace('\n', '')
+        return self._visainstrument.query(':DLAY?')
 
     def do_set_screen_layout(self, layout):
         """
@@ -1244,7 +1395,7 @@ class SR860(Instrument):
     def do_get_channel_param(self, channel):
         """
         """
-        return self._visainstrument.query(':CDSP? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':CDSP? {}'.format(channel))
 
     def do_set_channel_param(self, channel, param):
         """
@@ -1254,7 +1405,7 @@ class SR860(Instrument):
     def do_get_channel_strip_chart_graph(self, channel):
         """
         """
-        return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':CGRF? {}'.format(channel))
 
     def do_set_channel_strip_chart_graph(self, channel, setting):
         """
@@ -1264,7 +1415,7 @@ class SR860(Instrument):
     def do_get_horizontal_time_scale(self):
         """
         """
-        return self._visainstrument.query(':GSPD?').replace('\n', '')
+        return self._visainstrument.query(':GSPD?')
 
     def do_set_horizontal_time_scale(self, scale):
         """
@@ -1274,7 +1425,7 @@ class SR860(Instrument):
     def do_get_channel_vertical_scale(self, channel):
         """
         """
-        return self._visainstrument.query(':GSCL? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':GSCL? {}'.format(channel))
 
     def do_set_channel_vertical_scale(self, channel, scale):
         """
@@ -1284,7 +1435,7 @@ class SR860(Instrument):
     def do_get_channel_vertical_offset(self, channel):
         """
         """
-        return self._visainstrument.query(':GOFF? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':GOFF? {}'.format(channel))
 
     def do_set_channel_vertical_offset(self, channel, offset):
         """
@@ -1294,7 +1445,7 @@ class SR860(Instrument):
     def do_get_channel_graph(self, channel):
         """
         """
-        return self._visainstrument.query(':CGRF? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':CGRF? {}'.format(channel))
 
     def do_set_channel_graph(self, channel, setting):
         """
@@ -1304,7 +1455,7 @@ class SR860(Instrument):
     def do_get_strip_chart(self):
         """
         """
-        return self._visainstrument.query(':GLIV?').replace('\n', '')
+        return self._visainstrument.query(':GLIV?')
 
     def do_set_strip_chart(self, setting):
         """
@@ -1314,7 +1465,7 @@ class SR860(Instrument):
     def do_get_strip_chart_cursor_pos(self):
         """
         """
-        return self._visainstrument.query(':PCUR?').replace('\n', '')
+        return self._visainstrument.query(':PCUR?')
 
     def do_set_strip_chart_cursor_pos(self, pos):
         """
@@ -1324,7 +1475,7 @@ class SR860(Instrument):
     def do_get_strip_chart_cursor_mode(self):
         """
         """
-        return self._visainstrument.query(':CURREL?').replace('\n', '')
+        return self._visainstrument.query(':CURREL?')
 
     def do_set_strip_chart_cursor_mode(self, mode):
         """
@@ -1334,7 +1485,7 @@ class SR860(Instrument):
     def do_get_strip_chart_cursor_display_mode(self):
         """
         """
-        return self._visainstrument.query(':CURDISP?').replace('\n', '')
+        return self._visainstrument.query(':CURDISP?')
 
     def do_set_strip_chart_cursor_display_mode(self, mode):
         """
@@ -1344,7 +1495,7 @@ class SR860(Instrument):
     def do_get_strip_chart_cursor_readout_mode(self):
         """
         """
-        return self._visainstrument.query(':CURBUG?').replace('\n', '')
+        return self._visainstrument.query(':CURBUG?')
 
     def do_set_strip_chart_cursor_readout_mode(self, mode):
         """
@@ -1354,7 +1505,7 @@ class SR860(Instrument):
     def do_get_strip_chart_cursor_width(self):
         """
         """
-        return self._visainstrument.query(':FCRW?').replace('\n', '')
+        return self._visainstrument.query(':FCRW?')
 
     def do_set_strip_chart_cursor_width(self, width):
         """
@@ -1364,22 +1515,22 @@ class SR860(Instrument):
     def do_get_channel_strip_chart_cursor_value(self, channel):
         """
         """
-        return self._visainstrument.query(':SCRY? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':SCRY? {}'.format(channel))
 
     def do_get_strip_chart_cursor_horizontal_time(self):
         """
         """
-        return self._visainstrument.query(':CURDATTIM?').replace('\n', '')
+        return self._visainstrument.query(':CURDATTIM?')
 
     def do_get_strip_chart_cursor_horizontal_pos(self):
         """
         """
-        return self._visainstrument.query(':CURINTERVAL?').replace('\n', '')
+        return self._visainstrument.query(':CURINTERVAL?')
 
     def do_get_FFT_source(self):
         """
         """
-        return self._visainstrument.query(':FFTR?').replace('\n', '')
+        return self._visainstrument.query(':FFTR?')
 
     def do_set_FFT_source(self, source):
         """
@@ -1389,7 +1540,7 @@ class SR860(Instrument):
     def do_get_FFT_vertical_scale(self):
         """
         """
-        return self._visainstrument.query(':FFTS?').replace('\n', '')
+        return self._visainstrument.query(':FFTS?')
 
     def do_set_FFT_vertical_scale(self, scale):
         """
@@ -1399,7 +1550,7 @@ class SR860(Instrument):
     def do_get_FFT_vertical_offset(self):
         """
         """
-        return self._visainstrument.query(':FFTO?').replace('\n', '')
+        return self._visainstrument.query(':FFTO?')
 
     def do_set_FFT_vertical_offset(self, offset):
         """
@@ -1409,12 +1560,12 @@ class SR860(Instrument):
     def do_get_FFT_max_span(self):
         """
         """
-        return self._visainstrument.query(':FFTMAXSPAN?').replace('\n', '')
+        return self._visainstrument.query(':FFTMAXSPAN?')
 
     def do_get_FFT_span(self):
         """
         """
-        return self._visainstrument.query(':FFTSPAN?').replace('\n', '')
+        return self._visainstrument.query(':FFTSPAN?')
 
     def do_set_FFT_span(self, span):
         """
@@ -1424,7 +1575,7 @@ class SR860(Instrument):
     def do_get_FFT_averaging(self):
         """
         """
-        return self._visainstrument.query(':FFTA?').replace('\n', '')
+        return self._visainstrument.query(':FFTA?')
 
     def do_set_FFT_averaging(self, averaging):
         """
@@ -1434,7 +1585,7 @@ class SR860(Instrument):
     def do_get_FFT_graph(self):
         """
         """
-        return self._visainstrument.query(':FFTL?').replace('\n', '')
+        return self._visainstrument.query(':FFTL?')
 
     def do_set_FFT_graph(self, paused):
         """
@@ -1444,7 +1595,7 @@ class SR860(Instrument):
     def do_get_FFT_cursor_width(self):
         """
         """
-        return self._visainstrument.query(':FCRW?').replace('\n', '')
+        return self._visainstrument.query(':FCRW?')
 
     def do_set_FFT_cursor_width(self, width):
         """
@@ -1454,7 +1605,7 @@ class SR860(Instrument):
     def do_get_FFT_cursor_frequency(self):
         """
         """
-        return self._visainstrument.query(':FCRX?').replace('\n', '')
+        return self._visainstrument.query(':FCRX?')
 
     def do_set_FFT_cursor_frequency(self, frequency):
         """
@@ -1464,12 +1615,12 @@ class SR860(Instrument):
     def do_get_FFT_cursor_amp(self):
         """
         """
-        return self._visainstrument.query(':FCRY?').replace('\n', '')
+        return self._visainstrument.query(':FCRY?')
 
     def do_get_scan_param(self):
         """
         """
-        return self._visainstrument.query(':SCNPAR?').replace('\n', '')
+        return self._visainstrument.query(':SCNPAR?')
 
     def do_set_scan_param(self, param):
         """
@@ -1479,7 +1630,7 @@ class SR860(Instrument):
     def do_get_scan_type(self):
         """
         """
-        return self._visainstrument.query(':SCNLOG?').replace('\n', '')
+        return self._visainstrument.query(':SCNLOG?')
 
     def do_set_scan_type(self, setting):
         """
@@ -1489,7 +1640,7 @@ class SR860(Instrument):
     def do_get_scan_end_mode(self):
         """
         """
-        return self._visainstrument.query(':SCNEND?').replace('\n', '')
+        return self._visainstrument.query(':SCNEND?')
 
     def do_set_scan_end_mode(self, mode):
         """
@@ -1499,7 +1650,7 @@ class SR860(Instrument):
     def do_get_scan_time(self):
         """
         """
-        return self._visainstrument.query(':SCNSEC?').replace('\n', '')
+        return self._visainstrument.query(':SCNSEC?')
 
     def do_set_scan_time(self, time):
         """
@@ -1509,7 +1660,7 @@ class SR860(Instrument):
     def do_get_scan_out_attenuator_op_mode_sine_out_amp(self):
         """
         """
-        return self._visainstrument.query(':SCNAMPATTN?').replace('\n', '')
+        return self._visainstrument.query(':SCNAMPATTN?')
 
     def do_set_scan_out_attenuator_op_mode_sine_out_amp(self, mode):
         """
@@ -1519,7 +1670,7 @@ class SR860(Instrument):
     def do_get_scan_out_attenuator_op_mode_dc_level(self):
         """
         """
-        return self._visainstrument.query(':SCNDCATTN?').replace('\n', '')
+        return self._visainstrument.query(':SCNDCATTN?')
 
     def do_set_scan_out_attenuator_op_mode_dc_level(self, mode):
         """
@@ -1529,7 +1680,7 @@ class SR860(Instrument):
     def do_get_scan_param_update_interval(self):
         """
         """
-        return self._visainstrument.query(':SCNINRVL?').replace('\n', '')
+        return self._visainstrument.query(':SCNINRVL?')
 
     def do_set_scan_param_update_interval(self, interval):
         """
@@ -1539,7 +1690,7 @@ class SR860(Instrument):
     def do_get_scan_enabled(self):
         """
         """
-        return self._visainstrument.query(':SCNENBL?').replace('\n', '')
+        return self._visainstrument.query(':SCNENBL?')
 
     def do_set_scan_enabled(self, enabled):
         """
@@ -1549,12 +1700,12 @@ class SR860(Instrument):
     def do_get_scan_state(self):
         """
         """
-        return self._visainstrument.query(':SCNSTATE?').replace('\n', '')
+        return self._visainstrument.query(':SCNSTATE?')
 
     def do_get_scan_freq(self):
         """
         """
-        return self._visainstrument.query(':SCNFREQ?').replace('\n', '')
+        return self._visainstrument.query(':SCNFREQ?')
 
     def do_set_scan_freq(self, freq):
         """
@@ -1564,7 +1715,7 @@ class SR860(Instrument):
     def do_get_scan_amp(self):
         """
         """
-        return self._visainstrument.query(':SCNAMP?').replace('\n', '')
+        return self._visainstrument.query(':SCNAMP?')
 
     def do_set_scan_amp(self, amp):
         """
@@ -1574,7 +1725,7 @@ class SR860(Instrument):
     def do_get_scan_ref_dc_level(self):
         """
         """
-        return self._visainstrument.query(':SCNDC?').replace('\n', '')
+        return self._visainstrument.query(':SCNDC?')
 
     def do_set_scan_ref_dc_level(self, level):
         """
@@ -1584,7 +1735,7 @@ class SR860(Instrument):
     def do_get_scan_aux_out_1_level(self):
         """
         """
-        return self._visainstrument.query(':SCNAUX1?').replace('\n', '')
+        return self._visainstrument.query(':SCNAUX1?')
 
     def do_set_scan_aux_out_1_level(self, level):
         """
@@ -1594,7 +1745,7 @@ class SR860(Instrument):
     def do_get_scan_aux_out_2_level(self):
         """
         """
-        return self._visainstrument.query(':SCNAUX2?').replace('\n', '')
+        return self._visainstrument.query(':SCNAUX2?')
 
     def do_set_scan_aux_out_2_level(self, level):
         """
@@ -1604,7 +1755,7 @@ class SR860(Instrument):
     def do_get_capture_length(self):
         """
         """
-        return self._visainstrument.query(':CAPTURELEN?').replace('\n', '')
+        return self._visainstrument.query(':CAPTURELEN?')
 
     def do_set_capture_length(self, length):
         """
@@ -1614,7 +1765,7 @@ class SR860(Instrument):
     def do_get_capture_config(self):
         """
         """
-        return self._visainstrument.query(':CAPTURECFG?').replace('\n', '')
+        return self._visainstrument.query(':CAPTURECFG?')
 
     def do_set_capture_config(self, config):
         """
@@ -1624,12 +1775,12 @@ class SR860(Instrument):
     def do_get_capture_rate_max(self):
         """
         """
-        return self._visainstrument.query(':CAPTURERATEMAX?').replace('\n', '')
+        return self._visainstrument.query(':CAPTURERATEMAX?')
 
     def do_get_capture_rate(self):
         """
         """
-        return self._visainstrument.query(':CAPTURERATE?').replace('\n', '')
+        return self._visainstrument.query(':CAPTURERATE?')
 
     def do_set_capture_rate(self, rate):
         """
@@ -1639,32 +1790,32 @@ class SR860(Instrument):
     def do_get_capture_state(self):
         """
         """
-        return self._visainstrument.query(':CAPTURESTAT?').replace('\n', '')
+        return self._visainstrument.query(':CAPTURESTAT?')
 
     def do_get_num_bytes_captured(self):
         """
         """
-        return self._visainstrument.query(':CAPTUREBYTES?').replace('\n', '')
+        return self._visainstrument.query(':CAPTUREBYTES?')
 
     def do_get_num_kbytes_written(self):
         """
         """
-        return self._visainstrument.query(':CAPTUREPROG?').replace('\n', '')
+        return self._visainstrument.query(':CAPTUREPROG?')
 
     def do_get_capture_buffer_ascii(self, pos):
         """
         """
-        return self._visainstrument.query(':CAPTUREVAL? {}'.format(pos)).replace('\n', '')
+        return self._visainstrument.query(':CAPTUREVAL? {}'.format(pos))
 
     def do_get_capture_buffer_bin(self, offset, length):
         """
         """
-        return self._visainstrument.query(':CAPTUREGET? {}, {}'.format(offset, length)).replace('\n', '')
+        return self._visainstrument.query(':CAPTUREGET? {}, {}'.format(offset, length))
 
     def do_get_stream_config(self):
         """
         """
-        return self._visainstrument.query(':STREAMCH?').replace('\n', '')
+        return self._visainstrument.query(':STREAMCH?')
 
     def do_set_stream_config(self, config):
         """
@@ -1674,12 +1825,12 @@ class SR860(Instrument):
     def do_get_stream_rate_max(self):
         """
         """
-        return self._visainstrument.query(':STREAMRATEMAX?').replace('\n', '')
+        return self._visainstrument.query(':STREAMRATEMAX?')
 
     def do_get_stream_rate(self):
         """
         """
-        return self._visainstrument.query(':STREAMRATE?').replace('\n', '')
+        return self._visainstrument.query(':STREAMRATE?')
 
     def do_set_stream_rate(self, rate):
         """
@@ -1689,7 +1840,7 @@ class SR860(Instrument):
     def do_get_stream_format(self):
         """
         """
-        return self._visainstrument.query(':STREAMFMT?').replace('\n', '')
+        return self._visainstrument.query(':STREAMFMT?')
 
     def do_set_stream_format(self, fmt):
         """
@@ -1699,7 +1850,7 @@ class SR860(Instrument):
     def do_get_stream_packet_size(self):
         """
         """
-        return self._visainstrument.query(':STREAMPCKT?').replace('\n', '')
+        return self._visainstrument.query(':STREAMPCKT?')
 
     def do_set_stream_packet_size(self, size):
         """
@@ -1709,7 +1860,7 @@ class SR860(Instrument):
     def do_get_stream_port(self):
         """
         """
-        return self._visainstrument.query(':STREAMPORT?').replace('\n', '')
+        return self._visainstrument.query(':STREAMPORT?')
 
     def do_set_stream_port(self, port):
         """
@@ -1719,7 +1870,7 @@ class SR860(Instrument):
     def do_get_stream_option(self):
         """
         """
-        return self._visainstrument.query(':STREAMOPTION?').replace('\n', '')
+        return self._visainstrument.query(':STREAMOPTION?')
 
     def do_set_stream_option(self, option):
         """
@@ -1729,7 +1880,7 @@ class SR860(Instrument):
     def do_get_stream_enabled(self):
         """
         """
-        return self._visainstrument.query(':STREAM?').replace('\n', '')
+        return self._visainstrument.query(':STREAM?')
 
     def do_set_stream_enabled(self, enabled):
         """
@@ -1739,7 +1890,7 @@ class SR860(Instrument):
     def do_get_time(self):
         """
         """
-        return self._visainstrument.query(':TIME?').replace('\n', '')
+        return self._visainstrument.query(':TIME?')
 
     def do_set_time(self, setting, time):
         """
@@ -1749,7 +1900,7 @@ class SR860(Instrument):
     def do_get_date(self):
         """
         """
-        return self._visainstrument.query(':DATE?').replace('\n', '')
+        return self._visainstrument.query(':DATE?')
 
     def do_set_date(self, setting, time):
         """
@@ -1763,7 +1914,7 @@ class SR860(Instrument):
     def do_get_BlazeX_output(self):
         """
         """
-        return self._visainstrument.query(':BLAZEX?').replace('\n', '')
+        return self._visainstrument.query(':BLAZEX?')
 
     def do_set_BlazeX_output(self, setting):
         """
@@ -1773,7 +1924,7 @@ class SR860(Instrument):
     def do_get_sounds(self):
         """
         """
-        return self._visainstrument.query(':KEYC?').replace('\n', '')
+        return self._visainstrument.query(':KEYC?')
 
     def do_set_sounds(self, setting):
         """
@@ -1783,7 +1934,7 @@ class SR860(Instrument):
     def do_get_screenshot_mode(self):
         """
         """
-        return self._visainstrument.query(':PRMD?').replace('\n', '')
+        return self._visainstrument.query(':PRMD?')
 
     def do_set_screenshot_mode(self, mode):
         """
@@ -1793,7 +1944,7 @@ class SR860(Instrument):
     def do_get_data_file_format(self):
         """
         """
-        return self._visainstrument.query(':SDFM?').replace('\n', '')
+        return self._visainstrument.query(':SDFM?')
 
     def do_set_data_file_format(self, fmt):
         """
@@ -1803,7 +1954,7 @@ class SR860(Instrument):
     def do_get_filename_prefix(self):
         """
         """
-        return self._visainstrument.query(':FBAS?').replace('\n', '')
+        return self._visainstrument.query(':FBAS?')
 
     def do_set_filename_prefix(self, prefix):
         """
@@ -1813,7 +1964,7 @@ class SR860(Instrument):
     def do_get_filename_suffix(self):
         """
         """
-        return self._visainstrument.query(':FNUM?').replace('\n', '')
+        return self._visainstrument.query(':FNUM?')
 
     def do_set_filename_suffix(self, suffix):
         """
@@ -1823,17 +1974,17 @@ class SR860(Instrument):
     def do_get_next_filename(self):
         """
         """
-        return self._visainstrument.query(':FNXT?').replace('\n', '')
+        return self._visainstrument.query(':FNXT?')
 
     def do_get_identification(self):
         """
         """
-        return self._visainstrument.query(':*IDN?').replace('\n', '')
+        return self._visainstrument.query(':*IDN?')
 
     def do_get_op_complete_bit(self):
         """
         """
-        return self._visainstrument.query(':*OPC?').replace('\n', '')
+        return self._visainstrument.query(':*OPC?')
 
     def do_set_op_complete_bit(self, bit):
         """
@@ -1843,7 +1994,7 @@ class SR860(Instrument):
     def do_get_local_remote(self):
         """
         """
-        return self._visainstrument.query(':LOCL?').replace('\n', '')
+        return self._visainstrument.query(':LOCL?')
 
     def do_set_local_remote(self, mode):
         """
@@ -1853,7 +2004,7 @@ class SR860(Instrument):
     def do_get_GPIB_override_remote(self):
         """
         """
-        return self._visainstrument.query(':OVRM?').replace('\n', '')
+        return self._visainstrument.query(':OVRM?')
 
     def do_set_GPIB_override_remote(self, override):
         """
@@ -1863,7 +2014,7 @@ class SR860(Instrument):
     def do_get_standard_event_enable_register(self, bit=None):
         """
         """
-        return self._visainstrument.query(':*ESE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESE?').replace('\n', '')
+        return self._visainstrument.query(':*ESE? {}'.format(bit)) if bit is not None else self._visainstrument.query(':*ESE?')
 
     def do_set_standard_event_enable_register(self, value, bit=None):
         """
@@ -1874,12 +2025,12 @@ class SR860(Instrument):
     def do_get_standard_event_status_byte(self, bit=None):
         """
         """
-        return self._visainstrument.query(':*ESR? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*ESR?').replace('\n', '')
+        return self._visainstrument.query(':*ESR? {}'.format(bit)) if bit is not None else self._visainstrument.query(':*ESR?')
 
     def do_get_serial_poll_enable_register(self, bit=None):
         """
         """
-        return self._visainstrument.query(':*SRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*SRE?').replace('\n', '')
+        return self._visainstrument.query(':*SRE? {}'.format(bit)) if bit is not None else self._visainstrument.query(':*SRE?')
 
     def do_set_serial_poll_enable_register(self, value, bit=None):
         """
@@ -1890,12 +2041,12 @@ class SR860(Instrument):
     def do_get_serial_poll_status_byte(self, bit=None):
         """
         """
-        return self._visainstrument.query(':*STB? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':*STB?').replace('\n', '')
+        return self._visainstrument.query(':*STB? {}'.format(bit)) if bit is not None else self._visainstrument.query(':*STB?')
 
     def do_get_power_on_status_clear_bit(self):
         """
         """
-        return self._visainstrument.query(':*PSC?').replace('\n', '')
+        return self._visainstrument.query(':*PSC?')
 
     def do_set_power_on_status_clear_bit(self, bit):
         """
@@ -1905,7 +2056,7 @@ class SR860(Instrument):
     def do_get_error_status_enable_register(self, bit=None):
         """
         """
-        return self._visainstrument.query(':ERRE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRE?').replace('\n', '')
+        return self._visainstrument.query(':ERRE? {}'.format(bit)) if bit is not None else self._visainstrument.query(':ERRE?')
 
     def do_set_error_status_enable_register(self, value, bit=None):
         """
@@ -1916,12 +2067,12 @@ class SR860(Instrument):
     def do_get_error_status_byte(self, bit=None):
         """
         """
-        return self._visainstrument.query(':ERRS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':ERRS?').replace('\n', '')
+        return self._visainstrument.query(':ERRS? {}'.format(bit)) if bit is not None else self._visainstrument.query(':ERRS?')
 
     def do_get_LIA_status_enable_register(self, bit=None):
         """
         """
-        return self._visainstrument.query(':LIAE? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAE?').replace('\n', '')
+        return self._visainstrument.query(':LIAE? {}'.format(bit)) if bit is not None else self._visainstrument.query(':LIAE?')
 
     def do_set_LIA_status_enable_register(self, value, bit=None):
         """
@@ -1932,12 +2083,12 @@ class SR860(Instrument):
     def do_get_LIA_status_word(self, bit=None):
         """
         """
-        return self._visainstrument.query(':LIAS? {}'.format(bit)).replace('\n', '') if bit is not None else self._visainstrument.query(':LIAS?').replace('\n', '')
+        return self._visainstrument.query(':LIAS? {}'.format(bit)) if bit is not None else self._visainstrument.query(':LIAS?')
 
     def do_get_overload_states(self):
         """
         """
-        return self._visainstrument.query(':CUROVLDSTAT?').replace('\n', '')
+        return self._visainstrument.query(':CUROVLDSTAT?')
 
     def auto_phase(self):
         """
@@ -2023,22 +2174,22 @@ class SR860(Instrument):
     def get_channel_val(self, channel):
         """
         """
-        return self._visainstrument.query(':OUTR? {}'.format(channel)).replace('\n', '')
+        return self._visainstrument.query(':OUTR? {}'.format(channel))
 
     def get_param(self, param):
         """
         """
-        return self._visainstrument.query(':OUTP? {}'.format(param)).replace('\n', '')
+        return self._visainstrument.query(':OUTP? {}'.format(param))
 
     def get_multi_params(self, param1, param2, param3=None):
         """
         """
-        return self._visainstrument.query(':SNAP? {}, {}, {}'.format(param1, param2, param3)).replace('\n', '')
+        return self._visainstrument.query(':SNAP? {}, {}, {}'.format(param1, param2, param3))
 
     def get_data_params(self):
         """
         """
-        return self._visainstrument.query(':SNAPD?').replace('\n', '')
+        return self._visainstrument.query(':SNAPD?')
 
     def start_capture(self, acquisition, start):
         """
@@ -2066,7 +2217,7 @@ class SR860(Instrument):
     def test(self):
         """
         """
-        return self._visainstrument.query(':*TST?').replace('\n', '')
+        return self._visainstrument.query(':*TST?')
 
     def clear(self):
         """
