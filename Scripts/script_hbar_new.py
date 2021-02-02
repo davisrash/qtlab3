@@ -14,7 +14,7 @@ import modules.traces as traces
 filename = 'VA_485_Ebase_G'
 intrasweep_delay = 0.1
 intersweep_delay = 1
-threshhold = 200000
+threshold = 200000
 compliance = 5e-3
 ramp_rate = 1e-2
 
@@ -149,7 +149,7 @@ class Script():
 
 		return [gate_1, leak_1, gate_2, leak_2, gate_3, leak_3, gate_4, leak_4, gate_5, leak_5, gate_6, leak_6, L1_X, L1_X_pro, L1_Y]
 
-	def volt_sweep(self, xname, xstart, xend, xstep, rev, threshhold):
+	def volt_sweep(self, xname, xstart, xend, xstep, rev, threshold):
 		qt.mstart()
 
 		# create sweep vectors
@@ -167,7 +167,7 @@ class Script():
 			data_values = self.take_data(x)
 			data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1])
 
-			if data_values[0] > threshhold:
+			if data_values[0] > threshold:
 				break
 
 			x1_vector.append(x)
@@ -192,7 +192,7 @@ class Script():
 		qt.mend()
 		return 1
 
-	def qdac_1gate(self, channel, xname, xstart, xend, xstep, rev, threshhold, compliance):
+	def qdac_1gate(self, channel, xname, xstart, xend, xstep, rev, threshold, compliance):
 		qt.mstart()
 
 		if ((xstart - xend) / xstep) % 2 == 0:
@@ -250,8 +250,8 @@ class Script():
 
 			data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
-			if threshhold is not None:
-				if data_values[13] > threshhold:
+			if threshold is not None:
+				if data_values[13] > threshold:
 					break
 			if data_values[2 * channel - 1] > compliance:
 				break
@@ -289,7 +289,7 @@ class Script():
 		qt.mend()
 		return 1
 
-	def qdac_2gate(self, channel, channel2, xname1, xstart1, xend1, xstep1, xname2, xstart2, xend2, xstep2, threshhold, compliance):
+	def qdac_2gate(self, channel, channel2, xname1, xstart1, xend1, xstep1, xname2, xstart2, xend2, xstep2, threshold, compliance):
 		qt.mstart()
 
 		if ((xstart1 - xend1) / xstep1) % 2 == 0:
@@ -349,7 +349,7 @@ class Script():
 					print("I am broken.")
 					break
 
-				if data_values[5] > threshhold:
+				if data_values[5] > threshold:
 					data_fwd.add_data_point(x1, x2, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], np.nan, data_values[13], data_values[14])
 
 					print("I shall continue.")
@@ -443,7 +443,7 @@ a = Script()
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
 start1 = 0
-end1 = 1.5
+end1 = -5
 xstep1 = .01
 #start2 = 0
 #end2 = -1.3
@@ -454,4 +454,4 @@ threshold = 1.5E5
 compliance = 2e-9
 ramprate = 1E-2
 
-a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, None, compliance)
+a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
