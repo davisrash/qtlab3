@@ -22,15 +22,19 @@ keithley1 = qt.instruments.get('keithley1')
 lockin1 = qt.instruments.get('lockin1')
 qdac1 = qt.instruments.get('qdac1')
 yoko = qt.instruments.get('yoko')
+lockin2 = qt.instruments.get('lockin2')
+
+li1 = 830
+li2 = 860
 
 # device = 0 is keithley1
 # device = 1 is qdac1
 # device = 2 is yoko
 device = 0
 
-V_in = 100e-6
-lockin1.set_amplitude(0.1)
+
 R_sense = 992
+
 
 start1 = -2
 end1 = 2
@@ -94,6 +98,8 @@ class Script():
 		"""
 		"""
 		qt.msleep(intrasweep_delay)
+		
+		
 		L1_X = lockin1.get_X()
 		L1_X_pro = (V_in - L1_X) / (1e-9 if L1_X == 0.0 else L1_X) * R_sense
 
@@ -440,6 +446,8 @@ class Script():
 		qt.msleep(intrasweep_delay)
 
 a = Script()
+V_in = 100e-6
+lockin1.set_amplitude(0.1)
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
 start1 = 0

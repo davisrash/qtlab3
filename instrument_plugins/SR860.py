@@ -1,15 +1,17 @@
-from source.instrument import Instrument
 import visa
+from source.instrument import Instrument
+
 # import logging
 
-###################################
+###############################################################################
 # To Do:
 #  - add logging
 #  - add doc options
 #  - find minval and maxval for
 #     - blade_phase
 #     - equivalent_noise_bandwidth
-###################################
+#  - consider flags=Instrument.FLAG_GETSET | Instrument.FLAG_GET_AFTER_SET
+###############################################################################
 
 
 class SR860(Instrument):
@@ -18,10 +20,11 @@ class SR860(Instrument):
 
     Usage:
     Initialize with
-    <name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>', reset=<bool>)
+    <name> = qt.instruments.create('<name>', 'SR860', address='<GPIB address>',
+                                   reset=<bool>)
     """
 
-    def __init__(self, name: str, address: str, reset=False):
+    def __init__(self, name: str, address: str, reset: bool = False):
         """
         Initializes the SR860.
 
@@ -41,14 +44,12 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'auto',
-                                       1: 'internal'})
+                           format_map={0: 'auto', 1: 'internal'})
         self.add_parameter('timebase_source', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'external',
-                                       1: 'internal'})
+                           format_map={0: 'external', 1: 'internal'})
         self.add_parameter('phase_shift', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=-360000, maxval=360000, units='deg',
@@ -81,10 +82,10 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: '6-slot',
-                                       1: '30-slot'})
+                           format_map={0: '6-slot', 1: '30-slot'})
         self.add_parameter('blade_phase', type=float,
                            flags=Instrument.FLAG_GETSET,
+                           # minval=?, maxval=?,
                            units='deg',
                            doc="")
         self.add_parameter('sine_out_amplitude', type=float,
@@ -99,8 +100,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'common',
-                                       1: 'difference'})
+                           format_map={0: 'common', 1: 'difference'})
         self.add_parameter('reference_source', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=3,
@@ -120,8 +120,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1, units='Ω',
                            doc="",
-                           format_map={0: '50 Ω',
-                                       1: '1 MΩ'})
+                           format_map={0: '50 Ω', 1: '1 MΩ'})
         self.add_parameter('frequency_preset', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-3, maxval=500e6, units='Hz',
@@ -140,29 +139,25 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'voltage',
-                                       1: 'current'})
+                           format_map={0: 'voltage', 1: 'current'})
         self.add_parameter('voltage_input_mode', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'A',
-                                       1: 'A-B'})
+                           format_map={0: 'A', 1: 'A-B'})
         self.add_parameter('voltage_input_coupling', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'ac',
-                                       1: 'dc'})
+                           format_map={0: 'AC', 1: 'DC'})
         self.add_parameter('voltage_input_shields', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'float',
-                                       1: 'ground'})
+                           format_map={0: 'float', 1: 'ground'})
         self.add_parameter('voltage_input_range', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=4, units='V',
+                           minval=0, maxval=4,
                            doc="",
                            format_map={0: '1 V',
                                        1: '300 mV',
@@ -171,10 +166,9 @@ class SR860(Instrument):
                                        4: '10 mV'})
         self.add_parameter('current_input_gain', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1, units='Ω',
+                           minval=0, maxval=1,
                            doc="",
-                           format_map={0: '1 MΩ (1 μA)',
-                                       1: '100 MΩ (10 nA)'})
+                           format_map={0: '1 MΩ (1 μA)', 1: '100 MΩ (10 nA)'})
         self.add_parameter('signal_strength', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=4,
@@ -186,18 +180,18 @@ class SR860(Instrument):
                                        4: 'overload'})
         self.add_parameter('sensitivity', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=27, units='V',
+                           minval=0, maxval=27,
                            doc="",
-                           format_map={ 0: '1 V [μA]',
-                                        1: '500 mV [nA]',
-                                        2: '200 mV [nA]',
-                                        3: '100 mV [nA]',
-                                        4: '50 mV [nA]',
-                                        5: '20 mV [nA]',
-                                        6: '10 mV [nA]',
-                                        7: '5 mV [nA]',
-                                        8: '2 mV [nA]',
-                                        9: '1 mV [nA]',
+                           format_map={0: '1 V [μA]',
+                                       1: '500 mV [nA]',
+                                       2: '200 mV [nA]',
+                                       3: '100 mV [nA]',
+                                       4: '50 mV [nA]',
+                                       5: '20 mV [nA]',
+                                       6: '10 mV [nA]',
+                                       7: '5 mV [nA]',
+                                       8: '2 mV [nA]',
+                                       9: '1 mV [nA]',
                                        10: '500 μV [pA]',
                                        11: '200 μV [pA]',
                                        12: '100 μV [pA]',
@@ -218,18 +212,18 @@ class SR860(Instrument):
                                        27: '1 nV [fA]'})
         self.add_parameter('time_constant', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=21, units='s',
+                           minval=0, maxval=21,
                            doc="",
-                           format_map={ 0: '1 μs',
-                                        1: '3 μs',
-                                        2: '10 μs',
-                                        3: '30 μs',
-                                        4: '100 μs',
-                                        5: '300 μs',
-                                        6: '1 ms',
-                                        7: '3 ms',
-                                        8: '10 ms',
-                                        9: '30 ms',
+                           format_map={0: '1 μs',
+                                       1: '3 μs',
+                                       2: '10 μs',
+                                       3: '30 μs',
+                                       4: '100 μs',
+                                       5: '300 μs',
+                                       6: '1 ms',
+                                       7: '3 ms',
+                                       8: '10 ms',
+                                       9: '30 ms',
                                        10: '100 ms',
                                        11: '300 ms',
                                        12: '1 s',
@@ -244,7 +238,7 @@ class SR860(Instrument):
                                        21: '30 ks'})
         self.add_parameter('filter_slope', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=3, units='dB/oct',
+                           minval=0, maxval=3,
                            doc="",
                            format_map={0: '6 dB/oct',
                                        1: '12 dB/oct',
@@ -254,78 +248,100 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'off',
-                                       1: 'on'})
+                           format_map={0: 'off', 1: 'on'})
         self.add_parameter('advanced_filter', type=int,
                            flags=Instrument.FLAG_GETSET,
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'off',
-                                       1: 'on'})
+                           format_map={0: 'off', 1: 'on'})
         self.add_parameter('equivalent_noise_bandwidth', type=float,
                            flags=Instrument.FLAG_GET,
+                           # minval=?, maxval=?
                            units='Hz',
                            doc="")
 
         # ch1/ch2 output parameters
-        self.add_parameter('channel_output', type=int,
+        self.add_parameter('output_channel', type=int,
                            flags=Instrument.FLAG_GETSET,
                            channels=(0, 1),
                            minval=0, maxval=1,
                            doc="",
-                           format_map={0: 'XY',
-                                       1: 'Rθ'})
+                           format_map={0: 'XY', 1: 'Rθ'})
         self.add_parameter('output_expand', type=int,
                            flags=Instrument.FLAG_GETSET,
                            channels=(0, 2),
                            minval=0, maxval=2,
                            doc="",
-                           format_map={0: 'off',
-                                       1: 'X10',
-                                       2: 'X100'})
+                           format_map={0: 'off', 1: 'x10', 2: 'x100'})
         self.add_parameter('output_offset', type=int,
+                           flags=Instrument.FLAG_GETSET,
+                           channels=(0, 2),
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'off', 1: 'on'})
+        self.add_parameter('output_offset_percentage', type=float,
+                           flags=Instrument.FLAG_GETSET,
+                           channels=(0, 2),
+                           minval=-999.99, maxval=999.99,
+                           doc="")
+        self.add_parameter('ratio_function', type=int,
                            flags=Instrument.FLAG_GETSET,
                            channels=(0, 2),
                            minval=0, maxval=1,
                            doc="",
                            format_map={0: 'off',
                                        1: 'on'})
-        self.add_parameter('output_offset_percentage',
-                           #type=(int, float),
-                           flags=Instrument.FLAG_GETSET,
-                           # minval=(0, -999.99), maxval=(2, 999.99)
-                           )
-        self.add_parameter('auto_offset', type=int,
-                           flags=Instrument.FLAG_SET,
-                           minval=0, maxval=2)
-        self.add_parameter('ratio_function',
-                           #type=(int, int),
-                           flags=Instrument.FLAG_GETSET,
-                           # minval=(0, 0), maxval=(2, 1)
-                           )
 
         # aux input and output commands
         self.add_parameter('aux_input_voltage', type=int,
                            flags=Instrument.FLAG_GET,
-                           minval=0, maxval=3)
-        self.add_parameter('aux_output_voltage',
-                           #type=(int, float),
+                           minval=0, maxval=3,
+                           doc="")
+        self.add_parameter('aux_output_voltage', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           # minval=(0, -10.5), maxval=(3, 10.5),
-                           units=('', 'V'))
+                           channels=(0, 3),
+                           minval=-10.5, maxval=10.5, units='V',
+                           doc="")
 
         # display parameters
         self.add_parameter('front_panel_blanking', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1)
+                           minval=0, maxval=1,
+                           doc="",
+                           format_map={0: 'off',
+                                       1: 'on'})
         self.add_parameter('screen_layout', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=5)
-        self.add_parameter('channel_param',
-                           #type=(int, int),
+                           minval=0, maxval=5,
+                           doc="",
+                           format_map={0: 'trend',
+                                       1: 'full strip chart history',
+                                       2: 'half strip chart history',
+                                       3: 'full FFT',
+                                       4: 'half FFT',
+                                       5: 'big numerical'})
+        self.add_parameter('channel_param', type=int,
                            flags=Instrument.FLAG_GETSET,
-                           # minval=(0, 0), maxval=(3, 16)
-                           )
+                           channels=(0, 3),
+                           minval=0, maxval=16,
+                           doc="",
+                           format_map={0: 'X output',
+                                       1: 'Y output',
+                                       2: 'R output',
+                                       3: 'θ output',
+                                       4: 'Aux In1',
+                                       5: 'Aux In2',
+                                       6: 'Aux In3',
+                                       7: 'Aux In4',
+                                       8: 'Xnoise',
+                                       9: 'Ynoise',
+                                       10: 'Aux Out1',
+                                       11: 'Aux Out2',
+                                       12: 'reference phase',
+                                       13: 'sine out amplitude',
+                                       14: 'DC level',
+                                       15: 'internal reference frequency',
+                                       16: 'external reference frequency'})
         self.add_parameter('channel_strip_chart_graph',
                            #type=(int, int),
                            flags=Instrument.FLAG_GETSET,
@@ -611,6 +627,7 @@ class SR860(Instrument):
                            minval=0, maxval=4095)
 
         # auto functions
+        self.add_function('auto_offset')
         self.add_function('auto_phase')
         self.add_function('auto_range')
         self.add_function('auto_scale')
@@ -862,7 +879,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 phase (float) : blade phase in degrees
         """
@@ -874,7 +891,7 @@ class SR860(Instrument):
 
         Input:
                 phase (float) : blade phase in degrees
-        
+
         Output:
                 None
         """
@@ -886,7 +903,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 amplitude (float) : sine out amplitude in volts
         """
@@ -898,7 +915,7 @@ class SR860(Instrument):
 
         Input:
                 amplitude (float) : sine out amplitude in volts
-        
+
         Output:
                 None
         """
@@ -906,23 +923,23 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_level(self):
         """
-        Queries the current sine out dc level. The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Queries the current sine out DC level. The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
 
         Input:
                 None
-        
+
         Output:
-                level (float) : sine out dc level in volts
+                level (float) : sine out DC level in volts
         """
         return self._visainstrument.query(':SOFF?')
 
     def do_set_sine_out_dc_level(self, level):
         """
-        Sets the sine out dc level. The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Sets the sine out DC level. The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
 
         Input:
-                level (float) : sine out dc level in volts
-        
+                level (float) : sine out DC level in volts
+
         Output:
                 None
         """
@@ -930,23 +947,23 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_mode(self):
         """
-        Queries the current sine out dc mode. Returns either common (0) or difference (1).
+        Queries the current sine out DC mode. Returns either common (0) or difference (1).
 
         Input:
                 None
-        
+
         Output:
-                mode (int) : sine out dc mode
+                mode (int) : sine out DC mode
         """
         return self._visainstrument.query(':REFM?')
 
     def do_set_sine_out_dc_mode(self, mode):
         """
-        Sets the sine out dc mode to either common (0) or difference (1).
+        Sets the sine out DC mode to either common (0) or difference (1).
 
         Input:
-                mode (int) : sine out dc mode
-        
+                mode (int) : sine out DC mode
+
         Output:
                 None
         """
@@ -958,7 +975,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 source (int) : reference source
         """
@@ -970,7 +987,7 @@ class SR860(Instrument):
 
         Input:
                 source (int) : reference source
-        
+
         Output:
                 None
         """
@@ -982,7 +999,7 @@ class SR860(Instrument):
 
         Input:
                 None
-        
+
         Output:
                 mode (int) : external reference trigger mode
         """
@@ -994,7 +1011,7 @@ class SR860(Instrument):
 
         Input:
                 mode (int) : external reference trigger mode
-        
+
         Output:
                 None
         """
@@ -1018,7 +1035,7 @@ class SR860(Instrument):
 
         Input:
                 setting (int) : external reference trigger input
-        
+
         Output:
                 None
         """
@@ -1030,7 +1047,7 @@ class SR860(Instrument):
 
         Input:
                 preset (int) : frequency preset selection
-        
+
         Output:
                 frequency (float) : frequency preset in hertz
         """
@@ -1043,7 +1060,7 @@ class SR860(Instrument):
         Input:
                 frequency (float) : frequency preset in hretz
                 preset (int)      : frequency preset selection
-        
+
         Output:
                 None
         """
@@ -1055,7 +1072,7 @@ class SR860(Instrument):
 
         Input:
                 preset (int) : sine out amplitude preset selection
-        
+
         Output:
                 amplitude (float) : sine out amplitude preset in volts
         """
@@ -1064,11 +1081,11 @@ class SR860(Instrument):
     def do_set_sine_out_amplitude_preset(self, amplitude, preset):
         """
         Sets one of the sine out amplitude presets A1 (0), A2 (1), A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
-        
+
         Input:
                 amplitude (float) : sine out amplitude preset in volts
                 preset (int)      : sine out amplitude preset selection
-        
+
         Output:
                 None
         """
@@ -1076,24 +1093,24 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_level_preset(self, preset):
         """
-        Queries one of the current sine out dc level presets L1 (0), L2 (1), L3 (2), or L4 (3). The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Queries one of the current sine out DC level presets L1 (0), L2 (1), L3 (2), or L4 (3). The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
 
         Input:
-                preset (int) : sine out dc level preset selection
-        
+                preset (int) : sine out DC level preset selection
+
         Output:
-                level (float) : sine out dc level preset in volts
+                level (float) : sine out DC level preset in volts
         """
         return self._visainstrument.query(':PSTL? {}'.format(preset))
 
     def do_set_sine_out_dc_level_preset(self, level, preset):
         """
-        Sets one of the sine out dc level presets L1 (0), L2 (1), L3 (2), or L4 (3). The dc level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Sets one of the sine out DC level presets L1 (0), L2 (1), L3 (2), or L4 (3). The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
 
         Input:
-                level (float) : sine out dc level preset in volts
-                preset (int)  : sine out dc level preset selection
-        
+                level (float) : sine out DC level preset in volts
+                preset (int)  : sine out DC level preset selection
+
         Output:
                 None
         """
@@ -1383,12 +1400,12 @@ class SR860(Instrument):
         """
         return self._visainstrument.query(':ENBW?')
 
-    def do_get_channel_output(self, channel):
+    def do_get_output_channel(self, channel):
         """
         """
         return self._visainstrument.query(':COUT? {}'.format(channel))
 
-    def do_set_channel_output(self, channel, output):
+    def do_set_output_channel(self, output, channel):
         """
         Sets either the Channel 1 for channel == 1 or the Channel 2 for channel == 2 output mode to either rectangular (XY) for output == 0 or polar (Rθ) for output == 1. 
         """
@@ -1423,16 +1440,6 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':COFP {}, {}'.format(axis, percentage))
-
-    def do_get_auto_offset(self):
-        """
-        """
-        return self._visainstrument.query(':OAUT?')
-
-    def do_set_auto_offset(self, axis):
-        """
-        """
-        self._visainstrument.write(':OAUT {}'.format(axis))
 
     def do_get_ratio_function(self, axis):
         """
@@ -2177,6 +2184,18 @@ class SR860(Instrument):
         """
         return self._visainstrument.query(':CUROVLDSTAT?')
 
+    def auto_offset(self):
+        """
+        Offsets X, Y, or R. This is the same as Auto Offset in the offset keypad display.
+
+        Input:
+                channel (int) : X, Y, or R channel
+
+        Output:
+                None
+        """
+        self._visainstrument.write(':OAUT {}'.format(None))
+
     def auto_phase(self):
         """
         Performs the Auto Phase function. This command is the same as pressing the [Auto Phase] key. The outputs may take many time constants to reach their new values. Do not send the command again without waiting the appropriate amount of time.
@@ -2261,7 +2280,7 @@ class SR860(Instrument):
     def get_channel_val(self, channel):
         """
         """
-        return self._visainstrument.query(':OUTR? {}'.format(channel))
+        return float(self._visainstrument.query(':OUTR? {}'.format(channel)).replace('\n', ''))
 
     def get_param(self, param):
         """
