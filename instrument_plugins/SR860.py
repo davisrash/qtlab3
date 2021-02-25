@@ -40,23 +40,28 @@ class SR860(Instrument):
         self._visainstrument = visa.ResourceManager().get_instrument(address)
 
         # reference parameters
-        self.add_parameter('timebase_mode', type=int,
+        self.add_parameter('timebase_mode', type=str,
                            flags=Instrument.FLAG_GETSET,
-                           minval=0, maxval=1,
-                           doc="",
-                           format_map={0: 'auto', 1: 'internal'})
+                           doc="The TBMODE i command sets the external 10 MHz"
+                               "timebase mode to auto (i = 0) or internal (i ="
+                               "1).",
+                           format_map={0: 'auto', 1: 'internal'},
+                           option_list=('auto', 'internal'))
         self.add_parameter('timebase_source', type=int,
                            flags=Instrument.FLAG_GET,
                            minval=0, maxval=1,
-                           doc="",
+                           doc="The TBSTAT? query returns the current 10 MHz"
+                               "timebase source, either external (0) or"
+                               "internal (1).",
                            format_map={0: 'external', 1: 'internal'})
         self.add_parameter('phase_shift', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-360000, maxval=360000, units='deg',
+                           minval=-360000, maxval=360000, units='DEG',
+                           format='%.7f',
                            doc="")
         self.add_parameter('frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=1e-3, maxval=500e6, units='Hz',
+                           minval=1e-3, maxval=500e6, units='HZ',
                            doc="")
         self.add_parameter('internal_frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
@@ -678,9 +683,12 @@ class SR860(Instrument):
                 None
 
         Output:
-                mode (int) : timebase mode
+                mode (str) : timebase mode
         """
-        return self._visainstrument.query(':TBMODE?')
+        enumeration_strings = self.get_parameters()['timebase_mode']\
+                                   ['format_map']
+        # return list(enumeration_strings.keys())[list(enumeration_strings.values()).index(int(self._visainstrument.query('TBMODE?').replace('\n', '')))]
+        return int(self._visainstrument.query('TBMODE?').replace('\n', ''))
 
     def do_set_timebase_mode(self, mode):
         """
