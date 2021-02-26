@@ -1,7 +1,7 @@
 import visa
 from source.instrument import Instrument
 
-# import logging
+import logging
 
 ###############################################################################
 # To Do:
@@ -45,20 +45,27 @@ class SR860(Instrument):
                            doc="The TBMODE i command sets the external 10 MHz"
                                "timebase mode to auto (i = 0) or internal (i ="
                                "1).",
-                           format_map={0: 'auto', 1: 'internal'},
-                           option_list=('auto', 'internal'))
-        self.add_parameter('timebase_source', type=int,
+                           format_map={0: 'auto', 1: 'internal'})
+        self.add_parameter('timebase_source', type=str,
                            flags=Instrument.FLAG_GET,
-                           minval=0, maxval=1,
                            doc="The TBSTAT? query returns the current 10 MHz"
                                "timebase source, either external (0) or"
                                "internal (1).",
                            format_map={0: 'external', 1: 'internal'})
         self.add_parameter('phase_shift', type=float,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-360000, maxval=360000, units='DEG',
+                           minval=-360000, maxval=360000, #units='DEG',
                            format='%.7f',
-                           doc="")
+                           doc="The PHAS p command sets the reference phase"
+                               "shift to p degrees. The value of p is set with"
+                               "a resolution of ~0.0000001°. The phase may be"
+                               "programmed from -360000° ≤ p ≤ 360000° and"
+                               "will be wrapped around at ±180°. For example,"
+                               "the PHAS 541.0 command will set the phase to"
+                               "-179.00° (541 - 360 = 181; 181 - 360 = -179)."
+                               "Phase may be specified in degrees (default),"
+                               "or millidegrees, microdegrees, radians,"
+                               "milliradians, or microradians.")
         self.add_parameter('frequency', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=1e-3, maxval=500e6, units='HZ',
@@ -493,6 +500,45 @@ class SR860(Instrument):
                            # minval=(0, -10.5), maxval=(1, 10.5),
                            units='V')
 
+        # data transfer parameters
+        self.add_parameter('data_channel_val', type=float,
+                           flags=Instrument.FLAG_GET,
+                           channels=(0, 3),
+                           doc="The OUTR? j query returns the value of data"
+                               "channel j."
+                               "The value of j (0–3) corresponds to the DAT1"
+                               "(green), DAT2 (blue), DAT3 (yellow), and DAT4"
+                               "(orange) data channels.")
+        self.add_parameter('data_param', type=float,
+                           flags=Instrument.FLAG_GET,
+                           channels=(0, 16),
+                           doc="The OUTP? j query returns the value of a"
+                               "single lock-in parameter. The argument j"
+                               "selects the parameter according to the dict"
+                               "below. The enumeration strings may be used"
+                               "instead of the integer value j."
+                               "The parameter list is"
+                               "j   enumeration parameter"
+                               "0   X           X output"
+                               "1   Y           Y output"
+                               "2   R           R output"
+                               "3   THeta       θ output"
+                               "4   IN1         Aux In1"
+                               "5   IN2         Aux In2"
+                               "6   IN3         Aux In3"
+                               "7   IN4         Aux In4"
+                               "8   XNOise      Xnoise"
+                               "9   YNOise      Ynoise"
+                               "10  OUT1        Aux Out1"
+                               "11  OUT2        Aux Out2"
+                               "12  PHAse       Reference Phase"
+                               "13  SAMp        Sine Out Amplitude"
+                               "14  LEVel       DC Level"
+                               "15  FInt        Int. Ref. Frequency"
+                               "16  FExt        Ext. Ref. Frequency")
+        #self.add_parameter('multi_data_param')
+        #self.add_parameter('multi_data_channel')
+
         # data capture commands
         self.add_parameter('capture_length', type=int,
                            flags=Instrument.FLAG_GETSET,
@@ -655,8 +701,6 @@ class SR860(Instrument):
         self.add_function('reset_scan')
 
         # data transfer functions
-        self.add_function('get_channel_val')
-        self.add_function('get_param')
         self.add_function('get_multi_params')
         self.add_function('get_data_params')
 
@@ -677,7 +721,8 @@ class SR860(Instrument):
 
     def do_get_timebase_mode(self):
         """
-        Queries the current external 10 MHz timebase mode. Returns either auto (0) or internal (1).
+        Queries the current external 10 MHz timebase mode. Returns either
+        'auto' (0) or 'internal' (1).
 
         Input:
                 None
@@ -685,34 +730,35 @@ class SR860(Instrument):
         Output:
                 mode (str) : timebase mode
         """
-        enumeration_strings = self.get_parameters()['timebase_mode']\
-                                   ['format_map']
-        # return list(enumeration_strings.keys())[list(enumeration_strings.values()).index(int(self._visainstrument.query('TBMODE?').replace('\n', '')))]
-        return int(self._visainstrument.query('TBMODE?').replace('\n', ''))
+        return self.get_parameters()['timebase_mode']['format_map']\
+               [int(self._visainstrument.query('TBMODE?').replace('\n', ''))]
 
-    def do_set_timebase_mode(self, mode):
+    def do_set_timebase_mode(self, mode: str):
         """
-        Sets the external 10 MHz timebase mode to either auto (0) or internal (1).
+        Sets the external 10 MHz timebase mode to either 'auto' (0) or
+        'internal' (1).
 
         Input:
-                mode (int) : timebase mode
+                mode (str) : timebase mode
 
         Output:
                 None
         """
-        self._visainstrument.write(':TBMODE {}'.format(mode))
+        self._visainstrument.write('TBMODE {}'.format(mode))
 
     def do_get_timebase_source(self):
         """
-        Queries the current 10 MHz timebase source. Returns either external (0) or internal (1).
+        Queries the current 10 MHz timebase source. Returns either 'external'
+        (0) or 'internal' (1).
 
         Input:
                 None
 
         Output:
-                source (int) : timebase source
+                source (str) : timebase source
         """
-        return self._visainstrument.query(':TBSTAT?')
+        return self.get_parameters()['timebase_source']['format_map']\
+               [int(self._visainstrument.query('TBSTAT?').replace('\n', ''))]
 
     def do_get_phase_shift(self):
         """
@@ -724,19 +770,24 @@ class SR860(Instrument):
         Output:
                 phase (float) : reference phase shift in degrees
         """
-        return self._visainstrument.query(':PHAS?')
+        return self._visainstrument.query('PHAS?')
 
-    def do_set_phase_shift(self, phase):
+    def do_set_phase_shift(self, phase: float, units: str = 'DEG'):
         """
         Sets the reference phase shift. The phase shift has a resolution of ~0.0000001° and is wrapped around at ±180°.
 
         Input:
-                phase (float) : reference phase shift in degrees
+                phase (float) : reference phase shift
+                units (str)   : units of reference phase shift
 
         Output:
                 None
         """
-        self._visainstrument.write(':PHAS {}'.format(phase))
+        if units not in ['UDEG', 'MDEG', 'DEG', 'URAD', 'MRAD', 'RAD']:
+            logging.warning('Unsupported unit \'{}\'. Allowed units are {}'.format(units, 'unit list'))
+            raise ValueError()
+
+        self._visainstrument.write('PHAS {} {}'.format(phase, units))
 
     def do_get_frequency(self):
         """
@@ -1854,6 +1905,30 @@ class SR860(Instrument):
         """
         self._visainstrument.write(':SCNAUX2 {}'.format(level))
 
+    def do_get_data_channel_val(self, channel):
+        """
+        Queries the current value of data channel DAT(channel + 1).
+
+        Input:
+                channel (int) : data channel index
+        
+        Output:
+                val (float)   : value of data channel DAT(channel + 1)
+        """
+        return float(self._visainstrument.query('OUTR? DAT{}'.format(channel + 1)).replace('\n', ''))
+
+    def do_get_data_param(self, channel):
+        """
+        Queries the current value of the given data parameter.
+
+        Input:
+                channel (int) : data parameter index
+        
+        Output:
+                val (float)   : value of data parameter
+        """
+        return float(self._visainstrument.query('OUTP? {}'.format(channel)))
+
     def do_get_capture_length(self):
         """
         """
@@ -2284,16 +2359,6 @@ class SR860(Instrument):
         """
         """
         self._visainstrument.write(':SCNRST')
-
-    def get_channel_val(self, channel):
-        """
-        """
-        return float(self._visainstrument.query(':OUTR? {}'.format(channel)).replace('\n', ''))
-
-    def get_param(self, param):
-        """
-        """
-        return self._visainstrument.query(':OUTP? {}'.format(param))
 
     def get_multi_params(self, param1, param2, param3=None):
         """

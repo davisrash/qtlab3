@@ -126,9 +126,9 @@ class Script():
         L1_X_pro = (V_in - L1_X) / (1e-9 if L1_X == 0.0 else L1_X) * R_sense
         L1_Y = lockin1.get_Y()
 
-        L2_X = lockin2.get_channel_val(0)
+        L2_X = lockin2.get_data_param(0)
         L2_X_pro = (V_in - L2_X) / (1e-9 if L2_X == 0.0 else L2_X) * R_sense
-        L2_Y = lockin2.get_channel_val(1)
+        L2_Y = lockin2.get_data_param(1)
 
         if device == 0:
             # keithley selected

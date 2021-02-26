@@ -847,33 +847,19 @@ class Instrument:
             if v == value:
                 return k
         return None
-
-    '''
-    _CONVERT_MAP = {
-            types.IntType: int,
-            types.FloatType: float,
-            types.StringType: str,
-            types.BooleanType: bool,
-            types.TupleType: tuple,
-            types.ListType: list,
-            np.ndarray: lambda x: x.tolist(),
-    }
-    '''
-    #^^ doesn't work in python3
     
     _CONVERT_MAP = {
             int : int,
             float : float ,
-            'StringType': 'str',
-            'BooleanType': 'bool',
-            'TupleType': 'tuple',
-            'ListType': 'list',
+            str: str,
+            bool: bool,
+            tuple: tuple,
+            list: list,
             np.ndarray: lambda x: x.tolist(),
     }
 
     def _convert_value(self, value, ttype):
-        if type(value) == bool and \
-                ttype != bool:
+        if type(value) == bool and ttype != bool:
             logging.warning('Setting a boolean, but that is not the expected type')
             raise ValueError()
 
