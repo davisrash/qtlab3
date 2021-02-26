@@ -52,7 +52,7 @@ class SR860(Instrument):
                                "timebase source, either external (0) or"
                                "internal (1).",
                            format_map={0: 'external', 1: 'internal'})
-        self.add_parameter('phase_shift', type=float,
+        self.add_parameter('phase_shift', type=tuple,
                            flags=Instrument.FLAG_GETSET,
                            minval=-360000, maxval=360000, #units='DEG',
                            format='%.7f',
@@ -505,7 +505,7 @@ class SR860(Instrument):
                            flags=Instrument.FLAG_GET,
                            channels=(0, 3),
                            doc="The OUTR? j query returns the value of data"
-                               "channel j."
+                               "channel j.\n\n"
                                "The value of j (0–3) corresponds to the DAT1"
                                "(green), DAT2 (blue), DAT3 (yellow), and DAT4"
                                "(orange) data channels.")
@@ -516,26 +516,26 @@ class SR860(Instrument):
                                "single lock-in parameter. The argument j"
                                "selects the parameter according to the dict"
                                "below. The enumeration strings may be used"
-                               "instead of the integer value j."
-                               "The parameter list is"
-                               "j   enumeration parameter"
-                               "0   X           X output"
-                               "1   Y           Y output"
-                               "2   R           R output"
-                               "3   THeta       θ output"
-                               "4   IN1         Aux In1"
-                               "5   IN2         Aux In2"
-                               "6   IN3         Aux In3"
-                               "7   IN4         Aux In4"
-                               "8   XNOise      Xnoise"
-                               "9   YNOise      Ynoise"
-                               "10  OUT1        Aux Out1"
-                               "11  OUT2        Aux Out2"
-                               "12  PHAse       Reference Phase"
-                               "13  SAMp        Sine Out Amplitude"
-                               "14  LEVel       DC Level"
-                               "15  FInt        Int. Ref. Frequency"
-                               "16  FExt        Ext. Ref. Frequency")
+                               "instead of the integer value j.\n\n"
+                               "The parameter list is\n"
+                               "j   enumeration parameter\n"
+                               "0   X           X output\n"
+                               "1   Y           Y output\n"
+                               "2   R           R output\n"
+                               "3   THeta       θ output\n"
+                               "4   IN1         Aux In1\n"
+                               "5   IN2         Aux In2\n"
+                               "6   IN3         Aux In3\n"
+                               "7   IN4         Aux In4\n"
+                               "8   XNOise      Xnoise\n"
+                               "9   YNOise      Ynoise\n"
+                               "10  OUT1        Aux Out1\n"
+                               "11  OUT2        Aux Out2\n"
+                               "12  PHAse       Reference Phase\n"
+                               "13  SAMp        Sine Out Amplitude\n"
+                               "14  LEVel       DC Level\n"
+                               "15  FInt        Int. Ref. Frequency\n"
+                               "16  FExt        Ext. Ref. Frequency\n")
         #self.add_parameter('multi_data_param')
         #self.add_parameter('multi_data_channel')
 
@@ -770,7 +770,7 @@ class SR860(Instrument):
         Output:
                 phase (float) : reference phase shift in degrees
         """
-        return self._visainstrument.query('PHAS?')
+        return self._visainstrument.query('PHAS?')#.replace('\n', '')
 
     def do_set_phase_shift(self, phase: float, units: str = 'DEG'):
         """

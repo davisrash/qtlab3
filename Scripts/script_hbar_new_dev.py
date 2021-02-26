@@ -56,7 +56,9 @@ class Script():
         self.generator = d.IncrementalGenerator(qt.config['datadir']
                                                 + '\\' + self.filename, 1)
 
-    def create_data(self, x_vector, x_coordinate, x_parameter, y_vector, y_coordinate, y_parameter, z_vector, z_coordinate, z_parameter):
+    def create_data(self, x_vector, x_coordinate, x_parameter, y_vector,
+                    y_coordinate, y_parameter, z_vector, z_coordinate,
+                    z_parameter):
         """
         Generates the data file, spyview file, and copies the python script.
 
@@ -164,23 +166,25 @@ class Script():
             # yokogawa selected
             yoko.set_sense_function(0)
             gate_1 = yoko.read()
-            gate_2 = 0
-            gate_3 = 0
-            gate_4 = 0
-            gate_5 = 0
-            gate_6 = 0
+            gate_2 = 999
+            gate_3 = 999
+            gate_4 = 999
+            gate_5 = 999
+            gate_6 = 999
 
             yoko.set_sense_function(1)
             leak_1 = yoko.read()
-            leak_2 = 0
-            leak_3 = 0
-            leak_4 = 0
-            leak_5 = 0
-            leak_6 = 0
+            leak_2 = 999
+            leak_3 = 999
+            leak_4 = 999
+            leak_5 = 999
+            leak_6 = 999
 
-        return [gate_1, leak_1, gate_2, leak_2, gate_3, leak_3, gate_4, leak_4, gate_5, leak_5, gate_6, leak_6, L1_X, L1_X_pro, L1_Y, L2_X, L2_X_pro, L2_Y]
+        return [gate_1, leak_1, gate_2, leak_2, gate_3, leak_3, gate_4, leak_4,
+                gate_5, leak_5, gate_6, leak_6, L1_X, L1_X_pro, L1_Y, L2_X,
+                L2_X_pro, L2_Y]
 
-    def volt_sweep(self, xname, xstart, xend, xstep, rev, threshold):
+    def volt_sweep(self, xname, xstart, xend, xstep, rev, threshold): # add lockin
         qt.mstart()
 
         # create sweep vectors
@@ -192,14 +196,6 @@ class Script():
 
         data_fwd = self.create_data(x_vector, xname, 'Lockin Voltage',
                                     y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
-
-        '''
-        data_fwd = self.create_data(x1_vector, x1_name, 'Lock-In 1 Voltage',
-                                    y1_vector, 'none', 'y1_parameter',
-                                    z1_vector, 'none', 'z1_parameter',
-                                    x2_vector, x2_name, 'Lock-In 2 Voltage', y2_vector, 'none', 'y2_parameter',
-                                    z2_vector, 'none', 'z2_parameter')
-        '''
 
         for x in x_vector:
             lockin1.set_amplitude(x)

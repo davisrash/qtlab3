@@ -624,7 +624,7 @@ class Instrument:
         except Exception as e:
             valstr = str(val)
 
-        if 'units' in opt:
+        if 'units' in opt: % 
             unitstr = ' %s' % opt['units']
         else:
             unitstr = ''
