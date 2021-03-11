@@ -54,7 +54,7 @@ class SR860(Instrument):
                            format_map={0: 'external', 1: 'internal'})
         self.add_parameter('phase_shift', type=tuple,
                            flags=Instrument.FLAG_GETSET,
-                           minval=-360000, maxval=360000, #units='DEG',
+                           minval=-360000, maxval=360000,  # units='DEG',
                            format='%.7f',
                            doc="The PHAS p command sets the reference phase"
                                "shift to p degrees. The value of p is set with"
@@ -536,8 +536,8 @@ class SR860(Instrument):
                                "14  LEVel       DC Level\n"
                                "15  FInt        Int. Ref. Frequency\n"
                                "16  FExt        Ext. Ref. Frequency\n")
-        #self.add_parameter('multi_data_param')
-        #self.add_parameter('multi_data_channel')
+        # self.add_parameter('multi_data_param')
+        # self.add_parameter('multi_data_channel')
 
         # data capture commands
         self.add_parameter('capture_length', type=int,
@@ -719,6 +719,9 @@ class SR860(Instrument):
         # status reporting functions
         self.add_function('clear')
 
+        if reset:
+            self.reset()
+
     def do_get_timebase_mode(self):
         """
         Queries the current external 10 MHz timebase mode. Returns either
@@ -731,7 +734,7 @@ class SR860(Instrument):
                 mode (str) : timebase mode
         """
         return self.get_parameters()['timebase_mode']['format_map']\
-               [int(self._visainstrument.query('TBMODE?').replace('\n', ''))]
+            [int(self._visainstrument.query('TBMODE?').replace('\n', ''))]
 
     def do_set_timebase_mode(self, mode: str):
         """
@@ -757,8 +760,7 @@ class SR860(Instrument):
         Output:
                 source (str) : timebase source
         """
-        return self.get_parameters()['timebase_source']['format_map']\
-               [int(self._visainstrument.query('TBSTAT?').replace('\n', ''))]
+        return self.get_parameters()['timebase_source']['format_map'][int(self._visainstrument.query('TBSTAT?').replace('\n', ''))]
 
     def do_get_phase_shift(self):
         """
@@ -770,7 +772,7 @@ class SR860(Instrument):
         Output:
                 phase (float) : reference phase shift in degrees
         """
-        return self._visainstrument.query('PHAS?')#.replace('\n', '')
+        return self._visainstrument.query('PHAS?')  # .replace('\n', '')
 
     def do_set_phase_shift(self, phase: float, units: str = 'DEG'):
         """
@@ -784,7 +786,8 @@ class SR860(Instrument):
                 None
         """
         if units not in ['UDEG', 'MDEG', 'DEG', 'URAD', 'MRAD', 'RAD']:
-            logging.warning('Unsupported unit \'{}\'. Allowed units are {}'.format(units, 'unit list'))
+            logging.warning(
+                'Unsupported unit \'{}\'. Allowed units are {}'.format(units, 'unit list'))
             raise ValueError()
 
         self._visainstrument.write('PHAS {} {}'.format(phase, units))
@@ -1911,7 +1914,7 @@ class SR860(Instrument):
 
         Input:
                 channel (int) : data channel index
-        
+
         Output:
                 val (float)   : value of data channel DAT(channel + 1)
         """
@@ -1923,7 +1926,7 @@ class SR860(Instrument):
 
         Input:
                 channel (int) : data parameter index
-        
+
         Output:
                 val (float)   : value of data parameter
         """

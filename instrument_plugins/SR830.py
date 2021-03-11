@@ -15,11 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from source.instrument import Instrument
-import visa
-import types
 import logging
 import time
+
+import visa
+from source.instrument import Instrument
+
 
 class SR830(Instrument):
     '''

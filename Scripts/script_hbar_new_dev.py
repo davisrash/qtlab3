@@ -1,7 +1,10 @@
+"""
+add docstring
+"""
 import sys
 
 import numpy as np
-import source.data as d
+import source.data as D
 import source.qt as qt
 
 import modules.traces as traces
@@ -10,21 +13,22 @@ NUM_GATES = 6
 
 QDAC_ENABLED = False
 
-filename = 'VA_485_Ebase_G'
-intrasweep_delay = 0.1
-intersweep_delay = 1
-threshold = 200000
-compliance = 5e-3
-ramp_rate = 1e-2
+FILENAME = 'VA_485_Ebase_G'
+INTRASWEEP_DELAY = 0.1
+INTERSWEEP_DELAY = 1
+THRESHOLD = 200000
+COMPLIANCE = 5e-3
+RAMP_RATE = 1e-2
 
-R_sense = 992
+R_SENSE = 992
 
-start1 = -2
-end1 = 2
-xstep1 = 0.04
-rev = False
+START1 = -2
+END1 = 2
+XSTEP1 = 0.04
+REV = False
 
-lockins = []; meters = []
+lockins = []
+meters = []
 for name in qt.instruments.get_instrument_names():
     instrument = qt.instruments.get(name)
     if instrument.get_type() in ['SR830', 'SR860']:
@@ -36,10 +40,13 @@ if QDAC_ENABLED:
     qdac1 = qt.instruments.get('qdac1')
 
 class Script():
+    """
+    add docstring
+    """
+
     def __init__(self):
-        self._filename = filename
-        self._generator = d.IncrementalGenerator(
-            qt.config['datadir'] + '\\' + self._filename, 1)
+        self._generator = D.IncrementalGenerator(qt.config['datadir'] + '\\'
+                                                 + FILENAME)
 
     def create_data(self, x_vector, x_coordinate, x_parameter, y_vector,
                     y_coordinate, y_parameter, z_vector, z_coordinate,
@@ -53,7 +60,7 @@ class Script():
 
         """
         qt.Data.set_filename_generator(self._generator)
-        data = qt.Data(name=self._filename)
+        data = qt.Data(name=FILENAME)
         data.add_coordinate(x_parameter + ' (' + x_coordinate + ')',
                             size=len(x_vector), start=x_vector[0],
                             end=x_vector[-1])
@@ -67,57 +74,18 @@ class Script():
         for i in range(NUM_GATES):
             data.add_value('Gate {} V meas'.format(i))
             data.add_value('Gate {} leak'.format(i))
-        
-        for i in range(len(lockins)):
+
+        for i, _ in enumerate(lockins):
             data.add_value('Lockin {} X raw'.format(i))
             data.add_value('Lockin {} X pros'.format(i))
             data.add_value('Lockin {} Y raw'.format(i))
 
         data.create_file()
         traces.copy_script(
-            sys._getframe().f_code.co_filename, data._dir,
-            self._filename + '_' + str(self._generator._counter - 1))
+            sys._getframe().f_code.co_filename, data.get_dir(),
+            FILENAME + '_' + str(self._generator._counter - 1))
 
         return data
-
-    def take_data(self, x):
-        """
-        """
-        qt.msleep(intrasweep_delay)
-
-        X = []; X_pros = []; Y = []
-        for i in range(len(lockins)):
-            if lockins[i].get_type() == 'SR830':
-                X.append(lockins[i].get_X())
-                X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
-                              * R_sense)
-                Y.append(lockins[i].get_Y())
-            elif lockins[i].get_type() == 'SR860':
-                X.append(lockins[i].get_data_param(0))
-                X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
-                              * R_sense)
-                Y.append(lockins[i].get_data_param(1))
-
-        gates = [999] * NUM_GATES
-        leaks = [999] * NUM_GATES
-        for i in range(len(meters)):
-            if meters[i].get_type() == 'Keithley_2400':
-                gates[i] = meters[i].get_voltage()
-                leaks[i] = meters[i].get_current()
-            elif meters[i].get_type() == 'Yokogawa_GS610':
-                meters[i].set_sense_function(0)
-                gates[i] = meters[i].read()
-
-                meters[i].set_sense_function(1)
-                leaks[i] = meters[i].read()
-        
-        if QDAC_ENABLED:
-            for i in range(len(meters), NUM_GATES):
-                gates[i] = qdac1.getDCVoltage(i)
-                leaks[i] = qdac1.getCurrentReading(i)
-
-        return [i for j in zip(gates, leaks) for i in j] \
-               + [i for j in zip(X, X_pros, Y) for i in j]
 
     def volt_sweep(self, lockin, xname, xstart, xend, xstep, rev, threshold):
         qt.mstart()
@@ -130,16 +98,17 @@ class Script():
         x1_vector = []
 
         data_fwd = self.create_data(x_vector, xname, 'Lockin Voltage',
-                                    y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+                                    y_vector, 'none', 'y_parameter', z_vector,
+                                    'none', 'z_parameter')
 
         for x in x_vector:
             if lockin.get_type() == 'SR830':
                 lockin.set_amplitude(x)
             elif lockin.get_type() == 'SR860':
                 lockin.set_sine_out_amplitude(x)
-                
+
             qt.msleep(0.2)
-            data_values = self.take_data(x)
+            data_values = take_data(x)
             data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1])
 
             if data_values[0] > threshold:
@@ -149,12 +118,13 @@ class Script():
 
         data_fwd._write_settings_file()
         data_fwd.close_file()
-        qt.msleep(intersweep_delay)
+        qt.msleep(INTERSWEEP_DELAY)
 
         if rev:
             x1_vector = np.flip(x1_vector)
             data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage',
-                                        y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+                                        y_vector, 'none', 'y_parameter',
+                                        z_vector, 'none', 'z_parameter')
 
             for x1 in x1_vector:
                 if lockin.get_type() == 'SR830':
@@ -163,7 +133,7 @@ class Script():
                     lockin.set_sine_out_amplitude(x1)
 
                 qt.msleep(0.2)
-                data_values = self.take_data(x1)
+                data_values = take_data(x1)
                 data_bck.add_data_point(x1, 0, 0, data_values[0],
                                         data_values[1])
 
@@ -193,52 +163,40 @@ class Script():
             if x == x_vector[1]:
                 print("Scan has started.")
 
-            if device == 0:
-                xcurrent = keithley1.get_voltage()
-            elif device == 1:
-                xcurrent = qdac1.getDCVoltage(channel)
-            elif device == 2:
-                yoko.set_sense_function(0)
-                xcurrent = yoko.read()
+            # Do we have multiple multimeters ever? And do we use the QDAC and other multimeter at the same time? Currently assuming 1 meter.
+            # for _, meter in enumerate(meters):
+                if meters[0].get_type() == 'Keithley_2400':
+                    xcurrent = meters[0].get_voltage()
+                elif meters[0].get_type() == 'Yokogawa_GS610':
+                    meters[0].set_sense_function(0)
+                    xcurrent = meters[0].read()
+                elif QDAC_ENABLED:
+                    xcurrent = qdac1.getDCVoltage(channel)
 
             ramp_steps = np.int(
-                np.ceil(np.abs((xcurrent - x) / ramp_rate) + 1))
+                np.ceil(np.abs((xcurrent - x) / RAMP_RATE) + 1))
             temp_ramp = np.linspace(xcurrent, x, ramp_steps)
 
             for i in temp_ramp[1:]:
-                if (i > x) ^ (xcurrent > x):
-                    if device == 0:
-                        a.keithley_gateset(1, x)
-                    elif device == 1:
-                        qdac1.rampDCVoltage(channel, x)
-                    elif device == 2:
-                        a.yoko_gateset(x)
-                else:
-                    if device == 0:
-                        a.keithley_gateset(1, i)
-                    elif device == 1:
-                        qdac1.rampDCVoltage(channel, i)
-                    elif device == 2:
-                        a.yoko_gateset(i)
+                mask = (i > x) ^ (xcurrent > x)
+                if meters[0].get_type() == 'Keithley_2400':
+                    a.keithley_gateset(1, x if mask else i)
+                elif meters[0].get_type() == 'Yokogawa_GS610':
+                    a.yoko_gateset(x if mask else i)
+                elif QDAC_ENABLED:
+                    qdac1.rampDCVoltage(channel, x if mask else i)
 
-            if device == 0:
+            if meters[0].get_type() == 'Keithley_2400':
                 a.keithley_gateset(1, x)
-            elif device == 1:
-                qdac1.rampDCVoltage(channel, x)
-            elif device == 2:
+            elif meters[0].get_type() == 'Yokogawa_GS610':
                 a.yoko_gateset(x)
+            elif QDAC_ENABLED:
+                qdac1.rampDCVoltage(channel, x)
 
-            qt.msleep(intrasweep_delay)
-            data_values = self.take_data(x)
+            qt.msleep(INTRASWEEP_DELAY)
+            data_values = take_data(x) # x does not affect take_data?
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1],
-                                    data_values[2], data_values[3],
-                                    data_values[4], data_values[5],
-                                    data_values[6], data_values[7],
-                                    data_values[8], data_values[9],
-                                    data_values[10], data_values[11],
-                                    data_values[12], data_values[13],
-                                    data_values[14])
+            data_fwd.add_data_point(x, 0, 0, data_values[0:14])
 
             if threshold is not None:
                 if data_values[13] > threshold:
@@ -250,7 +208,7 @@ class Script():
         data_fwd._write_settings_file()
         data_fwd.close_file()
         qt.mend()
-        qt.msleep(intersweep_delay)
+        qt.msleep(INTERSWEEP_DELAY)
 
         if rev:
             x1_vector = np.flip(x1_vector)
@@ -260,7 +218,7 @@ class Script():
             for x1 in x1_vector:
                 x1current = qdac1.getDCVoltage(channel)
                 ramp_steps1 = np.int(
-                    np.ceil(np.abs((x1current - x1) / ramp_rate) + 1))
+                    np.ceil(np.abs((x1current - x1) / RAMP_RATE) + 1))
                 temp_ramp1 = np.linspace(x1current, x1, ramp_steps1)
 
                 for i in temp_ramp1[1:]:
@@ -270,17 +228,10 @@ class Script():
                         qdac1.setDCVoltage(channel, i)
                 qt.msleep(0.05)
                 qdac1.setDCVoltage(channel, x1)
-                qt.msleep(intrasweep_delay)
-                data_values = self.take_data(x1)
+                qt.msleep(INTRASWEEP_DELAY)
+                data_values = take_data(x1)
 
-                data_bck.add_data_point(x, 0, 0, data_values[0],
-                                        data_values[1], data_values[2],
-                                        data_values[3], data_values[4],
-                                        data_values[5], data_values[6],
-                                        data_values[7], data_values[8],
-                                        data_values[9], data_values[10],
-                                        data_values[11], data_values[12],
-                                        data_values[13], data_values[14])
+                data_bck.add_data_point(x, 0, 0, data_values[0:14])
 
             data_bck._write_settings_file()
             data_bck.close_file()
@@ -320,7 +271,7 @@ class Script():
             xcurrent1 = qdac1.getDCVoltage(channel)
 
             ramp_steps1 = np.int(
-                np.ceil(np.abs((xcurrent1 - x1) / ramp_rate) + 1))
+                np.ceil(np.abs((xcurrent1 - x1) / RAMP_RATE) + 1))
             temp_ramp1 = np.linspace(xcurrent1, x1, ramp_steps1)
 
             for i in temp_ramp1[1:]:
@@ -334,7 +285,7 @@ class Script():
                 xcurrent2 = qdac1.getDCVoltage(channel2)
 
                 ramp_steps2 = np.int(
-                    np.ceil(np.abs((xcurrent2 - x2) / ramp_rate) + 1))
+                    np.ceil(np.abs((xcurrent2 - x2) / RAMP_RATE) + 1))
                 temp_ramp2 = np.linspace(xcurrent2, x2, ramp_steps2)
 
                 for i in temp_ramp2[1:]:
@@ -345,22 +296,16 @@ class Script():
                     qt.msleep(0.05)
 
                 qdac1.setDCVoltage(channel2, x2)
-                qt.msleep(intersweep_delay)
-                data_values = self.take_data(x1)
+                qt.msleep(INTERSWEEP_DELAY)
+                data_values = take_data(x1)
 
                 if data_values[1] > compliance or data_values[3] > compliance:
                     print("I am broken.")
                     break
 
                 if data_values[5] > threshold:
-                    data_fwd.add_data_point(x1, x2, 0, data_values[0],
-                                            data_values[1], data_values[2],
-                                            data_values[3], data_values[4],
-                                            data_values[5], data_values[6],
-                                            data_values[7], data_values[8],
-                                            data_values[9], data_values[10],
-                                            data_values[11], np.nan,
-                                            data_values[13], data_values[14])
+                    data_fwd.add_data_point(x1, x2, 0, data_values[0:11],
+                                            np.nan, data_values[13:14])
 
                     print("I shall continue.")
                     continue
@@ -379,19 +324,19 @@ class Script():
 
             print("end X2")
             qdac1.setDCVoltage(channel, x1)
-            qt.msleep(intersweep_delay)
+            qt.msleep(INTERSWEEP_DELAY)
 
             xq1_vector.append(x1)
 
         print("end X1")
         data_fwd._write_settings_file()
         data_fwd.close_file()
-        qt.msleep(intrasweep_delay)
+        qt.msleep(INTRASWEEP_DELAY)
 
     def qdac_gateset(self, channel, xend):
         xcurrent = qdac1.getDCVoltage(channel)
 
-        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
+        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
         for i in temp_ramp[1:]:
@@ -402,31 +347,31 @@ class Script():
             qt.msleep(0.05)
 
         qdac1.setDCVoltage(channel, xend)
-        qt.msleep(intersweep_delay)
+        qt.msleep(INTERSWEEP_DELAY)
 
+    # assumes only one keithley!
     def keithley_gateset(self, num, xend):
-        if num == 1:
-            xcurrent = keithley1.get_voltage()
+        keithley = qt.instruments.get_instruments_by_type('Keithley_2400')
+        xcurrent = keithley.get_voltage()
 
-            ramp_steps = np.int(
-                np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
-            temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
+        ramp_steps = np.int(
+            np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
+        temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
-            for i in temp_ramp[1:]:
-                if (i > xend) ^ (xcurrent > xend):
-                    keithley1.set_voltage(xend)
-                else:
-                    keithley1.set_voltage(i)
-                qt.msleep(0.01)
+        for i in temp_ramp[1:]:
+            keithley.set_voltage(xend if (i > xend) ^ (xcurrent > xend) else i)
+            qt.msleep(0.01)
 
-            keithley1.set_voltage(xend)
-        qt.msleep(intrasweep_delay)
+        keithley.set_voltage(xend)
+        qt.msleep(INTRASWEEP_DELAY)
 
+    # assumes only one yoko!
     def yoko_gateset(self, xend):
+        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')
         yoko.set_source_function(0)
         yoko.set_source_voltage_range(xend)
         yoko.set_source_protection_linkage(1)
-        yoko.set_source_current_protection_upper_limit(compliance)
+        yoko.set_source_current_protection_upper_limit(COMPLIANCE)
 
         yoko.set_source_protection(1)
 
@@ -434,7 +379,7 @@ class Script():
         yoko.set_sense_function(1)
 
         yoko.set_trigger_source(0)
-        yoko.set_trigger_timer(intrasweep_delay)
+        yoko.set_trigger_timer(INTRASWEEP_DELAY)
         yoko.set_source_delay(yoko.get_source_delay_minimum())
         yoko.set_sense_delay(yoko.get_sense_delay_minimum())
 
@@ -442,20 +387,61 @@ class Script():
 
         xcurrent = yoko.get_source_voltage_level()
 
-        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
+        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
         for i in temp_ramp[1:]:
-            if (i > xend) ^ (xcurrent > xend):
-                yoko.set_source_voltage_level(xend)
-            else:
-                yoko.set_source_voltage_level(i)
+            yoko.set_source_voltage_level(
+                xend if (i > xend) ^ (xcurrent > xend) else i)
             qt.msleep(0.01)
-            print(str(yoko.get_source_voltage_level()) +
-                  ' V, ' + str(yoko.read()) + ' A')
+            print(str(yoko.get_source_voltage_level()) + ' V, '
+                  + str(yoko.read()) + ' A')
 
-            yoko.set_source_voltage_level(xend)
-        qt.msleep(intrasweep_delay)
+        yoko.set_source_voltage_level(xend)
+        qt.msleep(INTRASWEEP_DELAY)
+
+
+def take_data(x):
+    """
+    add docstring
+    """
+    qt.msleep(INTRASWEEP_DELAY)
+
+    X = []
+    X_pros = []
+    Y = []
+    for i, lockin in enumerate(lockins):
+        if lockin.get_type() == 'SR830':
+            X.append(lockin.get_X())
+            X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
+                          * R_SENSE)
+            Y.append(lockin.get_Y())
+        elif lockin.get_type() == 'SR860':
+            X.append(lockin.get_data_param(0))
+            X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
+                          * R_SENSE)
+            Y.append(lockin.get_data_param(1))
+
+    gates = [999] * NUM_GATES
+    leaks = [999] * NUM_GATES
+    for i, meter in enumerate(meters):
+        if meter.get_type() == 'Keithley_2400':
+            gates[i] = meter.get_voltage()
+            leaks[i] = meter.get_current()
+        elif meter.get_type() == 'Yokogawa_GS610':
+            meter.set_sense_function(0)
+            gates[i] = meter.read()
+
+            meter.set_sense_function(1)
+            leaks[i] = meter.read()
+
+    if QDAC_ENABLED:
+        for i in range(len(meters), NUM_GATES):
+            gates[i] = qdac1.getDCVoltage(i)
+            leaks[i] = qdac1.getCurrentReading(i)
+
+    return [i for j in zip(gates, leaks) for i in j] \
+        + [i for j in zip(X, X_pros, Y) for i in j]
 
 
 a = Script()
@@ -463,16 +449,5 @@ V_in = 100e-6
 # lockin1.set_amplitude(0.1)
 # a.yoko_gateset(1)
 # a.yoko_gateset(1)
-start1 = 0
-end1 = -5
-xstep1 = .01
-#start2 = 0
-#end2 = -1.3
-#xstep2 = 5e-2
-rev = False
-
-threshold = 1.5E5
-compliance = 2e-9
-ramprate = 1E-2
 
 #a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)

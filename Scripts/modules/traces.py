@@ -2,8 +2,8 @@ import sys
 from numpy import pi, random, arange, size
 from time import time, sleep
 from shutil import copyfile
-import modules.timetrack as timetrack
-import modules.getlatest as getlatest
+import timetrack
+import getlatest
 
 ###########################
 # Make instances available in this module

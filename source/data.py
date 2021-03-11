@@ -343,7 +343,7 @@ class Data:
             self._infile = infile
 
         #filepath = get_arg_type(args, kwargs, types.StringType, 'filepath')
-        filepath = get_arg_type(args, kwargs, str , 'filepath')
+        filepath = get_arg_type(args, kwargs, str, 'filepath')
         if self._tempfile:
             self.create_tempfile(filepath)
         elif filepath is not None and filepath != '':
