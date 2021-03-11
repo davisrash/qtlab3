@@ -19,6 +19,9 @@
 #import gobject
 #import gi
 #from gi.repository import GObject as gobject
+import instruments
+import instrument
+import qt
 import os
 import os.path
 import time
@@ -38,12 +41,10 @@ config = get_config()
 in_qtlab = config.get('qtlab', False)
 #from lib.network.object_sharer import SharedGObject, cache_result
 
-#if in_qtlab:
-import qt
-import instrument
-import instruments
+# if in_qtlab:
 
 # Filename generator classes
+
 
 class DateTimeGenerator:
     '''
@@ -85,7 +86,7 @@ class DateTimeGenerator:
         '''Return a new filename, based on name and timestamp.'''
 
         dir = self.create_data_dir(config['datadir'], name=data_obj._name,
-                ts=data_obj._localtime)
+                                   ts=data_obj._localtime)
         tstr = time.strftime('%H%M%S', data_obj._localtime)
         filename = '%s_%s.dat' % (tstr, data_obj._name)
 
@@ -102,7 +103,7 @@ class IncrementalGenerator:
         self._counter = start
         self._counter = self._check_last_number(self._counter)
         logging.info('IncrementalGenerator: starting counter at %d',
-                self._counter)
+                     self._counter)
 
     def _fn(self, n):
         return self._basename + ('_%d.dat' % n)
@@ -139,6 +140,14 @@ class IncrementalGenerator:
         self._counter += 1
         return fn
 
+    @property
+    def counter(self):
+        """
+        add docstring
+        """
+        return self._counter
+
+
 class _DataList(namedlist.NamedList):
     def __init__(self, time_name=False):
         namedlist.NamedList.__init__(self, base_name='data')
@@ -157,6 +166,7 @@ class _DataList(namedlist.NamedList):
         else:
             return name
 
+
 class Data:
     '''
     Data class
@@ -164,7 +174,7 @@ class Data:
 
     _data_list = _DataList()
     _filename_generator = DateTimeGenerator()
-    
+
     '''
     __gsignals__ = {
         'new-data-point': (gobject.SIGNAL_RUN_FIRST,
@@ -175,7 +185,7 @@ class Data:
                             ())
     }
     '''
-    
+
     '''
     _METADATA_INFO = {
         'instrument': {
@@ -209,7 +219,7 @@ class Data:
         },
     }
     '''
-    
+
     _METADATA_INFO = {
         'instrument': {
             're': re.compile('^#[ \t]*Ins?trument: ?(.*)$', re.I),
@@ -253,14 +263,13 @@ class Data:
             numpy.int16, numpy.int32, numpy.int64,
     )
     '''
-    
+
     _INT_TYPES = (
-            int, int,
-            numpy.int, numpy.int0, numpy.int8,
-            numpy.int16, numpy.int32, numpy.int64,
+        int, int,
+        numpy.int, numpy.int0, numpy.int8,
+        numpy.int16, numpy.int32, numpy.int64,
     )
-    
-    
+
     def __init__(self, *args, **kwargs):
         '''
         Create data object. There are three different uses:
@@ -330,12 +339,12 @@ class Data:
         name = Data._data_list.new_item_name(self, name)
         self._name = name
 
-        #SharedGObject.__init__(self, 'data_%s' % name,
+        # SharedGObject.__init__(self, 'data_%s' % name,
         #    replace=True, idle_emit=True)
 
         data = get_arg_type(args, kwargs,
-                (numpy.ndarray, list, tuple),
-                'data')
+                            (numpy.ndarray, list, tuple),
+                            'data')
         if data is not None:
             self.set_data(data)
         else:
@@ -370,7 +379,7 @@ class Data:
     def __setitem__(self, index, val):
         self._data[index] = val
 
-### Data info
+# Data info
 
     def get_dimensions(self):
         '''Return info for all dimensions.'''
@@ -519,7 +528,7 @@ class Data:
 
         return title
 
-### File info
+# File info
 
     @staticmethod
     def set_filename_generator(generator):
@@ -555,7 +564,7 @@ class Data:
         else:
             return False
 
-### Measurement info
+# Measurement info
 
     def add_coordinate(self, name, **kwargs):
         '''
@@ -610,7 +619,7 @@ class Data:
         '''Return the comment for the Data object.'''
         return self._comment
 
-### File writing
+# File writing
 
     def create_file(self, name=None, filepath=None, settings_file=True):
         '''
@@ -768,13 +777,14 @@ class Data:
 
     def _write_binary(self):
         if not self._inmem:
-            logging.warning('Unable to _write_binary() without having it memory')
+            logging.warning(
+                'Unable to _write_binary() without having it memory')
             return False
 
         self._data.tofile(self._file.get_file())
         return True
 
-### High-level file writing
+# High-level file writing
 
     def write_file(self, name=None, filepath=None):
         '''
@@ -837,7 +847,7 @@ class Data:
         newfn = os.path.join(self.get_dir(), n)
         shutil.copyfile(fn, newfn)
 
-### Adding data
+# Adding data
 
     def add_data_point(self, *args, **kwargs):
         '''
@@ -888,25 +898,28 @@ class Data:
                 ncols = 1
                 npoints = 1
             else:
-                loggin.warning('add_data_point(): adding >2d data not supported')
+                loggin.warning(
+                    'add_data_point(): adding >2d data not supported')
                 return
         else:
             # Check if all arguments have same shape
             for i in range(1, len(args)):
                 if shapes[i] != shapes[i-1]:
-                    logging.warning('add_data_point(): not all provided data arguments have same shape')
+                    logging.warning(
+                        'add_data_point(): not all provided data arguments have same shape')
                     return
 
-            if sum(dims!=1) == 0:
+            if sum(dims != 1) == 0:
                 ncols = len(args)
                 npoints = shapes[0][0]
                 # Transpose args to a single 2-d list
                 args = zip(*args)
-            elif sum(dims!=0) == 0:
+            elif sum(dims != 0) == 0:
                 ncols = len(args)
                 npoints = 1
             else:
-                logging.warning('add_data_point(): addint >2d data not supported')
+                logging.warning(
+                    'add_data_point(): addint >2d data not supported')
                 return
 
         # Check if the number of columns is correct.
@@ -914,16 +927,17 @@ class Data:
         # (only the first time) according to the data
 
         if len(self._dimensions) == 0:
-            logging.warning('add_data_point(): no dimensions specified, adding according to data')
+            logging.warning(
+                'add_data_point(): no dimensions specified, adding according to data')
             self._add_missing_dimensions(ncols)
 
         if ncols < len(self._dimensions):
-            logging.warning('add_data_point(): missing columns (%d < %d)' % \
-                (ncols, len(self._dimensions)))
+            logging.warning('add_data_point(): missing columns (%d < %d)' %
+                            (ncols, len(self._dimensions)))
             return
         elif ncols > len(self._dimensions):
-            logging.warning('add_data_point(): too many columns (%d > %d)' % \
-                (ncols, len(self._dimensions)))
+            logging.warning('add_data_point(): too many columns (%d > %d)' %
+                            (ncols, len(self._dimensions)))
             return
 
         # At this point 'args' is either:
@@ -949,7 +963,7 @@ class Data:
 
         if 'newblock' in kwargs and kwargs['newblock']:
             self.new_block()
-        #else:
+        # else:
         #    self.emit('new-data-point')
 
     def new_block(self):
@@ -961,7 +975,7 @@ class Data:
         self._block_sizes.append(self._npoints_last_block)
         self._npoints_last_block = 0
 
-        #self.emit('new-data-block')
+        # self.emit('new-data-block')
 
     def _add_missing_dimensions(self, nfields):
         '''
@@ -983,7 +997,7 @@ class Data:
             self._ncoordinates = nfields - 1
             self._nvalues = 1
 
-### Set array data
+# Set array data
 
     def set_data(self, data):
         '''
@@ -1043,7 +1057,7 @@ class Data:
         if self._tempfile:
             self.rewrite_tempfile()
 
-### File reading
+# File reading
 
     def _count_coord_val_dims(self):
         self._ncoordinates = 0
@@ -1185,7 +1199,7 @@ class Data:
         for i in range(len(loopdims)):
             if loopdims[i] != i:
                 fshape_ok = False
-            if loopdims[i] != len(loopdims) - i -1:
+            if loopdims[i] != len(loopdims) - i - 1:
                 cshape_ok = False
 
         if not cshape_ok and not fshape_ok:
@@ -1275,7 +1289,8 @@ class Data:
             for fn in files:
                 if os.path.splitext(fn)[1] == '.dat':
                     if foundfile is not None:
-                        raise ValueError('Multiple .dat files in directory, Unable to decide which one to load')
+                        raise ValueError(
+                            'Multiple .dat files in directory, Unable to decide which one to load')
                     foundfile = fn
             if foundfile is None:
                 raise ValueError('No .dat file found in directory')
@@ -1291,7 +1306,7 @@ class Data:
             else:
                 self._inmem = False
 
-### Misc
+# Misc
 
     def _stop_request_cb(self, sender):
         '''Called when qtflow emits a stop-request.'''
@@ -1304,6 +1319,7 @@ class Data:
     @staticmethod
     def get(name):
         return Data._data_list.get(name)
+
 
 def slice(data, coords, vals):
     """

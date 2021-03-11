@@ -52,7 +52,7 @@ def create_data(filename, x_vector, x_coordinate, x_parameter, y_vector, y_coord
         data.add_value('Lockin {} Y raw'.format(i))
 
     data.create_file()
-    copyfile(sys._getframe().f_code.co_filename,
-             data.get_dir() + '\\' + filename + '_' + str(generator._counter - 1) + '.py')
+    copyfile(sys._getframe().f_code.co_filename, # pylint: disable=protected-access
+             data.get_dir() + '\\' + filename + '_' + str(generator.counter - 1) + '.py')
 
     return data

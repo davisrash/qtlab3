@@ -4,10 +4,10 @@ add docstring
 import sys
 
 import numpy as np
-import source.data as D
-import source.qt as qt
 
 import modules.traces as traces
+import source.data as D
+import source.qt as qt
 
 NUM_GATES = 6
 
@@ -38,6 +38,7 @@ for name in qt.instruments.get_instrument_names():
 
 if QDAC_ENABLED:
     qdac1 = qt.instruments.get('qdac1')
+
 
 class Script():
     """
@@ -194,7 +195,7 @@ class Script():
                 qdac1.rampDCVoltage(channel, x)
 
             qt.msleep(INTRASWEEP_DELAY)
-            data_values = take_data(x) # x does not affect take_data?
+            data_values = take_data(x)  # x does not affect take_data?
 
             data_fwd.add_data_point(x, 0, 0, data_values[0:14])
 

@@ -1,3 +1,7 @@
+"""
+add docstring
+"""
+
 import visa
 from source.instrument import Instrument
 
@@ -760,11 +764,13 @@ class SR860(Instrument):
         Output:
                 source (str) : timebase source
         """
-        return self.get_parameters()['timebase_source']['format_map'][int(self._visainstrument.query('TBSTAT?').replace('\n', ''))]
+        return self.get_parameters()['timebase_source']['format_map']\
+            [int(self._visainstrument.query('TBSTAT?').replace('\n', ''))]
 
     def do_get_phase_shift(self):
         """
-        Queries the current reference phase shift. The phase shift has a resolution of ~0.0000001° and is wrapped around at ±180°.
+        Queries the current reference phase shift. The phase shift has a
+        resolution of ~0.0000001° and is wrapped around at ±180°.
 
         Input:
                 None
@@ -776,7 +782,8 @@ class SR860(Instrument):
 
     def do_set_phase_shift(self, phase: float, units: str = 'DEG'):
         """
-        Sets the reference phase shift. The phase shift has a resolution of ~0.0000001° and is wrapped around at ±180°.
+        Sets the reference phase shift. The phase shift has a resolution of
+        ~0.0000001° and is wrapped around at ±180°.
 
         Input:
                 phase (float) : reference phase shift
@@ -794,19 +801,24 @@ class SR860(Instrument):
 
     def do_get_frequency(self):
         """
-        Queries the current internal reference frequency whenever the reference mode is one of Internal, Dual, or Chop. Otherwise, in External mode, the query returns the external reference frequency. This behavior mirrors the value displayed in the info bar at the top of the display.
+        Queries the current internal reference frequency whenever the reference
+        mode is one of Internal, Dual, or Chop. Otherwise, in External mode,
+        the query returns the external reference frequency. This behavior
+        mirrors the value displayed in the info bar at the top of the display.
 
         Input:
                 None
 
         Output:
-                frequency (float) : internal or external reference frequency in hertz
+                frequency (float) : internal or external reference frequency in
+                hertz
         """
         return self._visainstrument.query(':FREQ?')
 
     def do_set_frequency(self, frequency):
         """
-        Sets the internal reference frequency. The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
+        Sets the internal reference frequency. The frequency will be rounded to
+        6 digits or 0.1 mHz, whichever is greater.
 
         Input:
                 frequency (float) : internal frequency in hertz
@@ -829,7 +841,8 @@ class SR860(Instrument):
 
     def do_set_internal_frequency(self, frequency):
         """
-        Sets the internal reference frequency. The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
+        Sets the internal reference frequency. The frequency will be rounded to
+        6 digits or 0.1 mHz, whichever is greater.
 
         Input:
                 frequency (float) : internal frequency in hertz
@@ -853,7 +866,9 @@ class SR860(Instrument):
 
     def do_get_detection_frequency(self):
         """
-        Queries the current detection frequency. This is helpful in dual reference mode or harmonic detection. Otherwise, the detection frequency is either the internal or external reference frequency.
+        Queries the current detection frequency. This is helpful in dual
+        reference mode or harmonic detection. Otherwise, the detection
+        frequency is either the internal or external reference frequency.
 
         Input:
                 None
@@ -877,7 +892,8 @@ class SR860(Instrument):
 
     def do_set_harmonic_detect(self, harmonic):
         """
-        Sets the lock-in to detect at the given harmonic of the reference frequency.
+        Sets the lock-in to detect at the given harmonic of the reference
+        frequency.
 
         Input:
                 harmonic (int) : harmonic number of the reference frequency
@@ -889,22 +905,26 @@ class SR860(Instrument):
 
     def do_get_harmonic_detect_dual_reference(self):
         """
-        Queries the harmonic number of the external frequency in dual reference mode.
+        Queries the harmonic number of the external frequency in dual reference
+        mode.
 
         Input:
                 None
 
         Output:
-                harmonic (int) : harmonic number of the external reference frequency in dual reference mode
+                harmonic (int) : harmonic number of the external reference
+                frequency in dual reference mode
         """
         return self._visainstrument.query(':HARMDUAL?')
 
     def do_set_harmonic_detect_dual_reference(self, harmonic):
         """
-        Sets the lock-in to detect at the given harmonic of the external frequency in dual reference mode.
+        Sets the lock-in to detect at the given harmonic of the external
+        frequency in dual reference mode.
 
         Input:
-                harmonic (int) : harmonic number of the external reference frequency in dual reference mode
+                harmonic (int) : harmonic number of the external reference
+                frequency in dual reference mode
 
         Output:
                 None
@@ -913,7 +933,8 @@ class SR860(Instrument):
 
     def do_get_blade_slots(self):
         """
-        Queries the blade slots setting for operation with an external SR540 chopper. Returns either 6-slot (0) or 30-slot (1).
+        Queries the blade slots setting for operation with an external SR540
+        chopper. Returns either 6-slot (0) or 30-slot (1).
 
         Input:
                 None
@@ -925,7 +946,8 @@ class SR860(Instrument):
 
     def do_set_blade_slots(self, slots):
         """
-        Configures the SR860 for either 6-slot (0) or 30-slot (1) operation with an external SR540 chopper.
+        Configures the SR860 for either 6-slot (0) or 30-slot (1) operation
+        with an external SR540 chopper.
 
         Input:
                 slots (int) : blade slot setting
@@ -937,7 +959,8 @@ class SR860(Instrument):
 
     def do_get_blade_phase(self):
         """
-        Queries the current phase of an external SR540 chopper blade, or, with multiple choppers, the relative phase of the choppers.
+        Queries the current phase of an external SR540 chopper blade, or, with
+        multiple choppers, the relative phase of the choppers.
 
         Input:
                 None
@@ -949,7 +972,10 @@ class SR860(Instrument):
 
     def do_set_blade_phase(self, phase):
         """
-        Sets the phase of an external SR540 chopper blade. When operating a single chopper, this has little effect since the SR860 will follow the chopper, but it can modify the relative phase of multiple choppers in a single experiment.
+        Sets the phase of an external SR540 chopper blade. When operating a
+        single chopper, this has little effect since the SR860 will follow the
+        chopper, but it can modify the relative phase of multiple choppers in a
+        single experiment.
 
         Input:
                 phase (float) : blade phase in degrees
@@ -961,7 +987,8 @@ class SR860(Instrument):
 
     def do_get_sine_out_amplitude(self):
         """
-        Queries the current sine out amplitude. The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+        Queries the current sine out amplitude. The amplitude will be rounded
+        to 3 digits or 1 nV, whichever is greater.
 
         Input:
                 None
@@ -973,7 +1000,8 @@ class SR860(Instrument):
 
     def do_set_sine_out_amplitude(self, amplitude):
         """
-        Sets the sine out amplitude. The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+        Sets the sine out amplitude. The amplitude will be rounded to 3 digits
+        or 1 nV, whichever is greater.
 
         Input:
                 amplitude (float) : sine out amplitude in volts
@@ -985,7 +1013,8 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_level(self):
         """
-        Queries the current sine out DC level. The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Queries the current sine out DC level. The DC level will be rounded to
+        3 digits or 0.1 mV, whichever is greater.
 
         Input:
                 None
@@ -997,7 +1026,8 @@ class SR860(Instrument):
 
     def do_set_sine_out_dc_level(self, level):
         """
-        Sets the sine out DC level. The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Sets the sine out DC level. The DC level will be rounded to 3 digits or
+        0.1 mV, whichever is greater.
 
         Input:
                 level (float) : sine out DC level in volts
@@ -1009,7 +1039,8 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_mode(self):
         """
-        Queries the current sine out DC mode. Returns either common (0) or difference (1).
+        Queries the current sine out DC mode. Returns either common (0) or
+        difference (1).
 
         Input:
                 None
@@ -1033,7 +1064,8 @@ class SR860(Instrument):
 
     def do_get_reference_source(self):
         """
-        Queries the current reference source. Returns one of internal (0), external (1), dual (2), and chop (3).
+        Queries the current reference source. Returns one of internal (0),
+        external (1), dual (2), and chop (3).
 
         Input:
                 None
@@ -1045,7 +1077,8 @@ class SR860(Instrument):
 
     def do_set_reference_source(self, source):
         """
-        Sets the reference source to one of internal (0), external (1), dual (2), and chop (3).
+        Sets the reference source to one of internal (0), external (1), dual
+        (2), and chop (3).
 
         Input:
                 source (int) : reference source
@@ -1057,7 +1090,8 @@ class SR860(Instrument):
 
     def do_get_external_reference_trigger_mode(self):
         """
-        Queries the current external reference trigger mode. Returns one of sine (0), positive TTL (1), and negative TTL (2).
+        Queries the current external reference trigger mode. Returns one of
+        sine (0), positive TTL (1), and negative TTL (2).
 
         Input:
                 None
@@ -1069,7 +1103,8 @@ class SR860(Instrument):
 
     def do_set_external_reference_trigger_mode(self, mode):
         """
-        Sets the external reference trigger mode to one of sine (0), positive TTL (1), and negative TTL (2).
+        Sets the external reference trigger mode to one of sine (0), positive
+        TTL (1), and negative TTL (2).
 
         Input:
                 mode (int) : external reference trigger mode
@@ -1081,7 +1116,8 @@ class SR860(Instrument):
 
     def do_get_external_reference_trigger_input(self):
         """
-        Queries the current external reference trigger input. Returns either 50 Ω (0) or 1 MΩ (1).
+        Queries the current external reference trigger input. Returns either
+        50 Ω (0) or 1 MΩ (1).
 
         Input:
                 None
@@ -1093,7 +1129,8 @@ class SR860(Instrument):
 
     def do_set_external_reference_trigger_input(self, setting):
         """
-        Sets the external reference trigger input to either 50 Ω (0) or 1 MΩ (1).
+        Sets the external reference trigger input to either 50 Ω (0) or 1 MΩ
+        (1).
 
         Input:
                 setting (int) : external reference trigger input
@@ -1105,7 +1142,9 @@ class SR860(Instrument):
 
     def do_get_frequency_preset(self, preset):
         """
-        Queries one of the current frequency presets F1 (0), F2 (1), F3 (2), or F4 (3). The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
+        Queries one of the current frequency presets F1 (0), F2 (1), F3 (2), or
+        F4 (3). The frequency will be rounded to 6 digits or 0.1 mHz, whichever
+        is greater.
 
         Input:
                 preset (int) : frequency preset selection
@@ -1117,7 +1156,9 @@ class SR860(Instrument):
 
     def do_set_frequency_preset(self, frequency, preset):
         """
-        Sets one of the frequency presets F1 (0), F2 (1), F3 (2), or F3 (3). The frequency will be rounded to 6 digits or 0.1 mHz, whichever is greater.
+        Sets one of the frequency presets F1 (0), F2 (1), F3 (2), or F3 (3).
+        The frequency will be rounded to 6 digits or 0.1 mHz, whichever is
+        greater.
 
         Input:
                 frequency (float) : frequency preset in hretz
@@ -1130,7 +1171,9 @@ class SR860(Instrument):
 
     def do_get_sine_out_amplitude_preset(self, preset):
         """
-        Queries one of the current sine out amplitude presets A1 (0), A2 (1), A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+        Queries one of the current sine out amplitude presets A1 (0), A2 (1),
+        A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV,
+        whichever is greater.
 
         Input:
                 preset (int) : sine out amplitude preset selection
@@ -1142,7 +1185,9 @@ class SR860(Instrument):
 
     def do_set_sine_out_amplitude_preset(self, amplitude, preset):
         """
-        Sets one of the sine out amplitude presets A1 (0), A2 (1), A3 (2), or A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is greater.
+        Sets one of the sine out amplitude presets A1 (0), A2 (1), A3 (2), or
+        A4 (3). The amplitude will be rounded to 3 digits or 1 nV, whichever is
+        greater.
 
         Input:
                 amplitude (float) : sine out amplitude preset in volts
@@ -1155,7 +1200,9 @@ class SR860(Instrument):
 
     def do_get_sine_out_dc_level_preset(self, preset):
         """
-        Queries one of the current sine out DC level presets L1 (0), L2 (1), L3 (2), or L4 (3). The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Queries one of the current sine out DC level presets L1 (0), L2 (1), L3
+        (2), or L4 (3). The DC level will be rounded to 3 digits or 0.1 mV,
+        whichever is greater.
 
         Input:
                 preset (int) : sine out DC level preset selection
@@ -1167,7 +1214,9 @@ class SR860(Instrument):
 
     def do_set_sine_out_dc_level_preset(self, level, preset):
         """
-        Sets one of the sine out DC level presets L1 (0), L2 (1), L3 (2), or L4 (3). The DC level will be rounded to 3 digits or 0.1 mV, whichever is greater.
+        Sets one of the sine out DC level presets L1 (0), L2 (1), L3 (2), or L4
+        (3). The DC level will be rounded to 3 digits or 0.1 mV, whichever is
+        greater.
 
         Input:
                 level (float) : sine out DC level preset in volts
@@ -1180,57 +1229,68 @@ class SR860(Instrument):
 
     def do_get_signal_input(self):
         """
+        add docstring
         """
         return self._visainstrument.query(':IVMD?')
 
     def do_set_signal_input(self, signal):
         """
+        add docstring
         """
         self._visainstrument.write(':IVMD {}'.format(signal))
 
     def do_get_voltage_input_mode(self):
         """
+        add docstring
         """
         return self._visainstrument.query(':ISRC?')
 
     def do_set_voltage_input_mode(self, mode):
         """
+        add docstring
         """
         self._visainstrument.write(':ISRC {}'.format(mode))
 
     def do_get_voltage_input_coupling(self):
         """
+        add docstring
         """
         return self._visainstrument.query(':ICPL?')
 
     def do_set_voltage_input_coupling(self, coupling):
         """
+        add docstring
         """
         self._visainstrument.write(':ICPL {}'.format(coupling))
 
     def do_get_voltage_input_shields(self):
         """
+        add docstring
         """
         return self._visainstrument.query(':IGND?')
 
     def do_set_voltage_input_shields(self, shields):
         """
+        add docstring
         """
         self._visainstrument.write(':IGND {}'.format(shields))
 
     def do_get_voltage_input_range(self):
         """
+        add docstring
         """
         return self._visainstrument.query(':IRNG?')
 
     def do_set_voltage_input_range(self, input_range):
         """
+        add docstring
         """
         self._visainstrument.write(':IRNG {}'.format(input_range))
 
     def do_get_current_input_gain(self):
         """
-        Queries the current current input gain. Returns either 0 for 1 MΩ (1 μA) or 1 for 100 MΩ (10 nA).
+        Queries the current current input gain. Returns either 0 for 1 MΩ
+        (1 μA) or 1 for 100 MΩ (10 nA).
 
         Input:
                 None
@@ -1242,7 +1302,8 @@ class SR860(Instrument):
 
     def do_set_current_input_gain(self, gain):
         """
-        Sets the current input gain to 1 MΩ (1 μA) for gain == 0 or 100 MΩ (10 nA) for gain == 1.
+        Sets the current input gain to 1 MΩ (1 μA) for gain == 0 or 100 MΩ
+        (10 nA) for gain == 1.
 
         Input:
                 gain (int) : current input gain setting
@@ -1254,7 +1315,8 @@ class SR860(Instrument):
 
     def do_get_signal_strength(self):
         """
-        Queries the signal strength indicator. Returns an int between 0 for lowest and 4 for overload, inclusive.
+        Queries the signal strength indicator. Returns an int between 0 for
+        lowest and 4 for overload, inclusive.
 
         Input:
                 None
@@ -1427,7 +1489,8 @@ class SR860(Instrument):
 
     def do_set_filter_slope(self, slope):
         """
-        Sets the filter slope to 6 dB/oct for slope == 0, 12 dB/oct for slope == 1, 18 dB/oct for slope == 2, or 24 dB/oct for slope == 3.
+        Sets the filter slope to 6 dB/oct for slope == 0, 12 dB/oct for
+        slope == 1, 18 dB/oct for slope == 2, or 24 dB/oct for slope == 3.
 
         Input:
                 slope (int) : filter slope setting
@@ -1469,7 +1532,9 @@ class SR860(Instrument):
 
     def do_set_output_channel(self, output, channel):
         """
-        Sets either the Channel 1 for channel == 1 or the Channel 2 for channel == 2 output mode to either rectangular (XY) for output == 0 or polar (Rθ) for output == 1. 
+        Sets either the Channel 1 for channel == 1 or the Channel 2 for
+        channel == 2 output mode to either rectangular (XY) for output == 0 or
+        polar (Rθ) for output == 1.
         """
         self._visainstrument.write(':COUT {}, {}'.format(channel, output))
 
@@ -1918,7 +1983,8 @@ class SR860(Instrument):
         Output:
                 val (float)   : value of data channel DAT(channel + 1)
         """
-        return float(self._visainstrument.query('OUTR? DAT{}'.format(channel + 1)).replace('\n', ''))
+        return float(self._visainstrument.query(
+            'OUTR? DAT{}'.format(channel + 1)).replace('\n', ''))
 
     def do_get_data_param(self, channel):
         """
