@@ -1,4 +1,4 @@
-from instrument import Instrument
+from source.instrument import Instrument
 import types
 import logging
 
@@ -8,11 +8,11 @@ class example(Instrument):
         Instrument.__init__(self, name, tags=['measure', 'example'])
 
         # minimum
-        self.add_parameter('value1', type=types.FloatType,
+        self.add_parameter('value1', type=float,
                 flags=Instrument.FLAG_GET)
 
         # tags, format, units and doc
-        self.add_parameter('value2', type=types.FloatType,
+        self.add_parameter('value2', type=float,
                 flags=Instrument.FLAG_GET,
                 tags=['measure'],
                 format='%0.2e',
@@ -20,34 +20,34 @@ class example(Instrument):
                 doc='some extra info')
 
         # set bounds and limit rate (stepdelay in ms)
-        self.add_parameter('output1', type=types.FloatType,
+        self.add_parameter('output1', type=float,
                 flags=Instrument.FLAG_SET,
                 minval=0, maxval=10,
                 maxstep=0.01, stepdelay=50)
 
         # option_list
-        self.add_parameter('status', type=types.StringType,
+        self.add_parameter('status', type=str,
                 flags=Instrument.FLAG_GETSET,
                 option_list=('on', 'off'))
 
         # format_map and get_after_set
-        self.add_parameter('speed', type=types.IntType,
+        self.add_parameter('speed', type=int,
                 flags=Instrument.FLAG_GETSET | \
                         Instrument.FLAG_GET_AFTER_SET,
                 format_map={0: 'slow', 1: 'medium', 2: 'fast'})
 
         # channels
-        self.add_parameter('input', type=types.FloatType,
+        self.add_parameter('input', type=float,
                 flags=Instrument.FLAG_GET,
                 channels=(1, 4))
 
         # channels with prefix
-        self.add_parameter('output', type=types.FloatType,
+        self.add_parameter('output', type=float,
                 flags=Instrument.FLAG_GETSET,
                 channels=('A', 'B', 'C'), channel_prefix='ch%s_')
 
         # persist, softget
-        self.add_parameter('gain', type=types.FloatType,
+        self.add_parameter('gain', type=float,
                 flags=Instrument.FLAG_SET | \
                         Instrument.FLAG_SOFTGET | \
                         Instrument.FLAG_PERSIST)
@@ -63,13 +63,13 @@ class example(Instrument):
         self._dummy_status = 'off'
         self._dummy_speed = 2
         self._dummy_input = [1, 4, 9, 16]
-        self._dummy_output = {'A':0, 'B':1, 'C':2}
+        self._dummy_output = {'A': 0, 'B': 1, 'C': 2}
         self._dummy_gain = 10
 
         if address == None:
             raise ValueError('Example Instrument requires an address parameter')
         else:
-            print 'Example Instrument  address %s' % address
+            print('Example Instrument address %s' % address)
 
         if reset:
             self.reset()
@@ -81,35 +81,34 @@ class example(Instrument):
 
         logging.info('Resetting example instrument')
 
-        self.set_output1(1.5)
-        self.set_status('off')
-        self.set_speed('slow')
+        self.do_set_output1(1.5)
+        self.do_set_status('off')
+        self.do_set_speed('slow')
 
-        self.set_chA_output(0)
-        self.set_chB_output(0)
-        self.set_chC_output(0)
+        self.do_set_chA_output(0)
+        self.do_set_chB_output(0)
+        self.do_set_chC_output(0)
 
-        self.set_gain(20)
+        self.do_set_gain(20)
 
         return True
 
     def get_all(self):
+        self.do_get_value1()
+        self.do_get_value2()
+        self.do_get_status()
+        self.do_get_speed()
 
-        self.get_value1()
-        self.get_value2()
-        self.get_status()
-        self.get_speed()
+        self.do_get_input1()
+        self.do_get_input2()
+        self.do_get_input3()
+        self.do_get_input4()
 
-        self.get_input1()
-        self.get_input2()
-        self.get_input3()
-        self.get_input4()
+        self.do_get_chA_output()
+        self.do_get_chB_output()
+        self.do_get_chC_output()
 
-        self.get_chA_output()
-        self.get_chB_output()
-        self.get_chC_output()
-
-        self.get_gain()
+        self.do_get_gain()
 
         return True
 
@@ -150,7 +149,7 @@ class example(Instrument):
 
     def step(self, channel, stepsize=0.1):
         '''Step channel <channel>'''
-        print 'Stepping channel %s by %f' % (channel, stepsize)
+        print('Stepping channel %s by %f' % (channel, stepsize))
         cur = self.get('ch%s_output' % channel, query=False)
         self.set('ch%s_output' % channel, cur + stepsize)
 

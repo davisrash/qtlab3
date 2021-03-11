@@ -178,7 +178,7 @@ class Instruments:
             name = name[0]
         '''
         
-        if type(name) == tuple:
+        if isinstance(name, tuple):
             if len(name) != 1:
                 return None
             name = name[0]
@@ -203,7 +203,7 @@ class Instruments:
 
     def get_instrument_names(self):
         keys = self._instruments.keys()
-        keys.sort()
+        keys = sorted(keys)
         return keys
 
     def get_instruments(self):

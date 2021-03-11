@@ -2,3 +2,4 @@
 qtlab.log
 instrument_plugins/__pycache__/SR860.cpython-37.pyc
 source/__pycache__/instrument.cpython-37.pyc
+source/__pycache__/instruments.cpython-37.pyc
