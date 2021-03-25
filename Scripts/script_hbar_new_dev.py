@@ -2,20 +2,18 @@
 add docstring
 """
 import sys
+from shutil import copyfile
 
 import numpy as np
-
-import modules.traces as traces
-import source.data as D
 import source.qt as qt
+from source.data import IncrementalGenerator
 
-lockins = []
-meters = []
-lockins.append(qt.instruments.get_instruments_by_type('SR830'))
-lockins.append(qt.instruments.get_instruments_by_type('SR860'))
-meters.append(qt.instruments.get_instruments_by_type('Keithley_2400'))
-meters.append(qt.instruments.get_instruments_by_type('Yokogawa_GS610'))
-meters.append(qt.instruments.get_instruments_by_type('QDevilQdac'))
+lockins = qt.instruments.get_instruments_by_type('SR830') \
+    + qt.instruments.get_instruments_by_type('SR860')
+meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
+    + qt.instruments.get_instruments_by_type('Yokogawa_GS610') \
+    + qt.instruments.get_instruments.by_type('QDevilQdac')
+
 
 class Script():
     """
@@ -23,8 +21,8 @@ class Script():
     """
 
     def __init__(self):
-        self._generator = D.IncrementalGenerator(qt.config['datadir'] + '\\'
-                                                 + FILENAME)
+        self.generator = IncrementalGenerator(qt.config['datadir'] + '\\'
+                                              + FILENAME)
 
     def create_data(self, x_vector, x_coordinate, x_parameter, y_vector,
                     y_coordinate, y_parameter, z_vector, z_coordinate,
@@ -37,7 +35,7 @@ class Script():
         Output:
 
         """
-        qt.Data.set_filename_generator(self._generator)
+        qt.Data.set_filename_generator(self.generator)
         data = qt.Data(name=FILENAME)
         data.add_coordinate(x_parameter + ' (' + x_coordinate + ')',
                             size=len(x_vector), start=x_vector[0],
@@ -59,14 +57,16 @@ class Script():
             data.add_value('Lockin {} Y raw'.format(i))
 
         data.create_file()
-        traces.copy_script(
-            sys._getframe().f_code.co_filename, data.get_dir(),
-            FILENAME + '_' + str(self._generator._counter - 1))
+        copyfile(sys._getframe().f_code.co_filename, # pylint: disable=protected-access
+                 data.get_dir() + '\\' + FILENAME + '_' + str(self.generator.counter - 1) + '.py')
 
         return data
 
     def volt_sweep(self, lockin, xname, xstart, xend, xstep, rev, threshold):
         qt.mstart()
+        """
+        add docstring
+        """
 
         # create sweep vectors
         x_vector = np.arange(xstart, xend, xstep)
@@ -86,7 +86,7 @@ class Script():
                 lockin.set_sine_out_amplitude(x)
 
             qt.msleep(0.2)
-            data_values = take_data(x)
+            data_values = take_data()
             data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1])
 
             if data_values[0] > threshold:
@@ -111,7 +111,7 @@ class Script():
                     lockin.set_sine_out_amplitude(x1)
 
                 qt.msleep(0.2)
-                data_values = take_data(x1)
+                data_values = take_data()
                 data_bck.add_data_point(x1, 0, 0, data_values[0],
                                         data_values[1])
 
@@ -124,8 +124,9 @@ class Script():
     def qdac_1gate(self, channel, meter, xname, xstart, xend, xstep, rev, threshold, compliance):
         qt.mstart()
 
-        xnum = int(np.ceil(np.abs(xstart - xend) / xstep) + 1)
+        qdac1 = meters[-1]
 
+        xnum = int(np.ceil(np.abs(xstart - xend) / xstep) + 1)
 
         x_vector = np.linspace(xstart, xend, xnum)
         y_vector = [0]
@@ -136,29 +137,6 @@ class Script():
                                     'none', 'y_parameter', z_vector, 'none', 'z_parameter')
 
         for x in x_vector:
-            
-            '''
-            if meter.get_type() == 'Keithley_2400':
-                xcurrent = meter.get_voltage()
-            elif meter.get_type() == 'Yokogawa_GS610':
-                meter.set_sense_function(0)
-                xcurrent = meter.read()
-                print(xcurrent)
-            elif meter.get_type() == 'QDevilQdac':
-                xcurrent = meter.getDCVoltage(channel)
-
-            ramp_steps = int(np.ceil(np.abs((xcurrent - x) / RAMP_RATE) + 1))
-            temp_ramp = np.linspace(xcurrent, x, ramp_steps)
-
-            for val in temp_ramp[1:]:
-                mask = (val > x) ^ (xcurrent > x)
-                if meter.get_type() == 'Keithley_2400':
-                    a.keithley_gateset(1, x if mask else val)
-                elif meter.get_type() == 'Yokogawa_GS610':
-                    a.yoko_gateset(x if mask else val)
-                elif meter.get_type() == 'QDevilQdac':
-                    meter.rampDCVoltage(channel, x if mask else val)
-            '''
             if meter.get_type() == 'Keithley_2400':
                 a.keithley_gateset(1, x)
             elif meter.get_type() == 'Yokogawa_GS610':
@@ -167,9 +145,10 @@ class Script():
                 meter.rampDCVoltage(channel, x)
 
             qt.msleep(INTRASWEEP_DELAY)
-            data_values = take_data(x)  # x does not affect take_data?
+            data_values = take_data()
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2],data_values[3], data_values[4],data_values[5],data_values[6],data_values[7],data_values[8],data_values[9],data_values[10],data_values[11],data_values[12],data_values[13],data_values[14], data_values[15],data_values[16],data_values[17])
+            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7],
+                                    data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14], data_values[15], data_values[16], data_values[17])
 
             if threshold is not None:
                 if data_values[13] > threshold:
@@ -202,7 +181,7 @@ class Script():
                 qt.msleep(0.05)
                 qdac1.setDCVoltage(channel, x1)
                 qt.msleep(INTRASWEEP_DELAY)
-                data_values = take_data(x1)
+                data_values = take_data()
 
                 data_bck.add_data_point(x, 0, 0, data_values[0:14])
 
@@ -214,6 +193,8 @@ class Script():
 
     def qdac_2gate(self, channel, channel2, xname1, xstart1, xend1, xstep1, xname2, xstart2, xend2, xstep2, threshold, compliance):
         qt.mstart()
+
+        qdac1 = meters[-1]
 
         if ((xstart1 - xend1) / xstep1) % 2 == 0:
             xnum1 = np.int(np.ceil(np.abs((xstart1 - xend1) / xstep1) + 1))
@@ -270,7 +251,7 @@ class Script():
 
                 qdac1.setDCVoltage(channel2, x2)
                 qt.msleep(INTERSWEEP_DELAY)
-                data_values = take_data(x1)
+                data_values = take_data()
 
                 if data_values[1] > compliance or data_values[3] > compliance:
                     print("I am broken.")
@@ -307,6 +288,8 @@ class Script():
         qt.msleep(INTRASWEEP_DELAY)
 
     def qdac_gateset(self, channel, xend):
+        qdac1 = meters[-1]
+
         xcurrent = qdac1.getDCVoltage(channel)
 
         ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
@@ -332,7 +315,6 @@ class Script():
 
         for i in temp_ramp[1:]:
             keithley.set_voltage(xend if (i > xend) ^ (xcurrent > xend) else i)
-            
 
         keithley.set_voltage(xend)
         qt.msleep(INTRASWEEP_DELAY)
@@ -340,12 +322,12 @@ class Script():
     # assumes only one yoko!
     def yoko_gateset(self, xend):
         yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
-        #yoko.set_source_function(0)
+        # yoko.set_source_function(0)
         yoko.set_source_voltage_range(xend)
-        #yoko.set_source_protection_linkage(1)
-        #yoko.set_source_current_protection_upper_limit(COMPLIANCE)
+        # yoko.set_source_protection_linkage(1)
+        # yoko.set_source_current_protection_upper_limit(COMPLIANCE)
 
-        #yoko.set_source_protection(1)
+        # yoko.set_source_protection(1)
 
         yoko.set_sense(1)
         yoko.set_sense_function(1)
@@ -358,7 +340,7 @@ class Script():
         yoko.set_output(1)
 
         xcurrent = yoko.get_source_voltage_level()
-        
+
         ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
@@ -366,13 +348,12 @@ class Script():
             yoko.set_source_voltage_level(
                 xend if (i > xend) ^ (xcurrent > xend) else i)
             qt.msleep(0.01)
-            
 
         yoko.set_source_voltage_level(xend)
         qt.msleep(INTRASWEEP_DELAY)
 
 
-def take_data(x):
+def take_data():
     """
     add docstring
     """
@@ -384,12 +365,12 @@ def take_data(x):
     for i, lockin in enumerate(lockins[0]):
         if lockin.get_type() == 'SR830':
             X.append(lockin.get_X())
-            X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
+            X_pros.append((V_IN - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
                           * R_SENSE)
             Y.append(lockin.get_Y())
         elif lockin.get_type() == 'SR860':
             X.append(lockin.get_data_param(0))
-            X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
+            X_pros.append((V_IN - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
                           * R_SENSE)
             Y.append(lockin.get_data_param(1))
 
@@ -405,13 +386,13 @@ def take_data(x):
 
             meter.set_sense_function(1)
             leaks[i] = meter.read()
-        elif meter.get_type() == 'QDevilQdac':     
+        elif meter.get_type() == 'QDevilQdac':
             for j in range(len(meters), NUM_GATES):
                 gates[j] = meter.getDCVoltage(j - len(meters) + 1)
                 leaks[j] = meter.getCurrentReading(j - len(meters) + 1)
 
     print(len([i for j in zip(gates, leaks) for i in j]
-        + [i for j in zip(X, X_pros, Y) for i in j]))
+              + [i for j in zip(X, X_pros, Y) for i in j]))
     return [i for j in zip(gates, leaks) for i in j] \
         + [i for j in zip(X, X_pros, Y) for i in j]
 
@@ -432,10 +413,11 @@ END1 = 0.5
 XSTEP1 = 0.1
 REV = False
 
-V_in = 100e-6
+V_IN = 100e-6
 # lockin1.set_amplitude(0.1)
 # a.yoko_gateset(1)
 # a.yoko_gateset(1)
 
 a = Script()
-a.qdac_1gate(1, meters[0][0], 'Gate', START1, END1, XSTEP1, REV, THRESHOLD, COMPLIANCE)
+a.qdac_1gate(1, meters[0][0], 'Gate', START1, END1,
+             XSTEP1, REV, THRESHOLD, COMPLIANCE)
