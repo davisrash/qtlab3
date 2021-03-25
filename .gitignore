@@ -1,8 +1,4 @@
 .vscode/settings.json
-qtlab.log
-instrument_plugins/__pycache__/SR860.cpython-37.pyc
-source/__pycache__/instrument.cpython-37.pyc
-source/__pycache__/instruments.cpython-37.pyc
-instrument_plugins/__pycache__/SR830.cpython-37.pyc
-source/__pycache__/data.cpython-37.pyc
 .pylintrc
+qtlab.log
+*.pyc

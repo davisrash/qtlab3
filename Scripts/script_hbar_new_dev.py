@@ -9,36 +9,13 @@ import modules.traces as traces
 import source.data as D
 import source.qt as qt
 
-NUM_GATES = 6
-
-QDAC_ENABLED = False
-
-FILENAME = 'VA_485_Ebase_G'
-INTRASWEEP_DELAY = 0.1
-INTERSWEEP_DELAY = 1
-THRESHOLD = 200000
-COMPLIANCE = 5e-3
-RAMP_RATE = 1e-2
-
-R_SENSE = 992
-
-START1 = -2
-END1 = 2
-XSTEP1 = 0.04
-REV = False
-
 lockins = []
 meters = []
-for name in qt.instruments.get_instrument_names():
-    instrument = qt.instruments.get(name)
-    if instrument.get_type() in ['SR830', 'SR860']:
-        lockins.append(instrument)
-    elif instrument.get_type() in ['Keithley_2400', 'Yokogawa_GS610']:
-        meters.append(instrument)
-
-if QDAC_ENABLED:
-    qdac1 = qt.instruments.get('qdac1')
-
+lockins.append(qt.instruments.get_instruments_by_type('SR830'))
+lockins.append(qt.instruments.get_instruments_by_type('SR860'))
+meters.append(qt.instruments.get_instruments_by_type('Keithley_2400'))
+meters.append(qt.instruments.get_instruments_by_type('Yokogawa_GS610'))
+meters.append(qt.instruments.get_instruments_by_type('QDevilQdac'))
 
 class Script():
     """
@@ -144,13 +121,11 @@ class Script():
         qt.mend()
         return 1
 
-    def qdac_1gate(self, channel, xname, xstart, xend, xstep, rev, threshold, compliance):
+    def qdac_1gate(self, channel, meter, xname, xstart, xend, xstep, rev, threshold, compliance):
         qt.mstart()
 
-        if ((xstart - xend) / xstep) % 2 == 0:
-            xnum = np.int(np.ceil(np.abs(xstart - xend) / xstep) + 1)
-        else:
-            xnum = np.int(np.ceil(np.abs((xstart - xend) / xstep)))
+        xnum = int(np.ceil(np.abs(xstart - xend) / xstep) + 1)
+
 
         x_vector = np.linspace(xstart, xend, xnum)
         y_vector = [0]
@@ -161,43 +136,40 @@ class Script():
                                     'none', 'y_parameter', z_vector, 'none', 'z_parameter')
 
         for x in x_vector:
-            if x == x_vector[1]:
-                print("Scan has started.")
+            
+            '''
+            if meter.get_type() == 'Keithley_2400':
+                xcurrent = meter.get_voltage()
+            elif meter.get_type() == 'Yokogawa_GS610':
+                meter.set_sense_function(0)
+                xcurrent = meter.read()
+                print(xcurrent)
+            elif meter.get_type() == 'QDevilQdac':
+                xcurrent = meter.getDCVoltage(channel)
 
-            # Do we have multiple multimeters ever? And do we use the QDAC and other multimeter at the same time? Currently assuming 1 meter.
-            # for _, meter in enumerate(meters):
-                if meters[0].get_type() == 'Keithley_2400':
-                    xcurrent = meters[0].get_voltage()
-                elif meters[0].get_type() == 'Yokogawa_GS610':
-                    meters[0].set_sense_function(0)
-                    xcurrent = meters[0].read()
-                elif QDAC_ENABLED:
-                    xcurrent = qdac1.getDCVoltage(channel)
-
-            ramp_steps = np.int(
-                np.ceil(np.abs((xcurrent - x) / RAMP_RATE) + 1))
+            ramp_steps = int(np.ceil(np.abs((xcurrent - x) / RAMP_RATE) + 1))
             temp_ramp = np.linspace(xcurrent, x, ramp_steps)
 
-            for i in temp_ramp[1:]:
-                mask = (i > x) ^ (xcurrent > x)
-                if meters[0].get_type() == 'Keithley_2400':
-                    a.keithley_gateset(1, x if mask else i)
-                elif meters[0].get_type() == 'Yokogawa_GS610':
-                    a.yoko_gateset(x if mask else i)
-                elif QDAC_ENABLED:
-                    qdac1.rampDCVoltage(channel, x if mask else i)
-
-            if meters[0].get_type() == 'Keithley_2400':
+            for val in temp_ramp[1:]:
+                mask = (val > x) ^ (xcurrent > x)
+                if meter.get_type() == 'Keithley_2400':
+                    a.keithley_gateset(1, x if mask else val)
+                elif meter.get_type() == 'Yokogawa_GS610':
+                    a.yoko_gateset(x if mask else val)
+                elif meter.get_type() == 'QDevilQdac':
+                    meter.rampDCVoltage(channel, x if mask else val)
+            '''
+            if meter.get_type() == 'Keithley_2400':
                 a.keithley_gateset(1, x)
-            elif meters[0].get_type() == 'Yokogawa_GS610':
+            elif meter.get_type() == 'Yokogawa_GS610':
                 a.yoko_gateset(x)
-            elif QDAC_ENABLED:
-                qdac1.rampDCVoltage(channel, x)
+            elif meter.get_type() == 'QDevilQdac':
+                meter.rampDCVoltage(channel, x)
 
             qt.msleep(INTRASWEEP_DELAY)
             data_values = take_data(x)  # x does not affect take_data?
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0:14])
+            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2],data_values[3], data_values[4],data_values[5],data_values[6],data_values[7],data_values[8],data_values[9],data_values[10],data_values[11],data_values[12],data_values[13],data_values[14], data_values[15],data_values[16],data_values[17])
 
             if threshold is not None:
                 if data_values[13] > threshold:
@@ -352,29 +324,28 @@ class Script():
 
     # assumes only one keithley!
     def keithley_gateset(self, num, xend):
-        keithley = qt.instruments.get_instruments_by_type('Keithley_2400')
+        keithley = qt.instruments.get_instruments_by_type('Keithley_2400')[0]
         xcurrent = keithley.get_voltage()
 
-        ramp_steps = np.int(
-            np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
+        ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
         for i in temp_ramp[1:]:
             keithley.set_voltage(xend if (i > xend) ^ (xcurrent > xend) else i)
-            qt.msleep(0.01)
+            
 
         keithley.set_voltage(xend)
         qt.msleep(INTRASWEEP_DELAY)
 
     # assumes only one yoko!
     def yoko_gateset(self, xend):
-        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')
-        yoko.set_source_function(0)
+        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
+        #yoko.set_source_function(0)
         yoko.set_source_voltage_range(xend)
-        yoko.set_source_protection_linkage(1)
-        yoko.set_source_current_protection_upper_limit(COMPLIANCE)
+        #yoko.set_source_protection_linkage(1)
+        #yoko.set_source_current_protection_upper_limit(COMPLIANCE)
 
-        yoko.set_source_protection(1)
+        #yoko.set_source_protection(1)
 
         yoko.set_sense(1)
         yoko.set_sense_function(1)
@@ -387,16 +358,15 @@ class Script():
         yoko.set_output(1)
 
         xcurrent = yoko.get_source_voltage_level()
-
-        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
+        
+        ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
         for i in temp_ramp[1:]:
             yoko.set_source_voltage_level(
                 xend if (i > xend) ^ (xcurrent > xend) else i)
             qt.msleep(0.01)
-            print(str(yoko.get_source_voltage_level()) + ' V, '
-                  + str(yoko.read()) + ' A')
+            
 
         yoko.set_source_voltage_level(xend)
         qt.msleep(INTRASWEEP_DELAY)
@@ -411,7 +381,7 @@ def take_data(x):
     X = []
     X_pros = []
     Y = []
-    for i, lockin in enumerate(lockins):
+    for i, lockin in enumerate(lockins[0]):
         if lockin.get_type() == 'SR830':
             X.append(lockin.get_X())
             X_pros.append((V_in - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
@@ -425,7 +395,7 @@ def take_data(x):
 
     gates = [999] * NUM_GATES
     leaks = [999] * NUM_GATES
-    for i, meter in enumerate(meters):
+    for i, meter in enumerate(meters[0]):
         if meter.get_type() == 'Keithley_2400':
             gates[i] = meter.get_voltage()
             leaks[i] = meter.get_current()
@@ -435,20 +405,37 @@ def take_data(x):
 
             meter.set_sense_function(1)
             leaks[i] = meter.read()
+        elif meter.get_type() == 'QDevilQdac':     
+            for j in range(len(meters), NUM_GATES):
+                gates[j] = meter.getDCVoltage(j - len(meters) + 1)
+                leaks[j] = meter.getCurrentReading(j - len(meters) + 1)
 
-    if QDAC_ENABLED:
-        for i in range(len(meters), NUM_GATES):
-            gates[i] = qdac1.getDCVoltage(i)
-            leaks[i] = qdac1.getCurrentReading(i)
-
+    print(len([i for j in zip(gates, leaks) for i in j]
+        + [i for j in zip(X, X_pros, Y) for i in j]))
     return [i for j in zip(gates, leaks) for i in j] \
         + [i for j in zip(X, X_pros, Y) for i in j]
 
 
-a = Script()
+NUM_GATES = 6
+
+FILENAME = 'test'
+INTRASWEEP_DELAY = 0.001
+INTERSWEEP_DELAY = 1
+THRESHOLD = 200000
+COMPLIANCE = 5e-6
+RAMP_RATE = 1e-2
+
+R_SENSE = 992
+
+START1 = 0
+END1 = 0.5
+XSTEP1 = 0.1
+REV = False
+
 V_in = 100e-6
 # lockin1.set_amplitude(0.1)
 # a.yoko_gateset(1)
 # a.yoko_gateset(1)
 
-#a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
+a = Script()
+a.qdac_1gate(1, meters[0][0], 'Gate', START1, END1, XSTEP1, REV, THRESHOLD, COMPLIANCE)
