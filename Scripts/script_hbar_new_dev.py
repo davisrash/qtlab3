@@ -1,6 +1,7 @@
 """
 add docstring
 """
+
 import sys
 from shutil import copyfile
 
@@ -57,16 +58,17 @@ class Script():
             data.add_value('Lockin {} Y raw'.format(i))
 
         data.create_file()
-        copyfile(sys._getframe().f_code.co_filename, # pylint: disable=protected-access
+        copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
                  data.get_dir() + '\\' + FILENAME + '_' + str(self.generator.counter - 1) + '.py')
 
         return data
 
     def volt_sweep(self, lockin, xname, xstart, xend, xstep, rev, threshold):
-        qt.mstart()
         """
         add docstring
         """
+
+        qt.mstart()
 
         # create sweep vectors
         x_vector = np.arange(xstart, xend, xstep)
@@ -94,7 +96,7 @@ class Script():
 
             x1_vector.append(x)
 
-        data_fwd._write_settings_file()
+        data_fwd._write_settings_file()  # pylint: disable=protected-access
         data_fwd.close_file()
         qt.msleep(INTERSWEEP_DELAY)
 
@@ -115,13 +117,18 @@ class Script():
                 data_bck.add_data_point(x1, 0, 0, data_values[0],
                                         data_values[1])
 
-            data_bck._write_settings_file()
+            
+            data_bck._write_settings_file()  # pylint: disable=protected-access
             data_bck.close_file()
 
         qt.mend()
         return 1
 
-    def qdac_1gate(self, channel, meter, xname, xstart, xend, xstep, rev, threshold, compliance):
+    def qdac_1gate(self, channel, meter, xname, xstart, xend, xstep, rev,
+                   threshold, compliance):
+        """
+        add docstring
+        """
         qt.mstart()
 
         qdac1 = meters[-1]
@@ -138,7 +145,7 @@ class Script():
 
         for x in x_vector:
             if meter.get_type() == 'Keithley_2400':
-                a.keithley_gateset(1, x)
+                a.keithley_gateset(x)
             elif meter.get_type() == 'Yokogawa_GS610':
                 a.yoko_gateset(x)
             elif meter.get_type() == 'QDevilQdac':
@@ -147,8 +154,15 @@ class Script():
             qt.msleep(INTRASWEEP_DELAY)
             data_values = take_data()
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7],
-                                    data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14], data_values[15], data_values[16], data_values[17])
+            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1],
+                                    data_values[2], data_values[3],
+                                    data_values[4], data_values[5],
+                                    data_values[6], data_values[7],
+                                    data_values[8], data_values[9],
+                                    data_values[10], data_values[11],
+                                    data_values[12], data_values[13],
+                                    data_values[14], data_values[15],
+                                    data_values[16], data_values[17])
 
             if threshold is not None:
                 if data_values[13] > threshold:
@@ -157,7 +171,8 @@ class Script():
                 break
             x1_vector.append(x)
 
-        data_fwd._write_settings_file()
+        
+        data_fwd._write_settings_file()  # pylint: disable=protected-access
         data_fwd.close_file()
         qt.mend()
         qt.msleep(INTERSWEEP_DELAY)
@@ -165,7 +180,8 @@ class Script():
         if rev:
             x1_vector = np.flip(x1_vector)
             data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage',
-                                        y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+                                        y_vector, 'none', 'y_parameter',
+                                        z_vector, 'none', 'z_parameter')
             print("Reverse scan started.")
             for x1 in x1_vector:
                 x1current = qdac1.getDCVoltage(channel)
@@ -183,15 +199,30 @@ class Script():
                 qt.msleep(INTRASWEEP_DELAY)
                 data_values = take_data()
 
-                data_bck.add_data_point(x, 0, 0, data_values[0:14])
+                data_bck.add_data_point(x1, 0, 0, data_values[0],
+                                        data_values[1], data_values[2],
+                                        data_values[3], data_values[3],
+                                        data_values[4], data_values[5],
+                                        data_values[6], data_values[7],
+                                        data_values[8], data_values[9],
+                                        data_values[10], data_values[11],
+                                        data_values[12], data_values[13],
+                                        data_values[14], data_values[15],
+                                        data_values[16], data_values[17],
+                                        data_values[18])
 
-            data_bck._write_settings_file()
+            
+            data_bck._write_settings_file()  # pylint: disable=protected-access
             data_bck.close_file()
 
         qt.mend()
         return 1
 
-    def qdac_2gate(self, channel, channel2, xname1, xstart1, xend1, xstep1, xname2, xstart2, xend2, xstep2, threshold, compliance):
+    def qdac_2gate(self, channel, channel2, xname1, xstart1, xend1, xstep1,
+                   xname2, xstart2, xend2, xstep2, threshold, compliance):
+        """
+        add docstring
+        """
         qt.mstart()
 
         qdac1 = meters[-1]
@@ -283,11 +314,15 @@ class Script():
             xq1_vector.append(x1)
 
         print("end X1")
-        data_fwd._write_settings_file()
+        
+        data_fwd._write_settings_file()  # pylint: disable=protected-access
         data_fwd.close_file()
         qt.msleep(INTRASWEEP_DELAY)
 
     def qdac_gateset(self, channel, xend):
+        """
+        add docstring
+        """
         qdac1 = meters[-1]
 
         xcurrent = qdac1.getDCVoltage(channel)
@@ -306,7 +341,10 @@ class Script():
         qt.msleep(INTERSWEEP_DELAY)
 
     # assumes only one keithley!
-    def keithley_gateset(self, num, xend):
+    def keithley_gateset(self, xend):
+        """
+        add docstring
+        """
         keithley = qt.instruments.get_instruments_by_type('Keithley_2400')[0]
         xcurrent = keithley.get_voltage()
 
@@ -321,6 +359,9 @@ class Script():
 
     # assumes only one yoko!
     def yoko_gateset(self, xend):
+        """
+        add docstring
+        """
         yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
         # yoko.set_source_function(0)
         yoko.set_source_voltage_range(xend)
@@ -362,7 +403,7 @@ def take_data():
     X = []
     X_pros = []
     Y = []
-    for i, lockin in enumerate(lockins[0]):
+    for i, lockin in enumerate(lockins):
         if lockin.get_type() == 'SR830':
             X.append(lockin.get_X())
             X_pros.append((V_IN - X[i]) / (1e-9 if X[i] == 0.0 else X[i])
@@ -376,7 +417,7 @@ def take_data():
 
     gates = [999] * NUM_GATES
     leaks = [999] * NUM_GATES
-    for i, meter in enumerate(meters[0]):
+    for i, meter in enumerate(meters):
         if meter.get_type() == 'Keithley_2400':
             gates[i] = meter.get_voltage()
             leaks[i] = meter.get_current()
@@ -391,8 +432,6 @@ def take_data():
                 gates[j] = meter.getDCVoltage(j - len(meters) + 1)
                 leaks[j] = meter.getCurrentReading(j - len(meters) + 1)
 
-    print(len([i for j in zip(gates, leaks) for i in j]
-              + [i for j in zip(X, X_pros, Y) for i in j]))
     return [i for j in zip(gates, leaks) for i in j] \
         + [i for j in zip(X, X_pros, Y) for i in j]
 
@@ -419,5 +458,5 @@ V_IN = 100e-6
 # a.yoko_gateset(1)
 
 a = Script()
-a.qdac_1gate(1, meters[0][0], 'Gate', START1, END1,
-             XSTEP1, REV, THRESHOLD, COMPLIANCE)
+a.qdac_1gate(1, meters[0][0], 'Gate', START1, END1, XSTEP1, REV, THRESHOLD,
+             COMPLIANCE)

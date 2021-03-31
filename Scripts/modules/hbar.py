@@ -6,14 +6,14 @@ import sys
 from shutil import copyfile
 
 import numpy as np
-import source.qt as qt
-from source.data import IncrementalGenerator
+from source.qt import config, instruments, mstart, msleep
+from source.data import Data, IncrementalGenerator
 
-lockins = qt.instruments.get_instruments_by_type('SR830') \
-    + qt.instruments.get_instruments_by_type('SR860')
-meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
-    + qt.instruments.get_instruments_by_type('Yokogawa_GS610') \
-    + qt.instruments.get_instruments.by_type('QDevilQdac')
+lockins = instruments.get_instruments_by_type('SR830') \
+    + instruments.get_instruments_by_type('SR860')
+meters = instruments.get_instruments_by_type('Keithley_2400') \
+    + instruments.get_instruments_by_type('Yokogawa_GS610') \
+    + instruments.get_instruments_by_type('QDevilQdac')
 
 
 def create_data(filename: str, vectors: dict, coordinates: dict,
@@ -21,10 +21,10 @@ def create_data(filename: str, vectors: dict, coordinates: dict,
     """
     add docstring
     """
-    generator = IncrementalGenerator(qt.config['datadir'] + '\\' + filename)
-    qt.Data.set_filename_generator(generator)
+    generator = IncrementalGenerator(config['datadir'] + '\\' + filename)
+    Data.set_filename_generator(generator)
 
-    data = qt.Data(name=filename)
+    data = Data(name=filename)
     for var in ['x', 'y', 'z']:
         data.add_coordinate(parameters[var] + ' (' + coordinates[var] + ')',
                             size=len(vectors[var]), start=vectors[var][0],
@@ -41,7 +41,8 @@ def create_data(filename: str, vectors: dict, coordinates: dict,
 
     data.create_file()
     copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
-             data.get_dir() + '\\' + filename + '_' + str(generator.counter - 1) + '.py')
+             data.get_dir() + '\\' + filename + '_'
+             + str(generator.counter - 1) + '.py')
 
     return data
 
@@ -51,7 +52,7 @@ def take_data(input_voltage: float, sense_resistance: float,
     """
     add docstring
     """
-    qt.msleep(intrasweep_delay)
+    msleep(intrasweep_delay)
 
     X = []
     X_pros = []
@@ -96,7 +97,7 @@ def volt_sweep(filename: str, lockin, xname, xstart, xend, xstep, rev, threshold
     add docstring
     """
 
-    qt.mstart()
+    mstart()
 
     vectors = {'x': np.arange(xstart, xend, xstep),
                'y': np.zeros(1),
@@ -119,7 +120,7 @@ def volt_sweep(filename: str, lockin, xname, xstart, xend, xstep, rev, threshold
         elif lockin.get_type() == 'SR860':
             lockin.set_sine_out_amplitude(x)
 
-        qt.msleep(0.2)
+        msleep(0.2)
         data_values = take_data(
             input_voltage=input_voltage, sense_resistance=sense_resistance)
         data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1])
@@ -129,10 +130,10 @@ def volt_sweep(filename: str, lockin, xname, xstart, xend, xstep, rev, threshold
 
         x1_vector.append(x)
 
-    data_fwd._write_settings_file()
+    data_fwd._write_settings_file()  #pylint: disable=protected-access
     data_fwd.close_file()
 
-    qt.msleep(intersweep_delay)
+    msleep(intersweep_delay)
 
     if rev:
         x1_vector = np.flip(x1_vector)
@@ -146,11 +147,11 @@ def volt_sweep(filename: str, lockin, xname, xstart, xend, xstep, rev, threshold
             elif lockin.get_type() == 'SR860':
                 lockin.set_sine_out_amplitude(x1)
 
-            qt.msleep(0.2)
+            msleep(0.2)
             data_values = take_data()
             data_bck.add_data_point(x1, 0, 0, data_values[0], data_values[1])
 
-        data_bck._write_settings_file()
+        data_bck._write_settings_file()  # pylint: disable=protected-access
         data_bck.close_file()
 
     qt.mend()

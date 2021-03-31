@@ -46,4 +46,3 @@ class qApp:
     @staticmethod
     def startingUp():
         return True
-

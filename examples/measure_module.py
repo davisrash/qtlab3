@@ -8,8 +8,8 @@
 # to run an example function read on.
 
 # Modules are often more convenient then scripts. In a
-# module you can define man functions that can be resued 
-# in other functions or scripts. The functions are accessed 
+# module you can define man functions that can be reused
+# in other functions or scripts. The functions are accessed
 # by first importing the module, and then call a function
 # within the module with <module>.<function>()
 # Remember that a module has its own namespace, so many
@@ -57,12 +57,12 @@ def example1(f_vec, b_vec):
     '''
     this example is exactly the same as 'basic_measure_script.py'
     but now made into a function. The main advantage is that now
-    the parameters f_vec and b_vec can be provided when calling 
+    the parameters f_vec and b_vec can be provided when calling
     the function: "measure_module.example1(vec1, vec2)", instead
-    of having to change the script. 
-   
+    of having to change the script.
+
     To run the function type in the terminal:
-   
+
     fv=numpy.arange(0,10,0.01)
     bv=numpy.arange(-5,5,0.1)
     measure_module.example1(fv, bv)
@@ -212,13 +212,13 @@ def example3(x_vec=numpy.linspace(0,10,10), y_vec=numpy.linspace(0,10,50)):
     for x in x_vec:
         for y in y_vec:
 
-            z1 = numpy.sin(x+y)
-            z2 = numpy.cos(x+y)
-            z3 = numpy.sin(x+2*y)
+            z1 = numpy.sin(x + y)
+            z2 = numpy.cos(x + y)
+            z3 = numpy.sin(x + 2 * y)
 
             data.add_data_point(x, y, z1, z2, z3)
 
-            if z1>0:
+            if z1 > 0:
                 plot2d_5.update()
 
             qt.msleep(0.1)
@@ -232,4 +232,3 @@ def example3(x_vec=numpy.linspace(0,10,10), y_vec=numpy.linspace(0,10,50)):
 
     data.close_file()
     qt.mend()
-

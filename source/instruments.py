@@ -16,31 +16,34 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import code
+import importlib
 import inspect
+import logging
+import os
+import sys
 #import gobject
 import types
-import os
-import logging
-import sys
+
 import source.instrument as instrument
-from source.lib.config import get_config
 from insproxy import Proxy
+from source.lib.config import get_config
+
 #from lib.network.object_sharer import SharedGObject
 
 #from lib.misc import get_traceback
 #TB = get_traceback()()
 
-import importlib
 
 #import gi
-#gi.require_version("Gtk","3.0")
+# gi.require_version("Gtk","3.0")
 #from gi.repository import GObject as gobject
 
 
 def _set_insdir():
-    dir = os.path.join(_config['execdir'], 'instrument_plugins')
-    sys.path.append(dir)
-    return dir
+    path = os.path.join(_config['execdir'], 'instrument_plugins')
+    sys.path.append(path)
+    return path
+
 
 def _set_user_insdir():
     '''
@@ -48,17 +51,18 @@ def _set_user_insdir():
     For this config['user_insdir'] needs to be defined.
     '''
 
-    dir = _config['user_insdir']
+    path = _config['user_insdir']
 
-    if dir is None:
+    if path is None:
         return None
 
-    if not os.path.isdir(dir):
+    if not os.path.isdir(path):
         _config['user_insdir'] = None
-        logging.warning(__name__ + ' : "%s" is not a valid path for user_insdir, setting to None' % dir)
+        logging.warning(__name__ + ' : "%s" is not a valid path for '
+                        'user_insdir, setting to None', path)
         return None
 
-    absdir = os.path.abspath(dir)
+    absdir = os.path.abspath(path)
     _config['user_insdir'] = absdir
 
     if sys.path.count(absdir) != 0:
@@ -68,36 +72,37 @@ def _set_user_insdir():
         sys.path.insert(idx, absdir)
         return absdir
 
+
 def _get_driver_module(name, do_reload=False):
-    #print(name)
+    # print(name)
     if name in sys.modules and not do_reload:
         return sys.modules[name]
-    
+
     try:
         mod = __import__(name)
         if do_reload:
-            #reload(mod)
+            # reload(mod)
             None
-    
+
     except ImportError as e:
         fields = str(e).split(' ')
         if len(fields) > 0 and fields[-1] == name:
             logging.warning('Instrument driver %s not available', name)
-        #else:
+        # else:
         #    TB()
         print(e)
         return None
     except Exception as e:
-        #TB()
+        # TB()
         print(e)
         logging.error('Error loading instrument driver %s', name)
         return None
-    
-    
+
     if name in sys.modules:
         return sys.modules[name]
 
     return None
+
 
 class Instruments:
 
@@ -117,8 +122,9 @@ class Instruments:
                     ([gobject.TYPE_PYOBJECT]))
     }
     '''
-    
+
     __id = 1
+
     def __init__(self):
         #SharedGObject.__init__(self, 'instruments%d' % Instruments.__id)
         Instruments.__id += 1
@@ -157,7 +163,7 @@ class Instruments:
             if tag not in self._tags:
                 self._tags.append(tag)
                 newtags.append(tag)
-        #if len(newtags) > 0:
+        # if len(newtags) > 0:
         #    self.emit('tags-added', newtags)
 
     def get(self, name, proxy=True):
@@ -170,19 +176,19 @@ class Instruments:
 
         if isinstance(name, instrument.Instrument) or isinstance(name, Proxy):
             return name
-        
+
         '''
         if type(name) == types.TupleType:
             if len(name) != 1:
                 return None
             name = name[0]
         '''
-        
+
         if isinstance(name, tuple):
             if len(name) != 1:
                 return None
             name = name[0]
-        
+
         '''
         if self._instruments.has_key(name):
             if proxy:
@@ -192,7 +198,7 @@ class Instruments:
         else:
             return None
         '''
-        
+
         if name in self._instruments:
             if proxy:
                 return self._instruments_info[name]['proxy']
@@ -312,18 +318,18 @@ class Instruments:
 
         # Set VISA provider
         visa_driver = kwargs.get('visa', 'pyvisa')
-        
+
         #import visa
-        #visa.set_visa(visa_driver)
+        # visa.set_visa(visa_driver)
         import myVisa
         myVisa.set_visa(visa_driver)
-        #print(instype)
+        # print(instype)
         module = _get_driver_module(instype)
         if module is None:
             return self._create_invalid_ins(name, instype, **kwargs)
-        #reload(module)
+        # reload(module)
         importlib.reload(module)
-        
+
         insclass = getattr(module, instype, None)
         if insclass is None:
             logging.error('Driver does not contain instrument class')
@@ -332,7 +338,7 @@ class Instruments:
         try:
             ins = insclass(name, **kwargs)
         except Exception as e:
-            #TB()
+            # TB()
             print(e)
             logging.error('Error creating instrument %s', name)
             return self._create_invalid_ins(name, instype, **kwargs)
@@ -369,7 +375,7 @@ class Instruments:
         kwargs = self._instruments_info[insname]['create_args']
 
         logging.info('reloading %r, type: %r, kwargs: %r',
-                insname, instype, kwargs)
+                     insname, instype, kwargs)
 
         self.remove(insname)
         reload_ok = self.reload_module(instype)
@@ -388,7 +394,7 @@ class Instruments:
         module = _get_driver_module(driver)
         if module is None:
             return False
-        #reload(module)
+        # reload(module)
 
         if not hasattr(module, 'detect_instruments'):
             logging.warning('Driver does not support instrument detection')
@@ -448,16 +454,20 @@ class Instruments:
 
         #self.emit('instrument-changed', sender.get_name(), changes)
 
+
 _config = get_config()
 _insdir = _set_insdir()
 _user_insdir = _set_user_insdir()
 
 _instruments = None
+
+
 def get_instruments():
     global _instruments
     if _instruments is None:
         _instruments = Instruments()
     return _instruments
+
 
 if __name__ == '__main__':
     i = get_instruments()

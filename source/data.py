@@ -898,7 +898,7 @@ class Data:
                 ncols = 1
                 npoints = 1
             else:
-                loggin.warning(
+                logging.warning(
                     'add_data_point(): adding >2d data not supported')
                 return
         else:

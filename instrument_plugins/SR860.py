@@ -793,8 +793,8 @@ class SR860(Instrument):
                 None
         """
         if units not in ['UDEG', 'MDEG', 'DEG', 'URAD', 'MRAD', 'RAD']:
-            logging.warning(
-                'Unsupported unit \'{}\'. Allowed units are {}'.format(units, 'unit list'))
+            #logging.warning(
+            #    'Unsupported unit \'{}\'. Allowed units are {}'.#format(units, 'unit list'))
             raise ValueError()
 
         self._visainstrument.write('PHAS {} {}'.format(phase, units))
