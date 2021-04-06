@@ -362,13 +362,11 @@ class Script():
         """
         add docstring
         """
-        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
-        # yoko.set_source_function(0)
-        yoko.set_source_voltage_range(xend)
-        # yoko.set_source_protection_linkage(1)
-        # yoko.set_source_current_protection_upper_limit(COMPLIANCE)
+        # keep an eye out for errors here! the yoko driver is changing!
+		# all changed parameters are well-documented
 
-        # yoko.set_source_protection(1)
+        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
+        yoko.set_source_voltage_range(xend)
 
         yoko.set_sense(1)
         yoko.set_sense_function(1)
@@ -378,7 +376,7 @@ class Script():
         yoko.set_source_delay(yoko.get_source_delay_minimum())
         yoko.set_sense_delay(yoko.get_sense_delay_minimum())
 
-        yoko.set_output(1)
+        yoko.set_output('on')
 
         xcurrent = yoko.get_source_voltage_level()
 
