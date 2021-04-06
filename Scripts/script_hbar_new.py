@@ -11,7 +11,7 @@ import modules.traces as traces
 # remember to change the device number to the correct device #
 ##############################################################
 
-filename = 'VA_485_Ebase_G'
+filename = 'VA182_Z_4k_BL'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshold = 200000
@@ -19,7 +19,7 @@ compliance = 5e-3
 ramp_rate = 1e-2
 
 keithley1 = qt.instruments.get('keithley1')
-lockin1 = qt.instruments.get('lockin1')
+lockin1 = qt.instruments.get('sr830_1')
 qdac1 = qt.instruments.get('qdac1')
 yoko = qt.instruments.get('yoko')
 lockin2 = qt.instruments.get('lockin2')
@@ -33,13 +33,10 @@ li2 = 860
 device = 0
 
 
-R_sense = 992
+R_sense = 985
 
 
-start1 = -2
-end1 = 2
-xstep1 = 0.04
-rev = False
+
 
 class Script():
 	def __init__(self):
@@ -139,7 +136,7 @@ class Script():
 			# yokogawa selected
 			yoko.set_sense_function(0)
 			gate_1 = yoko.read()
-			gate_2 = 0
+			gate_2 = keithley1.get_voltage()
 			gate_3 = 0
 			gate_4 = 0
 			gate_5 = 0
@@ -147,7 +144,7 @@ class Script():
 
 			yoko.set_sense_function(1)
 			leak_1 = yoko.read()
-			leak_2 = 0
+			leak_2 = keithley1.get_current()
 			leak_3 = 0
 			leak_4 = 0
 			leak_5 = 0
@@ -447,19 +444,22 @@ class Script():
 
 a = Script()
 V_in = 100e-6
-lockin1.set_amplitude(0.1)
+lockin1.set_amplitude(0.104)
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
-start1 = 0
-end1 = -5
-xstep1 = .01
+start1 = -4.80
+end1 = 0
+xstep1 = .05
 #start2 = 0
 #end2 = -1.3
 #xstep2 = 5e-2
 rev = False
 
-threshold = 1.5E5
-compliance = 2e-9
+threshold = None
+compliance = 1e-6
 ramprate = 1E-2
 
-a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
+#a.keithley_gateset(1,0.2)
+a.qdac_1gate(1, 'Gate', -3, 0, xstep1, rev, threshold, compliance)
+#a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
+#a.qdac_1gate(1, 'Gate', 0, 0.6, xstep1, rev, threshold, compliance)

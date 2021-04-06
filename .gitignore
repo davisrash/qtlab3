@@ -1,4 +1,5 @@
 .vscode/settings.json
 .pylintrc
 qtlab.log
+qtlab.lock
 *.pyc

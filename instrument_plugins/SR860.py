@@ -2,13 +2,13 @@
 add docstring
 """
 
+import logging
+
 import visa
 from source.instrument import Instrument
 
-import logging
-
 ###############################################################################
-# To Do:
+# TODO:
 #  - add logging
 #  - add doc options
 #  - find minval and maxval for
@@ -47,7 +47,7 @@ class SR860(Instrument):
         self.add_parameter('timebase_mode', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="The TBMODE i command sets the external 10 MHz"
-                               "timebase mode to auto (i = 0) or internal (i ="
+                               "timebase mode to auto (i = 0) or internal (i = "
                                "1).",
                            format_map={0: 'auto', 1: 'internal'})
         self.add_parameter('timebase_source', type=str,

@@ -4,6 +4,8 @@ add docstring
 
 from modules import hbar
 
+FILENAME = 'test'
+INTERSWEEP_DELAY = 1
 
 
-# qdac_gate()
+hbar.create_data('test', {}, {}, {})
