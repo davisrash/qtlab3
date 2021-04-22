@@ -19,7 +19,7 @@ from source.instrument import Instrument
 ########################################################################
 
 
-class YokogawaGS610(Instrument):
+class Yokogawa_GS610(Instrument):
     """
     add docstring
     """

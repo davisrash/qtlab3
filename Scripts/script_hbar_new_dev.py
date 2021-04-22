@@ -13,7 +13,7 @@ lockins = qt.instruments.get_instruments_by_type('SR830') \
     + qt.instruments.get_instruments_by_type('SR860')
 meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
     + qt.instruments.get_instruments_by_type('Yokogawa_GS610') \
-    + qt.instruments.get_instruments.by_type('QDevilQdac')
+    + qt.instruments.get_instruments_by_type('QDevilQdac')
 
 
 class Script():
@@ -117,7 +117,6 @@ class Script():
                 data_bck.add_data_point(x1, 0, 0, data_values[0],
                                         data_values[1])
 
-            
             data_bck._write_settings_file()  # pylint: disable=protected-access
             data_bck.close_file()
 
@@ -171,7 +170,7 @@ class Script():
                 break
             x1_vector.append(x)
 
-        
+
         data_fwd._write_settings_file()  # pylint: disable=protected-access
         data_fwd.close_file()
         qt.mend()
@@ -211,7 +210,6 @@ class Script():
                                         data_values[16], data_values[17],
                                         data_values[18])
 
-            
             data_bck._write_settings_file()  # pylint: disable=protected-access
             data_bck.close_file()
 
@@ -314,7 +312,7 @@ class Script():
             xq1_vector.append(x1)
 
         print("end X1")
-        
+
         data_fwd._write_settings_file()  # pylint: disable=protected-access
         data_fwd.close_file()
         qt.msleep(INTRASWEEP_DELAY)
