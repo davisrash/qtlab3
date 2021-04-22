@@ -17,7 +17,7 @@ qt.instruments.create('keithley1', 'Keithley_2400', address='GPIB::24',
 
 ## Yokogawa
 print("Setting up Yokogawa GS610...")
-yoko = qt.instruments.create('yoko', 'Yokogawa_GS610', address='GPIB::1')
+yoko = qt.instruments.create('yoko', 'YokogawaGS610', address='GPIB::1')
 
 print('All instruments set up and good to go!')
 

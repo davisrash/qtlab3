@@ -11,7 +11,7 @@ import modules.traces as traces
 # remember to change the device number to the correct device #
 ##############################################################
 
-filename = 'VA182_Z_4k_BL'
+filename = 'VA182_5um_Y'
 intrasweep_delay = 0.1
 intersweep_delay = 1
 threshold = 200000
@@ -36,11 +36,12 @@ device = 0
 R_sense = 985
 
 
+
+
 class Script():
     def __init__(self):
         self.filename = filename
-        self.generator = d.IncrementalGenerator(
-            qt.config['datadir'] + '\\' + self.filename, 1)
+        self.generator = d.IncrementalGenerator(qt.config['datadir'] + '\\' + self.filename, 1)
 
     def create_data(self, x_vector, x_coordinate, x_parameter, y_vector, y_coordinate, y_parameter, z_vector, z_coordinate, z_parameter):
         """
@@ -53,12 +54,9 @@ class Script():
         """
         qt.Data.set_filename_generator(self.generator)
         data = qt.Data(name=self.filename)
-        data.add_coordinate(x_parameter + ' (' + x_coordinate + ')',
-                            size=len(x_vector), start=x_vector[0], end=x_vector[-1])
-        data.add_coordinate(y_parameter + ' (' + y_coordinate + ')',
-                            size=len(y_vector), start=y_vector[0], end=y_vector[-1])
-        data.add_coordinate(z_parameter + ' (' + z_coordinate + ')',
-                            size=len(z_vector), start=z_vector[0], end=z_vector[-1])
+        data.add_coordinate(x_parameter + ' (' + x_coordinate + ')', size=len(x_vector), start=x_vector[0], end=x_vector[-1])
+        data.add_coordinate(y_parameter + ' (' + y_coordinate + ')', size=len(y_vector), start=y_vector[0], end=y_vector[-1])
+        data.add_coordinate(z_parameter + ' (' + z_coordinate + ')', size=len(z_vector), start=z_vector[0], end=z_vector[-1])
 
         # Gate 1
         data.add_value('Gate 1 V meas')
@@ -90,15 +88,15 @@ class Script():
         data.add_value('Lockin 1 Y raw')
 
         data.create_file()
-        traces.copy_script(sys._getframe().f_code.co_filename, data._dir,
-                           self.filename + '_' + str(self.generator._counter - 1))
+        traces.copy_script(sys._getframe().f_code.co_filename, data._dir, self.filename + '_' + str(self.generator._counter - 1))
         return data
 
     def take_data(self, x):
         """
         """
         qt.msleep(intrasweep_delay)
-
+        
+        
         L1_X = lockin1.get_X()
         L1_X_pro = (V_in - L1_X) / (1e-9 if L1_X == 0.0 else L1_X) * R_sense
 
@@ -164,8 +162,7 @@ class Script():
 
         x1_vector = []
 
-        data_fwd = self.create_data(x_vector, xname, 'Lockin Voltage',
-                                    y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+        data_fwd = self.create_data(x_vector, xname, 'Lockin Voltage', y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
 
         for x in x_vector:
             lockin1.set_amplitude(x)
@@ -184,15 +181,13 @@ class Script():
 
         if rev:
             x1_vector = flip(x1_vector)
-            data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage',
-                                        y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+            data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage', y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
 
             for x1 in x1_vector:
                 lockin1.set_amplitude(x1)
                 qt.msleep(0.2)
                 data_values = self.take_data(x1)
-                data_bck.add_data_point(
-                    x1, 0, 0, data_values[0], data_values[1])
+                data_bck.add_data_point(x1, 0, 0, data_values[0], data_values[1])
 
             data_bck._write_settings_file()
             data_bck.close_file()
@@ -213,8 +208,7 @@ class Script():
         z_vector = [0]
 
         x1_vector = []
-        data_fwd = self.create_data(x_vector, xname, 'x_parameter', y_vector,
-                                    'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+        data_fwd = self.create_data(x_vector, xname, 'x_parameter', y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
 
         for x in x_vector:
             if x == x_vector[1]:
@@ -228,8 +222,7 @@ class Script():
                 yoko.set_sense_function(0)
                 xcurrent = yoko.read()
 
-            ramp_steps = np.int(
-                np.ceil(np.abs((xcurrent - x) / ramp_rate) + 1))
+            ramp_steps = np.int(np.ceil(np.abs((xcurrent - x) / ramp_rate) + 1))
             temp_ramp = np.linspace(xcurrent, x, ramp_steps)
 
             for i in temp_ramp[1:]:
@@ -258,8 +251,7 @@ class Script():
             qt.msleep(intrasweep_delay)
             data_values = self.take_data(x)
 
-            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6],
-                                    data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
+            data_fwd.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
             if threshold is not None:
                 if data_values[13] > threshold:
@@ -275,13 +267,11 @@ class Script():
 
         if rev:
             x1_vector = flip(x1_vector)
-            data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage',
-                                        y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
+            data_bck = self.create_data(x1_vector, xname, 'Lockin Voltage', y_vector, 'none', 'y_parameter', z_vector, 'none', 'z_parameter')
             print("Reverse scan started.")
             for x1 in x1_vector:
                 x1current = qdac1.getDCVoltage(channel)
-                ramp_steps1 = np.int(
-                    np.ceil(np.abs((x1current - x1) / ramp_rate) + 1))
+                ramp_steps1 = np.int(np.ceil(np.abs((x1current - x1) / ramp_rate) + 1))
                 temp_ramp1 = np.linspace(x1current, x1, ramp_steps1)
 
                 for i in temp_ramp1[1:]:
@@ -294,8 +284,7 @@ class Script():
                 qt.msleep(intrasweep_delay)
                 data_values = self.take_data(x1)
 
-                data_bck.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6],
-                                        data_values[7], data_values[8], data_values[9], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
+                data_bck.add_data_point(x, 0, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
             data_bck._write_settings_file()
             data_bck.close_file()
@@ -327,15 +316,12 @@ class Script():
 
         xq1_vector = []
         xq2_vector = []
-        data_fwd = self.create_data(x_vector1, 'gate_1', 'x_parameter',
-                                    x_vector2, 'gate_2', 'y_parameter',
-									z_vector, 'none', 'z_parameter')
+        data_fwd = self.create_data(x_vector1, 'gate_1', 'x_parameter', x_vector2, 'gate_2', 'y_parameter', z_vector, 'none', 'z_parameter')
 
         for x1 in x_vector1:
             xcurrent1 = qdac1.getDCVoltage(channel)
 
-            ramp_steps1 = np.int(
-                np.ceil(np.abs((xcurrent1 - x1) / ramp_rate) + 1))
+            ramp_steps1 = np.int(np.ceil(np.abs((xcurrent1 - x1) / ramp_rate) + 1))
             temp_ramp1 = np.linspace(xcurrent1, x1, ramp_steps1)
 
             for i in temp_ramp1[1:]:
@@ -348,8 +334,7 @@ class Script():
             for x2 in x_vector2:
                 xcurrent2 = qdac1.getDCVoltage(channel2)
 
-                ramp_steps2 = np.int(
-                    np.ceil(np.abs((xcurrent2 - x2) / ramp_rate) + 1))
+                ramp_steps2 = np.int(np.ceil(np.abs((xcurrent2 - x2) / ramp_rate) + 1))
                 temp_ramp2 = np.linspace(xcurrent2, x2, ramp_steps2)
 
                 for i in temp_ramp2[1:]:
@@ -368,14 +353,12 @@ class Script():
                     break
 
                 if data_values[5] > threshold:
-                    data_fwd.add_data_point(x1, x2, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6],
-                                            data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], np.nan, data_values[13], data_values[14])
+                    data_fwd.add_data_point(x1, x2, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], np.nan, data_values[13], data_values[14])
 
                     print("I shall continue.")
                     continue
                 else:
-                    data_fwd.add_data_point(x1, x2, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6],
-                                            data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
+                    data_fwd.add_data_point(x1, x2, 0, data_values[0], data_values[1], data_values[2], data_values[3], data_values[4], data_values[5], data_values[6], data_values[7], data_values[8], data_values[9], data_values[10], data_values[11], data_values[12], data_values[13], data_values[14])
 
                     print("I am awesome.")
 
@@ -412,8 +395,7 @@ class Script():
         if num == 1:
             xcurrent = keithley1.get_voltage()
 
-            ramp_steps = np.int(
-                np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
+            ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
             temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
             for i in temp_ramp[1:]:
@@ -427,9 +409,12 @@ class Script():
         qt.msleep(intrasweep_delay)
 
     def yoko_gateset(self, xend):
-		# keep an eye out for errors here! the yoko driver is changing!
-		# all changed parameters are well-documented
+        yoko.set_source_function(0)
         yoko.set_source_voltage_range(xend)
+        yoko.set_source_protection_linkage(1)
+        yoko.set_source_current_protection_upper_limit(compliance)
+
+        yoko.set_source_protection(1)
 
         yoko.set_sense(1)
         yoko.set_sense_function(1)
@@ -439,11 +424,11 @@ class Script():
         yoko.set_source_delay(yoko.get_source_delay_minimum())
         yoko.set_sense_delay(yoko.get_sense_delay_minimum())
 
-        yoko.set_output('on')
+        yoko.set_output(1)
 
         xcurrent = yoko.get_source_voltage_level()
 
-        ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
+        ramp_steps = np.int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
         temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
         for i in temp_ramp[1:]:
@@ -452,20 +437,18 @@ class Script():
             else:
                 yoko.set_source_voltage_level(i)
             qt.msleep(0.01)
-            print((str)(yoko.get_source_voltage_level()) +
-                  ' V, ' + (str)(yoko.read()) + ' A')
+            print((str)(yoko.get_source_voltage_level()) + ' V, ' + (str)(yoko.read()) + ' A')
 
             yoko.set_source_voltage_level(xend)
         qt.msleep(intrasweep_delay)
 
-
 a = Script()
 V_in = 100e-6
 lockin1.set_amplitude(0.104)
-# a.yoko_gateset(1)
-# a.yoko_gateset(1)
-start1 = -4.80
-end1 = 0
+#a.yoko_gateset(1)
+#a.yoko_gateset(1)
+start1 = 0
+end1 = 0.9
 xstep1 = .05
 #start2 = 0
 #end2 = -1.3
@@ -476,7 +459,7 @@ threshold = None
 compliance = 1e-6
 ramprate = 1E-2
 
-# a.keithley_gateset(1,0.2)
-a.qdac_1gate(1, 'Gate', -3, 0, xstep1, rev, threshold, compliance)
+#a.keithley_gateset(1,0.2)
+a.qdac_1gate(1, 'Gate', 0.3, -4.0, xstep1, rev, threshold, compliance)
 #a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
 #a.qdac_1gate(1, 'Gate', 0, 0.6, xstep1, rev, threshold, compliance)

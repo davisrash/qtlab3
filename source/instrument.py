@@ -15,20 +15,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import types
 import copy
-import time
-import math
 import inspect
+import logging
+import math
+import time
 from gettext import gettext as _L
-from source.lib import calltimer
-from source.lib.network.object_sharer import  cache_result
 
 import numpy as np
-import logging
-import qt
 
+import qt
+from source.lib import calltimer
 from source.lib.config import get_config
+from source.lib.network.object_sharer import cache_result
+
 config = get_config()
 
 class Instrument:
@@ -264,7 +264,7 @@ class Instrument:
             return
         elif name in self.RESERVED_NAMES:
             logging.error("'%s' is a reserved name, not adding parameter",
-                    name)
+                          name)
             return
 
         options = kwargs
