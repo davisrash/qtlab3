@@ -156,10 +156,6 @@ class Yokogawa_GS610(Instrument):
                            doc="Sets the current source level value or "
                                "queries the current setting.")
         # ------ {
-        self.add_parameter('source_current_pulse_base_minimum',
-                           type=float, flags=Instrument.FLAG_GET, units='V')
-        self.add_parameter('source_current_pulse_base_maximum',
-                           type=float, flags=Instrument.FLAG_GET, units='V')
         self.add_parameter('source_current_pulse_base', type=float,
                            flags=Instrument.FLAG_GETSET)
         self.add_parameter('source_current_protection_upper_limit', type=float,
