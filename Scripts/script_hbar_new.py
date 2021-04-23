@@ -444,22 +444,22 @@ class Script():
 
 a = Script()
 V_in = 100e-6
-lockin1.set_amplitude(0.104)
+#lockin1.set_amplitude(0.104)
 #a.yoko_gateset(1)
 #a.yoko_gateset(1)
 start1 = 0
-end1 = 0.9
-xstep1 = .05
+end1 = -5
+xstep1 = .01
 #start2 = 0
 #end2 = -1.3
 #xstep2 = 5e-2
 rev = False
 
-threshold = None
+threshold = 100000
 compliance = 1e-6
 ramprate = 1E-2
 
 #a.keithley_gateset(1,0.2)
-a.qdac_1gate(1, 'Gate', 0.3, -4.0, xstep1, rev, threshold, compliance)
+a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
 #a.qdac_1gate(1, 'Gate', start1, end1, xstep1, rev, threshold, compliance)
 #a.qdac_1gate(1, 'Gate', 0, 0.6, xstep1, rev, threshold, compliance)

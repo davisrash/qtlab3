@@ -1,25 +1,26 @@
 """
-add docstring
+TODO add docstring
 """
 
-import logging
+# import logging
 
+import numpy as np
 import visa
 from source.instrument import Instrument
 
 ########################################################################
 # TODO:
-#  - fix minval and maxval issues
-#  - fix formatting
 #  - add doc parameters and docstrings
 #     - include references to :FUNCTIONS: for now, but remove later
 #  - add logging
 #  - add tags to relevant parameters
+#  - add 0/1/False/True options to `off`/`on` parameters
+#  - simplify parameter names
 #  - make better!
 ########################################################################
 
 
-class Yokogawa_GS610(Instrument):
+class GS610(Instrument):
     """
     add docstring
     """
@@ -32,17 +33,19 @@ class Yokogawa_GS610(Instrument):
         self._visainstrument = visa.ResourceManager().get_instrument(address)
 
         # output commands (output group)
+        # TODO add 1/0 options
         self.add_parameter('output_state', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the output state (ON, OFF, or zero) or "
                                "queries the current setting.",
-                           option_list=('off', 'on', 'zero'))
+                           option_list=('on', 'off', 'zero'))
+        # TODO add 1/0 options
         self.add_parameter('output_program', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the programmable output state (ON or "
                                "OFF) or queries the current setting or "
                                "carries out pulse generation.",
-                           option_list=('off', 'on', 'pulse'))
+                           option_list=('on', 'off', 'pulse'))
 
         # source commands (source group)
         self.add_parameter('source_function', type=str,
@@ -61,11 +64,26 @@ class Yokogawa_GS610(Instrument):
                                "or program sweep) or queries the current "
                                "setting.",
                            option_list=('fixed', 'sweep', 'list'))
-        # TODO add min/max options
-        self.add_parameter('source_delay', type=float,
+        self.add_parameter('source_delay_value', type=float,
                            flags=Instrument.FLAG_GETSET,
+                           minval=self._do_get_source_delay_minimum(),
+                           maxval=self._do_get_source_delay_maximum(),
                            doc="Sets the source delay or queries the current "
                                "setting.")
+        self.add_parameter('source_delay_minimum', type=float,
+                           flags=Instrument.FLAG_GET,
+                           doc="Queries the minimum source delay.")
+        self.add_parameter('source_delay_maximum', type=float,
+                           flags=Instrument.FLAG_GET,
+                           doc="Queries the maximum source delay.")
+        self.add_parameter('source_delay_bound', type=float,
+                           flags=Instrument.FLAG_SET,
+                           doc="Sets the source delay to the minimum or to "
+                               "the maximum value.",
+                           option_list=('min', 'max'))
+        self.add_function('get_source_delay')
+        self.add_function('set_source_delay')
+        # -----------
         # TODO add min/max options
         self.add_parameter('source_pulse_width', type=float,
                            flags=Instrument.FLAG_GETSET,
@@ -80,9 +98,12 @@ class Yokogawa_GS610(Instrument):
                            flags=Instrument.FLAG_GET,
                            doc="Queries the list of program sweep pattern "
                                "files.")
-        # TODO implement functions
-        self.add_function('source_list_delete')
-        self.add_function('source_list_define')
+        # TODO determine add_function options, implement
+        self.add_function('source_list_delete', type=str,
+                          doc="Deletes the program sweep pattern file.")
+        # TODO determine add_function options, implement
+        self.add_function('source_list_define', type=str,
+                          doc="Creates a program sweep pattern file.")
         # TODO add min/max/up/down options, discretize input
         self.add_parameter('source_voltage_range', type=float,
                            flags=Instrument.FLAG_GETSET,
@@ -155,26 +176,56 @@ class Yokogawa_GS610(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the current source level value or "
                                "queries the current setting.")
-        # ------ {
+        # TODO add min/max options
         self.add_parameter('source_current_pulse_base', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the pulse base value for current pulse "
+                               "generation or queries the current setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_protection_upper_limit', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the upper current limiter value (for "
+                               "generating voltage) or queries the current "
+                               "setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_protection_lower_limit', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the lower current limiter value (for "
+                               "generating voltage) or queries the current "
+                               "setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_sweep_start', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the start value of the current sweep or "
+                               "queries the current setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_sweep_stop', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the stop value of the current sweep or "
+                               "queries the current setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_sweep_step', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the step value of the current sweep "
+                               "(linear sweep) or queries the current "
+                               "setting.")
+        # TODO add min/max options
         self.add_parameter('source_current_sweep_points', type=int,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the step count of the current sweep (log "
+                               "sweep) or queries the current setting.")
         self.add_parameter('source_current_zero_impedance', type=str,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the zero source impedance (high or low) "
+                               "for generating current or queries the current "
+                               "setting.",
+                           option_list=('high', 'low'))
+        # TODO add min/max options (unspecified)
         self.add_parameter('source_current_zero_offset', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        # } ------
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the zero source offset value for "
+                               "generating current or queries the current "
+                               "setting.")
         self.add_parameter('source_range_auto', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the source auto range (ON or OFF) or "
@@ -196,203 +247,131 @@ class Yokogawa_GS610(Instrument):
                                "queries the current setting.",
                            option_list=('linear', 'log'))
 
-        # ------ {
-        # sweep parameters
+        # sweep commands (sweep group)
+        self.add_function('sweep_trigger', doc="Starts the sweep operation.")
+        # TODO add inf/min/max options
         self.add_parameter('sweep_count', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sweep_last', type=int,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the sweep repeat count or queries the "
+                               "current setting.")
+        self.add_parameter('sweep_last', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the sweep termination mode (keep level "
+                               "or return to initial level) or queries the "
+                               "current setting.",
+                           option_list=('keep', 'return'))
 
-        # measurement parameters
-        self.add_parameter('sense', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_function', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_range_auto', type=int,
-                           flags=Instrument.FLAG_GETSET)
+        # measurement commands (sense group)
+        self.add_parameter('sense_state', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the measurement state (ON or OFF) or "
+                               "queries the current setting.",
+                           option_list=('on', 'off'))
+        self.add_parameter('sense_function', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the measurement function (voltage, "
+                               "current, or resistance) or queries the "
+                               "current setting.",
+                           option_list=('voltage', 'current', 'resistance'))
+        self.add_parameter('sense_range_auto', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the measurement auto range (ON or OFF) "
+                               "or queries the current setting.",
+                           option_list=('on', 'off'))
+        # TODO add plc/min/max/up/down options
         self.add_parameter('sense_integration_time', type=float,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the integration time or queries the "
+                               "current setting.")
+        # TODO add min/max options
         self.add_parameter('sense_delay', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_auto_zero', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_average', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_average_mode', type=int,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the measurement delay or queries the "
+                               "current setting.")
+        self.add_parameter('sense_auto_zero_state', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the auto zero state (ON or OFF) or "
+                               "queries the current setting.",
+                           option_list=('on', 'off'))
+        self.add_function('sense_auto_zero_execute',
+                          doc="Executes auto zero.")
+        self.add_parameter('sense_average_state', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the average state (ON or OFF) or queries "
+                               "the current setting.",
+                           option_list=('on', 'off'))
+        self.add_parameter('sense_average_mode', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the average mode (block or moving "
+                               "average) or queries the current setting.",
+                           option_list=('block', 'moving'))
+        # TODO add min/max options
         self.add_parameter('sense_average_count', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_auto_change', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('sense_remote_sense', type=int,
-                           flags=Instrument.FLAG_GETSET)
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the average count or queries the current "
+                               "setting.")
+        self.add_parameter('sense_auto_change', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the auto V/I mode (ON or OFF) or queries "
+                               "the current setting.",
+                           option_list=('on', 'off'))
+        self.add_parameter('sense_remote_sense', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the four-wire measurement (remote sense) "
+                               "(ON or OFF) or queries the current setting.",
+                           option_list=('on', 'off'))
 
-        # trigger parameters
-        self.add_parameter('trigger_source', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('trigger_timer', type=float,
-                           flags=Instrument.FLAG_GETSET)
+        # trigger commands (trigger group)
+        # ...
 
-        # computation parameters
-        self.add_parameter('calculate_null', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_null_offset', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_math', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_math_select', type=str,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_math_catalog', type=list,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('calculate_math_parameter_a', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_math_parameter_b', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_math_parameter_c', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_limit', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_limit_upper', type=float,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('calculate_limit_lower', type=float,
-                           flags=Instrument.FLAG_GETSET)
+        # computation commands (calculate group)
+        # ...
 
-        # store/recall parameters
-        self.add_parameter('trace', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('trace_auto', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('trace_points', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('trace_actual', type=int,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_calculate_average', type=float,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_calculate_standard_deviation', type=float,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_data_number', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('trace_data_time', type=str,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_data_source', type=float,
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_data',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_data_setup',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('trace_measurement_only')
+        # store/recall commands (trace group)
+        # ...
 
-        # external input/output parameters
-        self.add_parameter('route_BNC_input_select')
-        self.add_parameter('route_BNC_input_control')
-        self.add_parameter('route_BNC_output_select')
-        self.add_parameter('route_BNC_output_trigger')
-        self.add_parameter('route_BNC_output_sweep')
-        self.add_parameter('route_BNC_output_control')
-        self.add_parameter('route_DIO_5')
-        self.add_parameter('route_DIO_6')
-        self.add_parameter('route_DIO_7')
-        self.add_parameter('route_DIO_8')
+        # external input/output commands (route group)
+        # ...
 
-        # system parameters
-        self.add_parameter('system_display')
-        self.add_parameter('system_display_brightness')
-        self.add_parameter('system_clock_date')
-        self.add_parameter('system_clock_time')
-        self.add_parameter('system_clock_timezone')
-        self.add_parameter('system_setup_catalog',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('system_setup_power_on')
-        self.add_parameter('system_error',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('system_lock')
-        self.add_parameter('system_beeper')
-        self.add_parameter('system_LF_frequency')
-        self.add_parameter('system_communicate_GPIB_address')
-        self.add_parameter('system_communicate_RS232_baud_rate')
-        self.add_parameter('system_communicate_RS232_data_length')
-        self.add_parameter('system_communicate_RS232_parity')
-        self.add_parameter('system_communicate_RS232_stop_bits')
-        self.add_parameter('system_communicate_RS232_pace')
-        self.add_parameter('system_communicate_RS232_terminator')
-        self.add_parameter('system_communicate_ethernet_MAC',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('system_communicate_ethernet_port',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('system_communicate_ethernet_DHCP')
-        self.add_parameter('system_communicate_ethernet_IP')
-        self.add_parameter('system_communicate_ethernet_mask')
-        self.add_parameter('system_communicate_ethernet_default_gateway')
-        self.add_parameter('system_communicate_ehternet_terminator',
-                           flags=Instrument.FLAG_GET)
+        # system commands (system group)
+        # ...
 
-        # status parameters
-        self.add_parameter('status_source_condition',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('status_source_event',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('status_source_enable')
-        self.add_parameter('status_sense_condition',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('status_sense_event',
-                           flags=Instrument.FLAG_GET)
-        self.add_parameter('status_sense_enable')
+        # measured value read commands (initiate, fetch, and read group)
+        self.add_function('initiate', doc="Starts a new measurement.")
+        self.add_function('fetch', doc="Queries the measured results.")
+        self.add_function('read',
+                          doc="Starts a new measurement and queries the "
+                              "measured results.")
 
-        # common parameters
-        self.add_parameter('save', type=int,
-                           flags=Instrument.FLAG_SET)
-        self.add_parameter('recall', type=int,
-                           flags=Instrument.FLAG_SET)
-        self.add_parameter('service_request_enable_register', type=int,
-                           flags=Instrument.FLAG_GETSET)
-        self.add_parameter('standard_event_enable_register', type=int,
-                           flags=Instrument.FLAG_GETSET)
+        # status commands (status group)
+        # ...
 
-        # sweep functions
-        self.add_function('sweep_trigger')
-
-        # measurement functions
-        self.add_function('sense_auto_zero_execute')
-        self.add_function('sense_integration_time_plc')
-
-        # computation functions
-        self.add_function('calculate_math_delete')
-        self.add_function('calculate_math_define')
-
-        # system functions
-        # self.add_function('system_setup_save')
-        # self.add_function('system_setup_load')
-        # self.add_function('system_setup_delete')
-        # self.add_function('system_remote')
-        # self.add_function('system_local')
-        self.add_function('system_wait')
-
-        # measured value read functions
-        self.add_function('initiate')
-        self.add_function('fetch')
-        self.add_function('read')
-
-        # common functions
-        self.add_function('identify')
-        self.add_function('options')
-        self.add_function('trigger')
-        self.add_function('calibrate')
-        self.add_function('test')
-        self.add_function('reset')
-        self.add_function('clear')
-        self.add_function('status_byte')
-        self.add_function('standard_event_register')
-        self.add_function('generate_operation_complete')
-        self.add_function('test_operation_complete')
-        self.add_function('wait')
-
-        # } ------
+        # common command group
+        # TODO implement other commands
+        # self.add_function('identify')
+        # self.add_function('options')
+        # self.add_function('trigger')
+        # self.add_function('calibrate')
+        # self.add_function('self_test')
+        self.add_function('reset',
+                          doc="Resets the GS610 to factory default settings.")
+        # self.add_function('save')
+        # self.add_function('recall')
+        # self.add_function('clear_status')
+        # self.add_function('read_status_byte')
+        # self.add_function('service_request_enable')
+        # self.add_function('standard_event_status_register')
+        # self.add_function('standard_event_status_enable')
+        # self.add_function('operation_complete')
+        # self.add_function('is_operation_complete')
+        # self.add_function('wait_to_continue')
 
         if reset:
             self.reset()
 
+
     # output commands (output group)
-    def do_get_output_state(self):
+    def _do_get_output_state(self):
         """
         Queries and returns the output state (ON, OFF, or zero).
 
@@ -403,14 +382,14 @@ class Yokogawa_GS610(Instrument):
         Returns
         -------
         out : str
-            If `on`, the output is currently on. If `off`, the output is
-            currently off. If `zero`, the output is currently zero.
+            If `on`, currently ON. If `off`, currently OFF. If `zero`,
+            currently zero.
         """
         format_map = {'0': 'off', '1': 'on', 'ZERO': 'zero'}
         state = self._visainstrument.query(':OUTP:STAT?').replace('\n', '')
         return format_map[state]
 
-    def do_set_output_state(self, state):
+    def _do_set_output_state(self, state):
         """
         Sets the output state (ON, OFF, or zero).
 
@@ -426,7 +405,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':OUTP:STAT {}'.format(state))
 
-    def do_get_output_program(self):
+    def _do_get_output_program(self):
         """
         Queries and returns the programmable output state (ON or OFF).
 
@@ -438,14 +417,13 @@ class Yokogawa_GS610(Instrument):
         Returns
         -------
         out : str
-            If `on`, the output is currently ON (low). If `off`, the
-            output is currently OFF (high).
+            If `on`, currently ON (low). If `off`, currently OFF (high).
         """
         format_map = {'0': 'off', '1': 'on'}
         state = self._visainstrument.query(':OUTP:PROG?').replace('\n', '')
         return format_map[state]
 
-    def do_set_output_program(self, state):
+    def _do_set_output_program(self, state):
         """
         Sets the programmable output state (ON or OFF) or carries out
         pulse generation.
@@ -463,50 +441,72 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':OUTP:PROG {}'.format(state))
 
+
     # source commands (source group)
-    def do_get_source_function(self):
+
+    def _do_get_source_function(self):
         """
         Queries and returns the source function (voltage or current).
 
         When the source function is changed, the output (:OUTP:STAT) is
         automatically turned OFF.
 
-        TODO add returns
+        Returns
+        -------
+        out : str
+            If `voltage`, currently set to voltage. If `current`,
+            currently set to current.
         """
-        return self._visainstrument.query(':SOUR:FUNC?').replace('\n', '')
+        format_map = {'VOLT': 'voltage', 'CURR': 'current'}
+        function = self._visainstrument.query(':SOUR:FUNC?').replace('\n', '')
+        return format_map[function]
 
-    def do_set_source_function(self, function):
+    def _do_set_source_function(self, function):
         """
         Sets the source function (voltage or current).
 
         When the source function is changed, the output (:OUTP:STAT) is
         automatically turned OFF.
 
-        TODO add parameters
+        Parameters
+        ----------
+        function : str
+            If `voltage`, sets the source function to voltage. If
+            `current`, sets the source function to current.
         """
         self._visainstrument.write(':SOUR:FUNC {}'.format(function))
 
-    def do_get_source_shape(self):
+    def _do_get_source_shape(self):
         """
         Queries and returns the source mode (DC or pulse).
 
         This function corresponds to MODE on the front panel.
 
-        TODO add returns
+        Returns
+        -------
+        out : str
+            If `DC`, currently set to DC. If `puls`, currently set to
+            pulse.
         """
-        return self._visainstrument.query(':SOUR:SHAP?').replace('\n', '')
+        format_map = {'DC': 'DC', 'PULS': 'pulse'}
+        shape = self._visainstrument.query(':SOUR:SHAP?').replace('\n', '')
+        return format_map[shape]
 
-    def do_set_source_shape(self, shape):
+    def _do_set_source_shape(self, shape):
         """
         Sets the source mode (DC or pulse).
 
         This function corresponds to MODE on the front panel.
 
-        TODO add parameters
+        Parameters
+        ----------
+        shape : str
+            If `DC`, sets the source mode to DC. If `pulse`, sets the
+            source mode to pulse.
         """
         self._visainstrument.write(':SOUR:SHAP {}'.format(shape))
 
-    def do_get_source_mode(self):
+    def _do_get_source_mode(self):
         """
         Queries and returns the source pattern (fixed level, sweep, or
         program sweep).
@@ -515,11 +515,18 @@ class Yokogawa_GS610(Instrument):
         the linear or log setting of the sweep mode using the
         :SOUR:VOLT:SWE:SPAC or :SOUR:CURR:SWE:SPAC command.
 
-        TODO add returns
+        Returns
+        -------
+        out : str
+            If `fixed`, currently set to constant level (sweep OFF). If
+            `sweep`, currently set to sweep (linear or log sweep). If
+            `list`, currently set to program sweep.
         """
-        return self._visainstrument.query(':SOUR:MODE?').replace('\n', '')
+        format_map = {'FIX': 'fixed', 'SWE': 'sweep', 'LIST': 'list'}
+        mode = self._visainstrument.query(':SOUR:MODE?').replace('\n', '')
+        return format_map[mode]
 
-    def do_set_source_mode(self, mode):
+    def _do_set_source_mode(self, mode):
         """
         Sets the source pattern (fixed level, sweep, or program sweep).
 
@@ -527,24 +534,131 @@ class Yokogawa_GS610(Instrument):
         the linear or log setting of the sweep mode using the
         :SOUR:VOLT:SWE:SPAC or :SOUR:CURR:SWE:SPAC command.
 
-        TODO add parameters
+        Parameters
+        ----------
+        mode : str
+            If `fixed`, sets the source pattern to constant level
+            (sweep OFF). If `sweep`, sets the source pattern to sweep
+            (linear or log sweep). If `list`, sets the source pattern
+            to program sweep.
         """
-        self._visainstrument.write(':SOUR:MODE %s' % self.get_parameters()[
-                                   'source_mode']['format_map'][mode])
+        self._visainstrument.write(':SOUR:MODE {}'.format(mode))
 
-    def do_get_source_delay(self):
+    def _do_get_source_delay_value(self):
         """
-        TODO add docstring
-        """
-        return self._visainstrument.query(':SOUR:DEL?').replace('\n', '')
+        Queries and returns the source delay in seconds.
 
-    def do_set_source_delay(self, delay):
+        Returns
+        -------
+        out : float
+            The current source delay in seconds.
         """
-        TODO add docstring
+        return self._visainstrument.query(':SOUR:DEL?')
+
+    def _do_set_source_delay_value(self, delay):
+        """
+        Sets the source delay in seconds.
+
+        Parameters
+        ----------
+        delay : float
+            Sets the source delay to the specified value in seconds.
         """
         self._visainstrument.write(':SOUR:DEL {}'.format(delay))
 
-    def do_get_source_pulse_width(self):
+    def _do_get_source_delay_minimum(self):
+        """
+        Queries and returns the minimum source delay value in seconds.
+
+        Returns
+        -------
+        out : float
+            The minimum value in seconds.
+        """
+        return self._visainstrument.query(':SOUR:DEL? MIN')
+
+    def _do_get_source_delay_maximum(self):
+        """
+        Queries and returns the maximum source delay value in seconds.
+
+        Returns
+        -------
+        out : float
+            The maximum value in seconds.
+        """
+        return self._visainstrument.query(':SOUR:DEL? MAX')
+
+    def _do_set_source_delay_bound(self, bound):
+        """
+        Sets the source delay to the minimum or to the maximum value in
+        seconds.
+
+        Paramaters
+        ----------
+        bound : str
+            If `min`, sets the source delay to the minimum value. If
+            `max`, sets the source delay to the maximum value.
+        """
+        self._visainstrument.write(':SOUR:DEL {}'.format(bound))
+
+    def get_source_delay(self, bound=None):
+        """
+        Queries and returns the source delay in seconds.
+
+        TODO improve type checking and assert
+
+        Parameters
+        ----------
+        bound : str
+            If None, queries the current value in seconds. If `min`,
+            queries the minimum value in seconds. If `max`, queries the
+            maximum value in seconds.
+
+        Returns
+        -------
+        out : float
+            The source delay in seconds. If bound is given, either the
+            minimum or maximum source delay in seconds.
+        """
+        if bound is not None:
+            assert bound in ['min', 'max']
+
+            if bound == 'min':
+                return float(
+                    self._do_get_source_delay_minimum().replace('\n', '')
+                )
+
+            if bound == 'max':
+                return float(
+                    self._do_get_source_delay_maximum().replace('\n', '')
+                )
+
+        return float(self._do_get_source_delay_value().replace('\n', ''))
+
+    def set_source_delay(self, delay):
+        """
+        Sets the source delay in seconds.
+
+        FIXME does not keep delay between min and max values
+        TODO improve type checking and TypeError
+
+        Parameters
+        ----------
+        delay : int, float, or str
+            If a number, sets the source delay to the specified value.
+            If a str (must be either `min` or `max`), sets the source
+            delay to the minimum or to the maximum value.
+        """
+        if isinstance(delay, (int, float)):
+            self._do_set_source_delay_value(delay)
+        elif isinstance(delay, str):
+            self._do_set_source_delay_bound(delay)
+        else:
+            raise TypeError()
+
+    # ----------------
+
+    def _do_get_source_pulse_width(self):
         """
         Queries the current source pulse width.
 
@@ -556,7 +670,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:PULS:WIDT?').replace('\n', '')
 
-    def do_set_source_pulse_width(self, width):
+    def _do_set_source_pulse_width(self, width):
         """
         Sets the source pulse width.
 
@@ -568,7 +682,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:PULS:WIDT %e' % width)
 
-    def do_get_source_list_select(self):
+    def _do_get_source_list_select(self):
         """
         Queries the current program sweep pattern file.
 
@@ -580,7 +694,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:LIST:SEL?').replace('\n', '')
 
-    def do_set_source_list_select(self, file):
+    def _do_set_source_list_select(self, file):
         """
         Sets the program sweep pattern file.
 
@@ -592,7 +706,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:LIST:SEL %s' % file)
 
-    def do_get_source_list_catalog(self):
+    def _do_get_source_list_catalog(self):
         """
         Queries the list of program sweep pattern files.
 
@@ -604,7 +718,17 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:LIST:CAT?')
 
-    def do_get_source_voltage_range(self):
+    def source_list_delete(self, filename):
+        """
+        TODO implement me
+        """
+
+    def source_list_define(self, filename):
+        """
+        TODO implement me
+        """
+
+    def _do_get_source_voltage_range(self):
         """
         Queries the current voltage source range (200 mV, 2 V, 12 V,
         20 V, 30 V, 60 V, or 110 V).
@@ -617,7 +741,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:VOLT:RANG?').replace('\n', '')
 
-    def do_set_source_voltage_range(self, voltage_range):
+    def _do_set_source_voltage_range(self, voltage_range):
         """
         Sets the voltage source range to the smallest range that
         includes the argument (200 mV, 2 V, 12 V, 20 V, 30 V, 60 V, or
@@ -631,7 +755,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:RANG %e' % voltage_range)
 
-    def do_get_source_voltage_level(self):
+    def _do_get_source_voltage_level(self):
         """
         Queries the current voltage source level.
 
@@ -643,7 +767,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:VOLT:LEV?').replace('\n', '')
 
-    def do_set_source_voltage_level(self, level):
+    def _do_set_source_voltage_level(self, level):
         """
         Sets the voltage source level.
 
@@ -655,7 +779,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:LEV %e' % level)
 
-    def do_get_source_voltage_pulse_base(self):
+    def _do_get_source_voltage_pulse_base(self):
         """
         Queries the current voltage source pulse base value.
 
@@ -667,7 +791,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:VOLT:PBAS?').replace('\n', '')
 
-    def do_set_source_voltage_pulse_base(self, pulse_base):
+    def _do_set_source_voltage_pulse_base(self, pulse_base):
         """
         Sets the voltage source pulse base value.
 
@@ -679,7 +803,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:PBAS %e' % pulse_base)
 
-    def do_get_source_voltage_protection_upper_limit(self):
+    def _do_get_source_voltage_protection_upper_limit(self):
         """
         Queries the current source upper voltage limiter value.
 
@@ -692,7 +816,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:PROT:ULIM?').replace('\n', '')
 
-    def do_set_source_voltage_protection_upper_limit(self, limit):
+    def _do_set_source_voltage_protection_upper_limit(self, limit):
         """
         Sets the source upper voltage limiter value.
 
@@ -704,7 +828,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:PROT:ULIM %e' % limit)
 
-    def do_get_source_voltage_protection_lower_limit(self):
+    def _do_get_source_voltage_protection_lower_limit(self):
         """
         Queries the current source lower voltage limiter value.
 
@@ -717,7 +841,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:PROT:LLIM?').replace('\n', '')
 
-    def do_set_source_voltage_protection_lower_limit(self, limit):
+    def _do_set_source_voltage_protection_lower_limit(self, limit):
         """
         Sets the source lower voltage limiter value.
 
@@ -729,7 +853,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:PROT:LLIM %e' % limit)
 
-    def do_get_source_voltage_sweep_start(self):
+    def _do_get_source_voltage_sweep_start(self):
         """
         Queries the current start value of the voltage sweep.
 
@@ -742,7 +866,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:SWE:STAR?').replace('\n', '')
 
-    def do_set_source_voltage_sweep_start(self, start):
+    def _do_set_source_voltage_sweep_start(self, start):
         """
         Sets the start value of the voltage sweep.
 
@@ -754,7 +878,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:SWE:STAR %e' % start)
 
-    def do_get_source_voltage_sweep_stop(self):
+    def _do_get_source_voltage_sweep_stop(self):
         """
         Queries the current stop value of the voltage sweep.
 
@@ -767,7 +891,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:SWE:STOP?').replace('\n', '')
 
-    def do_set_source_voltage_sweep_stop(self, stop):
+    def _do_set_source_voltage_sweep_stop(self, stop):
         """
         Sets the stop value of the voltage sweep.
 
@@ -779,7 +903,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:SWE:STOP %e' % stop)
 
-    def do_get_source_voltage_sweep_step(self):
+    def _do_get_source_voltage_sweep_step(self):
         """
         Queries the current step value of the linear voltage sweep.
 
@@ -792,7 +916,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:SWE:STEP?').replace('\n', '')
 
-    def do_set_source_voltage_sweep_step(self, step):
+    def _do_set_source_voltage_sweep_step(self, step):
         """
         Sets the step value of the linear voltage sweep.
 
@@ -804,7 +928,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:SWE:STEP %e' % step)
 
-    def do_get_source_voltage_sweep_points(self):
+    def _do_get_source_voltage_sweep_points(self):
         """
         Queries the current step count of the logarithmic voltage sweep.
 
@@ -817,7 +941,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:SWE:POIN?').replace('\n', '')
 
-    def do_set_source_voltage_sweep_points(self, points):
+    def _do_set_source_voltage_sweep_points(self, points):
         """
         Sets the step count of the logarithmic voltage sweep.
 
@@ -829,7 +953,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:SWE:POIN %i' % points)
 
-    def do_get_source_voltage_zero_impedance(self):
+    def _do_get_source_voltage_zero_impedance(self):
         """
         Queries the current zero source impedance for generating
         voltage (LOW or HIGH).
@@ -848,7 +972,7 @@ class Yokogawa_GS610(Instrument):
                 self._visainstrument.query(
                     ':SOUR:VOLT:ZERO:IMP?').replace('\n', ''))]
 
-    def do_set_source_voltage_zero_impedance(self, impedance):
+    def _do_set_source_voltage_zero_impedance(self, impedance):
         """
         Sets the zero source impedance for generating voltage (LOW or
         HIGH).
@@ -864,7 +988,7 @@ class Yokogawa_GS610(Instrument):
             ':SOUR:VOLT:ZERO:IMP %s' % self.get_parameters()['output']\
                 ['format_map'][impedance])
 
-    def do_get_source_voltage_zero_offset(self):
+    def _do_get_source_voltage_zero_offset(self):
         """
         Queries the current zero source offset for generating voltage.
 
@@ -877,7 +1001,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:ZERO:OFFS?').replace('\n', '')
 
-    def do_set_source_voltage_zero_offset(self, offset):
+    def _do_set_source_voltage_zero_offset(self, offset):
         """
         Sets the zero source offset for generating voltage.
 
@@ -889,7 +1013,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:ZERO:OFFS %e' % offset)
 
-    def do_get_source_current_range(self):
+    def _do_get_source_current_range(self):
         """
         Queries the current current source range (20 μA, 200 μA, 2 mA,
         20 mA, 200 mA, 0.5 A, 1 A, 2 A, or 3 A).
@@ -902,7 +1026,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:CURR:RANG?').replace('\n', '')
 
-    def do_set_source_current_range(self, current_range):
+    def _do_set_source_current_range(self, current_range):
         """
         Sets the current source range to the smallest range that
         includes the argument (20 μA, 200 μA, 2 mA, 20 mA, 200 mA,
@@ -916,7 +1040,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:RANG %e' % current_range)
 
-    def do_get_source_current_level(self):
+    def _do_get_source_current_level(self):
         """
         Queries the current current source level.
 
@@ -928,7 +1052,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:CURR:LEV?').replace('\n', '')
 
-    def do_set_source_current_level(self, level):
+    def _do_set_source_current_level(self, level):
         """
         Sets the current source level.
 
@@ -940,7 +1064,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:LEV %e' % level)
 
-    def do_get_source_current_pulse_base(self):
+    def _do_get_source_current_pulse_base(self):
         """
         Queries the current current source pulse base value.
 
@@ -952,7 +1076,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:CURR:PBAS?').replace('\n', '')
 
-    def do_set_source_current_pulse_base(self, pulse_base):
+    def _do_set_source_current_pulse_base(self, pulse_base):
         """
         Sets the current source pulse base value.
 
@@ -964,7 +1088,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:PBAS %e' % pulse_base)
 
-    def do_get_source_current_protection_upper_limit(self):
+    def _do_get_source_current_protection_upper_limit(self):
         """
         Queries the current source upper current limiter value.
 
@@ -977,7 +1101,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:PROT:ULIM?').replace('\n', '')
 
-    def do_set_source_current_protection_upper_limit(self, limit):
+    def _do_set_source_current_protection_upper_limit(self, limit):
         """
         Sets the source upper current limiter value.
 
@@ -989,7 +1113,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:PROT:ULIM %e' % limit)
 
-    def do_get_source_current_protection_lower_limit(self):
+    def _do_get_source_current_protection_lower_limit(self):
         """
         Queries the current source lower current limiter value.
 
@@ -1002,7 +1126,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:PROT:LLIM?').replace('\n', '')
 
-    def do_set_source_current_protection_lower_limit(self, limit):
+    def _do_set_source_current_protection_lower_limit(self, limit):
         """
         Sets the source lower current limiter value.
 
@@ -1014,7 +1138,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:PROT:LLIM %e' % limit)
 
-    def do_get_source_current_sweep_start(self):
+    def _do_get_source_current_sweep_start(self):
         """
         Queries the current start value of the current sweep.
 
@@ -1027,7 +1151,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:SWE:STAR?').replace('\n', '')
 
-    def do_set_source_current_sweep_start(self, start):
+    def _do_set_source_current_sweep_start(self, start):
         """
         Sets the start value of the current sweep.
 
@@ -1039,7 +1163,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:SWE:STAR %e' % start)
 
-    def do_get_source_current_sweep_stop(self):
+    def _do_get_source_current_sweep_stop(self):
         """
         Queries the current stop value of the current sweep.
 
@@ -1052,7 +1176,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:SWE:STOP?').replace('\n', '')
 
-    def do_set_source_current_sweep_stop(self, stop):
+    def _do_set_source_current_sweep_stop(self, stop):
         """
         Sets the stop value of the current sweep.
 
@@ -1064,7 +1188,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:SWE:STOP %e' % stop)
 
-    def do_get_source_current_sweep_step(self):
+    def _do_get_source_current_sweep_step(self):
         """
         Queries the current step value of the linear current sweep.
 
@@ -1077,7 +1201,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:SWE:STEP?').replace('\n', '')
 
-    def do_set_source_current_sweep_step(self, step):
+    def _do_set_source_current_sweep_step(self, step):
         """
         Sets the step value of the linear current sweep.
 
@@ -1089,7 +1213,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:SWE:STEP %e' % step)
 
-    def do_get_source_current_sweep_points(self):
+    def _do_get_source_current_sweep_points(self):
         """
         Queries the current step count of the logarithmic current sweep.
 
@@ -1102,7 +1226,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:SWE:POIN?').replace('\n', '')
 
-    def do_set_source_current_sweep_points(self, points):
+    def _do_set_source_current_sweep_points(self, points):
         """
         Sets the step count of the logarithmic current sweep.
 
@@ -1114,7 +1238,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:SWE:POIN %i' % points)
 
-    def do_get_source_current_zero_impedance(self):
+    def _do_get_source_current_zero_impedance(self):
         """
         Queries the current zero source impedance for generating
         current (LOW or HIGH).
@@ -1133,7 +1257,7 @@ class Yokogawa_GS610(Instrument):
                 self._visainstrument.query(
                     ':SOUR:CURR:ZERO:IMP?').replace('\n', ''))]
 
-    def do_set_source_current_zero_impedance(self, impedance):
+    def _do_set_source_current_zero_impedance(self, impedance):
         """
         Sets the zero source impedance for generating current (LOW or
         HIGH).
@@ -1149,7 +1273,7 @@ class Yokogawa_GS610(Instrument):
             ':SOUR:CURR:ZERO:IMP %s' % self.get_parameters()['output']\
                 ['format_map'][impedance])
 
-    def do_get_source_current_zero_offset(self):
+    def _do_get_source_current_zero_offset(self):
         """
         Queries the current zero source offset for generating current.
 
@@ -1162,7 +1286,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:CURR:ZERO:OFFS?').replace('\n', '')
 
-    def do_set_source_current_zero_offset(self, offset):
+    def _do_set_source_current_zero_offset(self, offset):
         """
         Sets the zero source offset for generating current.
 
@@ -1174,7 +1298,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:CURR:ZERO:OFFS %e' % offset)
 
-    def do_get_source_range_auto(self):
+    def _do_get_source_range_auto(self):
         """
         Queries the current source autorange setting.
 
@@ -1187,7 +1311,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:RANG:AUTO?').replace('\n', '')
 
-    def do_set_source_range_auto(self, auto):
+    def _do_set_source_range_auto(self, auto):
         """
         Sets the source autorange setting.
 
@@ -1199,7 +1323,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:RANG:AUTO %i' % auto)
 
-    def do_get_source_protection(self):
+    def _do_get_source_protection_state(self):
         """
         Queries the current source limiter state (ON or OFF).
 
@@ -1211,7 +1335,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SOUR:VOLT:PROT?').replace('\n', '')
 
-    def do_set_source_protection(self, state):
+    def _do_set_source_protection_state(self, state):
         """
         Sets the source limiter state (ON or OFF).
 
@@ -1223,7 +1347,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:PROT %i' % state)
 
-    def do_get_source_protection_linkage(self):
+    def _do_get_source_protection_linkage(self):
         """
         Queries the current source limiter tracking state (ON or OFF).
 
@@ -1236,7 +1360,7 @@ class Yokogawa_GS610(Instrument):
         return self._visainstrument.query(
             ':SOUR:VOLT:PROT:LINK?').replace('\n', '')
 
-    def do_set_source_protection_linkage(self, state):
+    def _do_set_source_protection_linkage(self, state):
         """
         Sets the source limiter tracking state (ON or OFF).
 
@@ -1248,7 +1372,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SOUR:VOLT:PROT:LINK %i' % state)
 
-    def do_get_source_sweep_spacing(self):
+    def _do_get_source_sweep_spacing(self):
         """
         Queries the current sweep mode (linear or log).
 
@@ -1265,7 +1389,7 @@ class Yokogawa_GS610(Instrument):
                 self._visainstrument.query(
                     ':SOUR:VOLT:SWE:SPAC?').replace('\n', ''))]
 
-    def do_set_source_sweep_spacing(self, spacing):
+    def _do_set_source_sweep_spacing(self, spacing):
         """
         Sets the sweep mode (linear or log).
 
@@ -1279,7 +1403,15 @@ class Yokogawa_GS610(Instrument):
             ':SOUR:VOLT:SWE:SPAC %s' % self.get_parameters()\
                 ['source_sweep_spacing']['format_map'][spacing])
 
-    def do_get_sweep_count(self):
+
+    # sweep commands (sweep group)
+
+    def sweep_trigger(self):
+        """
+        TODO implement me
+        """
+
+    def _do_get_sweep_count(self):
         """
         Queries the current sweep repeat count (a count of 0
         corresponds to infinity).
@@ -1293,7 +1425,7 @@ class Yokogawa_GS610(Instrument):
         count = self._visainstrument.query(':SWE:COUN?').replace('\n', '')
         return count if count != 'INF' else 0
 
-    def do_set_sweep_count(self, count):
+    def _do_set_sweep_count(self, count):
         """
         Sets the sweep repeat count (a count of 0 corresponds to
         infinity).
@@ -1309,7 +1441,7 @@ class Yokogawa_GS610(Instrument):
         else:
             self._visainstrument.write(':SWE:COUN INF')
 
-    def do_get_sweep_last(self):
+    def _do_get_sweep_last(self):
         """
         Queries the current sweep termination mode (keep level or
         return to initial level).
@@ -1325,7 +1457,7 @@ class Yokogawa_GS610(Instrument):
             list(format_map.values()).index(
                 self._visainstrument.query(':SWE:LAST?').replace('\n', ''))]
 
-    def do_set_sweep_last(self, level):
+    def _do_set_sweep_last(self, level):
         """
         Sets the sweep termination mode (keep level or return to
         initial level).
@@ -1339,7 +1471,10 @@ class Yokogawa_GS610(Instrument):
         self._visainstrument.write(':SWE:LAST %s' % self.get_parameters()\
             ['sweep_last']['format_map'][level])
 
-    def do_get_sense(self):
+
+    # measurement commands (sense group)
+
+    def _do_get_sense_state(self):
         """
         Queries the current measurement state (ON or OFF).
 
@@ -1351,7 +1486,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:STAT?').replace('\n', '')
 
-    def do_set_sense(self, state):
+    def _do_set_sense_state(self, state):
         """
         Sets the measurement state (ON or OFF).
 
@@ -1363,7 +1498,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS %s' % state)
 
-    def do_get_sense_function(self):
+    def _do_get_sense_function(self):
         """
         Queries the current measurement function (voltage, current, or
         resistance).
@@ -1379,7 +1514,7 @@ class Yokogawa_GS610(Instrument):
             list(format_map.values()).index(
                 self._visainstrument.query(':SENS:FUNC?').replace('\n', ''))]
 
-    def do_set_sense_function(self, function):
+    def _do_set_sense_function(self, function):
         """
         Setst the measurement function (voltage, current, or resistance).
 
@@ -1392,7 +1527,7 @@ class Yokogawa_GS610(Instrument):
         self._visainstrument.write(':SENS:FUNC %s' % self.get_parameters()\
             ['sense_function']['format_map'][function])
 
-    def do_get_sense_range_auto(self):
+    def _do_get_sense_range_auto(self):
         """
         Queries the current measurement autorange state (ON or OFF).
 
@@ -1404,7 +1539,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:RANG:AUTO?').replace('\n', '')
 
-    def do_set_sense_range_auto(self, auto):
+    def _do_set_sense_range_auto(self, auto):
         """
         Sets the measurement autorange state (ON or OFF).
 
@@ -1416,7 +1551,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:RANG:AUTO %s' % auto)
 
-    def do_get_sense_integration_time(self):
+    def _do_get_sense_integration_time(self):
         """
         Queries the current integration time (250 μs, 1 ms, 4 ms,
         16.6 ms or 20 ms, 100 ms, or 200 ms).
@@ -1429,7 +1564,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:ITIM?').replace('\n', '')
 
-    def do_set_sense_integration_time(self, time):
+    def _do_set_sense_integration_time(self, time):
         """
         Sets the integration time to the smallest setting that includes
         the parameter (250 μs, 1 ms, 4 ms, 16.6 ms or 20 ms, 100 ms, or
@@ -1443,7 +1578,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:ITIM %e' % time)
 
-    def do_get_sense_delay(self):
+    def _do_get_sense_delay(self):
         """
         Queries the current measurement delay in seconds.
 
@@ -1455,7 +1590,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:DEL?').replace('\n', '')
 
-    def do_set_sense_delay(self, delay):
+    def _do_set_sense_delay(self, delay):
         """
         Sets the measurement delay in seconds.
 
@@ -1467,7 +1602,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.write(':SENS:DEL %e' % delay)
 
-    def do_get_sense_auto_zero(self):
+    def _do_get_sense_auto_zero_state(self):
         """
         Queries the current autozero state (ON or OFF).
 
@@ -1479,7 +1614,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:AZER?').replace('\n', '')
 
-    def do_set_sense_auto_zero(self, state):
+    def _do_set_sense_auto_zero_state(self, state):
         """
         Sets the autozero state (ON or OFF).
 
@@ -1491,7 +1626,12 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:AZER %s' % state)
 
-    def do_get_sense_average(self):
+    def sense_auto_zero_execute(self):
+        """
+        TODO implement me
+        """
+
+    def _do_get_sense_average_state(self):
         """
         Queries the current average state (ON or OFF).
 
@@ -1503,7 +1643,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:AVER?').replace('\n', '')
 
-    def do_set_sense_average(self, state):
+    def _do_set_sense_average_state(self, state):
         """
         Sets the average state (ON or OFF).
 
@@ -1515,7 +1655,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:AVER %s' % state)
 
-    def do_get_sense_average_mode(self):
+    def _do_get_sense_average_mode(self):
         """
         Queries the current average mode (block or moving average).
 
@@ -1529,7 +1669,7 @@ class Yokogawa_GS610(Instrument):
         return list(format_map.keys())[list(format_map.values()).index(
             self._visainstrument.query(':SENS:AVER:MODE?').replace('\n', ''))]
 
-    def do_set_sense_average_mode(self, mode):
+    def _do_set_sense_average_mode(self, mode):
         """
         Sets the average mode (block or moving average).
 
@@ -1543,7 +1683,7 @@ class Yokogawa_GS610(Instrument):
             ':SENS:AVER:MODE %s' % self.get_parameters()['sense_average_mode']\
                 ['format_map'][mode])
 
-    def do_get_sense_average_count(self):
+    def _do_get_sense_average_count(self):
         """
         Queries the current average count.
 
@@ -1555,7 +1695,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:AVER:COUN?').replace('\n', '')
 
-    def do_set_sense_average_count(self, count):
+    def _do_set_sense_average_count(self, count):
         """
         Sets the average count.
 
@@ -1567,7 +1707,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:AVER:COUN %i' % count)
 
-    def do_get_sense_auto_change(self):
+    def _do_get_sense_auto_change(self):
         """
         Queries the current auto-V/I mode (ON or OFF).
 
@@ -1579,7 +1719,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:ACH?').replace('\n', '')
 
-    def do_set_sense_auto_change(self, mode):
+    def _do_set_sense_auto_change(self, mode):
         """
         Sets the auto-V/I mode (ON or OFF).
 
@@ -1591,7 +1731,7 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:ACH %s' % mode)
 
-    def do_get_sense_remote_sense(self):
+    def _do_get_sense_remote_sense(self):
         """
         Queries the current four-wire measurement (remote sense)
         setting (ON or OFF).
@@ -1604,7 +1744,7 @@ class Yokogawa_GS610(Instrument):
         """
         return self._visainstrument.query(':SENS:RSEN?').replace('\n', '')
 
-    def do_set_sense_remote_sense(self, sense):
+    def _do_set_sense_remote_sense(self, sense):
         """
         Sets the four-wire measurement (remote sense) setting (ON or
         OFF).
@@ -1617,499 +1757,32 @@ class Yokogawa_GS610(Instrument):
         """
         self._visainstrument.write(':SENS:RSEN %s' % sense)
 
-    def do_get_trigger_source(self):
-        """
-        Queries the current trigger source (constant period timer,
-        external trigger, or no trigger wait).
 
-        Input:
-            None
+    # trigger commands (trigger group)
+    # ...
 
-        Output:
-            state (int) : trigger source
-        """
-        format_map = self.get_parameters()['trigger_source']['format_map']
-        return list(format_map.keys())[list(format_map.values()).index(
-            self._visainstrument.query(':TRIG:SOUR?').replace('\n', ''))]
 
-    def do_set_trigger_source(self, state):
-        """
-        Sets the trigger source (constant period timer, external
-        trigger, or no trigger wait).
+    # computation commands (calculate group)
+    # ...
 
-        Input:
-            state (int) : trigger source
 
-        Output:
-            None
-        """
-        self._visainstrument.write(':TRIG:SOUR %s' % self.get_parameters()\
-            ['trigger_source']['format_map'][state])
+    # store/recall commands (trace group)
+    # ...
 
-    def do_get_trigger_timer(self):
-        """
-        Queries the current period of the constant trigger timer in
-        seconds.
 
-        Input:
-            None
+    # external input/output commands (route group)
+    # ...
 
-        Output:
-            time (float) : period of the constant trigger timer in
-                           seconds
-        """
-        return self._visainstrument.query(':TRIG:TIM?').replace('\n', '')
 
-    def do_set_trigger_timer(self, time):
-        """
-        Sets the period of the constant trigger timer in seconds.
+    # system commands (system group)
+    # ...
 
-        Input:
-            time (float) : period of the constant trigger timer in
-                           seconds
 
-        Output:
-            None
-        """
-        self._visainstrument.write(':TRIG:TIM %e' % time)
-
-    def do_get_calculate_null(self):
-        """
-        Queries the current NULL computation state (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : NULL computation state
-        """
-        return self._visainstrument.query(':CALC:NULL?').replace('\n', '')
-
-    def do_set_calculate_null(self, state):
-        """
-        Sets the NULL computation state (ON or OFF).
-
-        Input:
-            state (int) : NULL computation state
-        """
-        self._visainstrument.write(':CALC:NULL %s' % state)
-
-    def do_get_calculate_null_offset(self):
-        """
-        Queries the current NULL computation offset.
-
-        Input:
-            None
-
-        Output:
-            offset (float) : NULL computation offset
-        """
-        return self._visainstrument.query(':CALC:NULL:OFFS?').replace('\n', '')
-
-    def do_set_calculate_null_offset(self, offset):
-        """
-        Sets the NULL computation offset.
-
-        Input:
-            offset (float) : NULL computation offset
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:NULL:OFFS %e' % offset)
-
-    def do_get_calculate_math(self):
-        """
-        Queries the current state of the computation using equations
-        (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : state of the computation using equations
-        """
-        return self._visainstrument.query(':CALC:MATH?').replace('\n', '')
-
-    def do_set_calculate_math(self, state):
-        """
-        Sets the state of the computation using equations (ON or OFF).
-
-        Input:
-            state (int) : state of the computation using equations
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH %s' % state)
-
-    def do_get_calculate_math_select(self):
-        """
-        Queries the current definition file of the computation using
-        equations.
-
-        Input:
-            None
-
-        Output:
-            file (str) : definition file of the computation using
-            equations
-        """
-        return self._visainstrument.query(':CALC:MATH:SEL?').replace('\n', '')
-
-    def do_set_calculate_math_select(self, file):
-        """
-        Sets the definition file of the computation using equations.
-
-        Input:
-            file (str) : definition file of the computation using
-                         equations
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:SEL %s' % file)
-
-    def do_get_calculate_math_catalog(self):
-        """
-        Queries the current list of definition files of the computation
-        using equations.
-
-        Input:
-            None
-
-        Output:
-            files (list) : list of definition files of the computation
-                           using equations.
-        """
-        return self._visainstrument.query(':CALC:MATH:CAT?').replace('\n', '')
-
-    def do_get_calculate_math_parameter_a(self):
-        """
-        Queries the current equation parameter A.
-
-        Input:
-            None
-
-        Output:
-            a (float) : equation parameter A
-        """
-        return self._visainstrument.query(
-            ':CALC:MATH:PAR:A?').replace('\n', '')
-
-    def do_set_calculate_math_parameter_a(self, a):
-        """
-        Sets the equation parameter A.
-
-        Input:
-            a (float) : equation parameter A
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:PAR:A %e' % a)
-
-    def do_get_calculate_math_parameter_b(self):
-        """
-        Queries the current equation parameter B.
-
-        Input:
-            None
-
-        Output:
-            b (float) : equation parameter B
-        """
-        return self._visainstrument.query(
-            ':CALC:MATH:PAR:B?').replace('\n', '')
-
-    def do_set_calculate_math_parameter_b(self, b):
-        """
-        Sets the equation parameter B.
-
-        Input:
-            b (float) : equation parameter B
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:PAR:B %e' % b)
-
-    def do_get_calculate_math_parameter_c(self):
-        """
-        Queries the current equation parameter C.
-
-        Input:
-            None
-
-        Output:
-            c (float) : equation parameter C
-        """
-        return self._visainstrument.query(
-            ':CALC:MATH:PAR:C?').replace('\n', '')
-
-    def do_set_calculate_math_parameter_c(self, c):
-        """
-        Sets the equation parameter C.
-
-        Input:
-            c (float) : equation parameter C
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:PAR:C %e' % c)
-
-    def do_get_calculate_limit(self):
-        """
-        Queries the state of the comparison operation (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : state of the computation operation
-        """
-        return self._visainstrument.query(':CALC:LIM?').replace('\n', '')
-
-    def do_set_calculate_limit(self, state):
-        """
-        Sets the state of the comparison operation (ON or OFF).
-
-        Input:
-            state (int) : state of the comparison operation
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:LIM %s' % state)
-
-    def do_get_calculate_limit_upper(self):
-        """
-        Queries the current upper limit of the comparison operation.
-
-        Input:
-            None
-
-        Output:
-            limit (float) : upper limit of the comparison operation
-        """
-        return self._visainstrument.query(':CALC:LIM:UPP?').replace('\n', '')
-
-    def do_set_calculate_limit_upper(self, limit):
-        """
-        Sets the upper limit of the comparison operation.
-
-        Input:
-            limit (float) : upper limit of the comparison operation
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:LIM:UPP %e' % limit)
-
-    def do_get_calculate_limit_lower(self):
-        """
-        Queries the current lower limit of the comparison operation.
-
-        Input:
-            None
-
-        Output:
-            limit (float) : lower limit of the comparison operation
-        """
-        return self._visainstrument.query(':CALC:LIM:LOW?').replace('\n', '')
-
-    def do_set_calculate_limit_lower(self, limit):
-        """
-        Sets the lower limit of the comparison operation.
-
-        Input:
-            limit (float) : lower limit of the comparison operation
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:LIM:LOW %e' % limit)
-
-    def do_set_save(self, file):
-        """
-        Saves the settings as Setup 1, 2, 3, or 4.
-
-        Input:
-            file (int) : setup file number
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*SAV %i' % file)
-
-    def do_set_recall(self, file):
-        """
-        Loads the saved settings from Setup 1, 2, 3, or 4.
-
-        Input:
-            file (int) : setup file number
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*RCL %i' % file)
-
-    def do_get_service_request_enable_register(self):
-        """
-        Queries the current service request enable register.
-
-        Input:
-            None
-
-        Output:
-            register (int) : service request enable register
-        """
-        return self._visainstrument.query(':*SRE?').replace('\n', '')
-
-    def do_set_service_request_enable_register(self, register):
-        """
-        Sets the service request enable register.
-
-        Input:
-            register (int) : service request enable register
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*SRE %i' % register)
-
-    def do_get_standard_event_enable_register(self):
-        """
-        Queries the current standard event enable register.
-
-        Input:
-            None
-
-        Output:
-            register (int) : standard event enable register
-        """
-        return self._visainstrument.query(':*ESR?').replace('\n', '')
-
-    def do_set_standard_event_enable_register(self, register):
-        """
-        Sets the standard event enable register.
-
-        Input:
-            register (int) : standard event enable register
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*ESR %i' % register)
-
-    def source_list_delete(self, file):
-        """
-        Deletes the program sweep pattern file.
-
-        Input:
-            file (str) : pattern file name
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SOUR:LIST:DEL %s' % file)
-
-    def source_list_define(self, file, contents):
-        """
-        Creates a program sweep pattern file.
-
-        Input:
-            file (str)     : pattern file name
-            contents (str) : contents to be written to file
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SOUR:LIST:DEF %s, %s' % (file, contents))
-
-    def sweep_trigger(self):
-        """
-        Starts the sweep operation.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SWE:TRIG')
-
-    def sense_auto_zero_execute(self):
-        """
-        Executes auto-zero.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SENS:AZER:EXEC')
-
-    def sense_integration_time_plc(self):
-        """
-        Sets the integration time to 1 cycle of the power frequency.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SENS:ITIM PLC')
-
-    def calculate_math_delete(self, file):
-        """
-        Deletes the definition file of the computation using equations.
-
-        Input:
-            file (str) : file name
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:DEL %s' % file)
-
-    def calculate_math_define(self, file, contents):
-        """
-        Creates a definition file of the computation using equations.
-
-        Input:
-            file (str)     : file name
-            contents (str) : contents to be written to file
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':CALC:MATH:DEF %s, %s' % (file, contents))
-
-    def system_wait(self, time):
-        """
-        Holds the GS610 for the specified wait time in seconds.
-
-        Input:
-            time (float) : wait time in seconds
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':SYST:WAIT %e' % time)
+    # measured value read commands (initiate, fetch, and read group)
 
     def initiate(self):
         """
         Starts a new measurement.
-
-        Input:
-            None
-
-        Output:
-            None
         """
         self._visainstrument.write(':INIT')
 
@@ -2117,170 +1790,58 @@ class Yokogawa_GS610(Instrument):
         """
         Queries the measured results.
 
-        Input:
-            None
-
-        Output:
-            value (str) : measured results
+        Returns
+        -------
+        out : TODO what is the type? what should it be?
         """
-        return self._visainstrument.query(':FETC?').replace('\n', '')
+        return self._visainstrument.query(':FETCH?').replace('\n', '')
 
     def read(self):
         """
         Starts a new measurement and queries the measured results.
 
-        Input:
-            None
+        This command is equivalent to :INIT;:FETCH?.
 
-        Output:
-            value (str) : measured results
+        Returns
+        -------
+        out : TODO what is the type? what should it be?
         """
-        return (float)(self._visainstrument.query(':READ?').replace('\n', ''))
+        return self._visainstrument.query(':READ?').replace('\n', '')
 
-    def identify(self):
-        """
-        Queries the instrument model.
 
-        Input:
-            None
-
-        Output:
-            model (str) : instrument model
-        """
-        return self._visainstrument.query(':*IDN?').replace('\n', '')
-
-    def options(self):
-        """
-        Queries the options (None or ethernet option)
-
-        Input:
-            None
-
-        Output:
-            options (str) : options
-        """
-        return self._visainstrument.query(':*OPT?').replace('\n', '')
-
-    def trigger(self):
-        """
-        Generates a trigger.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*TRG').replace('\n', '')
-
-    def calibrate(self):
-        """
-        Performs a calibration and queries the result (successful if 0,
-        unsuccessful otherwise).
-
-        Input:
-            None
-
-        Output:
-            result (int) : calibration result
-        """
-        return self._visainstrument.query(':*CAL?').replace('\n', '')
-
-    def test(self):
-        """
-        Performs a self-test and queries the result (normal if 0, error
-        otherwise).
-
-        Input:
-            None
-
-        Output:
-            result (int) : self-test result
-        """
-        return self._visainstrument.query(':*TST?').replace('\n', '')
+    # common command group
 
     def reset(self):
         """
-        Resets the instrument to default values.
+        Resets the GS610 to factory default settings.
 
-        Input:
-            None
-
-        Output:
-            None
+        This command is equivalent to setting the file name of the
+        :SYST:SET:LOAD command to `Default.txt`.
         """
-        self._visainstrument.write(':*RST')
+        self._visainstrument.write('*RST')
 
-    def clear(self):
+
+    def gateset(self, xend, intrasweep_delay, ramp_rate):
         """
-        Clears the event register and error queue.
-
-        Input:
-            None
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':*CLS')
+        # self._do_set_source_voltage_range(xend)
 
-    def status_byte(self):
-        """
-        Queries the status byte and clears the SRQ.
+        # self._do_set_sense(1)
+        # self._do_set_sense_function(1)
 
-        Input:
-            None
+        # self._do_set_trigger_source(0)
+        # self._do_set_trigger_timer(intrasweep_delay)
 
-        Output:
-            status (int) : status byte
-        """
-        return self._visainstrument.query(':*STB').replace('\n', '')
+        # self._do_set_output_state('on')
 
-    def standard_event_register(self):
-        """
-        Queries the standard event register and clears the register.
+        # xcurrent = self._do_get_source_voltage_level()
 
-        Input:
-            None
+        # ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
+        # temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
 
-        Output:
-            status (int) : standard event register
-        """
-        return self._visainstrument.query(':*ESR?').replace('\n', '')
+        # for i in temp_ramp[1:]:
+        #     self._do_set_source_voltage_level(
+        #         xend if (i > xend) ^ (xcurrent > xend) else i)
 
-    def generate_operation_complete(self):
-        """
-        Generates a standard event OPC when the execution of all
-        previous commands is completed.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*OPC')
-
-    def test_operation_complete(self):
-        """
-        Queries the completion of the execution of all previous
-        commands (1 if complete).
-
-        Input:
-            None
-
-        Output:
-            complete (int) : completion status
-        """
-        return self._visainstrument.query(':*OPC?').replace('\n', '')
-
-    def wait(self):
-        """
-        Waits for the completion of the overlap command.
-
-        Input:
-            None
-
-        Output:
-            None
-        """
-        self._visainstrument.write(':*WAI')
+        # self._do_set_source_voltage_level(xend)

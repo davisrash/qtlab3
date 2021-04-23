@@ -1,5 +1,5 @@
 """
-add docstring
+TODO add docstring
 """
 
 import sys
@@ -12,7 +12,7 @@ from source.data import IncrementalGenerator
 lockins = qt.instruments.get_instruments_by_type('SR830') \
     + qt.instruments.get_instruments_by_type('SR860')
 meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
-    + qt.instruments.get_instruments_by_type('Yokogawa_GS610') \
+    + qt.instruments.get_instruments_by_type('GS610') \
     + qt.instruments.get_instruments_by_type('QDevilQdac')
 
 
@@ -145,8 +145,8 @@ class Script():
         for x in x_vector:
             if meter.get_type() == 'Keithley_2400':
                 a.keithley_gateset(x)
-            elif meter.get_type() == 'Yokogawa_GS610':
-                a.yoko_gateset(x)
+            elif meter.get_type() == 'GS610':
+                meter.gateset(x, INTRASWEEP_DELAY, RAMP_RATE)
             elif meter.get_type() == 'QDevilQdac':
                 meter.rampDCVoltage(channel, x)
 
@@ -363,7 +363,7 @@ class Script():
         # keep an eye out for errors here! the yoko driver is changing!
 		# all changed parameters are well-documented
 
-        yoko = qt.instruments.get_instruments_by_type('Yokogawa_GS610')[0]
+        yoko = qt.instruments.get_instruments_by_type('GS610')[0]
         yoko.set_source_voltage_range(xend)
 
         yoko.set_sense(1)
@@ -371,10 +371,8 @@ class Script():
 
         yoko.set_trigger_source(0)
         yoko.set_trigger_timer(INTRASWEEP_DELAY)
-        yoko.set_source_delay(yoko.get_source_delay_minimum())
-        yoko.set_sense_delay(yoko.get_sense_delay_minimum())
 
-        yoko.set_output('on')
+        yoko.set_output_state('on')
 
         xcurrent = yoko.get_source_voltage_level()
 
@@ -417,7 +415,7 @@ def take_data():
         if meter.get_type() == 'Keithley_2400':
             gates[i] = meter.get_voltage()
             leaks[i] = meter.get_current()
-        elif meter.get_type() == 'Yokogawa_GS610':
+        elif meter.get_type() == 'GS610':
             meter.set_sense_function(0)
             gates[i] = meter.read()
 

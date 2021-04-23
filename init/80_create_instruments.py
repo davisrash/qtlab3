@@ -1,27 +1,29 @@
+"""
+TODO add docstring
+"""
+
+# TODO:
+#  - change GP-IB addresses (0-30) to lower numbers with some converntion
+#  - determine if creating a `physical` instrument as below requires physical
+#    GP-IB connection to not error
+
 import source.qt as qt
 
-## Lock-in amplifiers
-qt.instruments.create('sr830_1', 'SR830', address='GPIB::9')
-print("Created new SR830 instrument on GPIB::9.")
-qt.instruments.create('sr860_1', 'SR860', address='GPIB::4')
-print("Created new SR860 instrument on GPIB::4.")
+# source-measure units
+gs610 = qt.instruments.create('gs610', 'GS610', address='GPIB::1')
+print("Successfully connected to a GS610 on GP-IB address 1.")
 
-##QDevil Qdac
-#print('Setting up QDevil Qdac...')
-#qdac1 = qt.instruments.create('qdac1', 'QDevilQdac', port='COM3', verbose=False)
+# lock-in amplifiers
+sr830 = qt.instruments.create('sr830', 'SR830', address='GPIB::9')
+print("Successfully connected to an SR830 on GP-IB address 9.")
+sr860 = qt.instruments.create('sr860', 'SR860', address='GPIB::4')
+print("Successfully connected to an SR860 on GP-IB address 4.")
+
+# ---
 
 ##K2400
 print('Setting up K2400...')
-qt.instruments.create('keithley1', 'Keithley_2400', address='GPIB::24',
+keith = qt.instruments.create('keithley1', 'Keithley_2400', address='GPIB::24',
                       change_display=False)
 
-## Yokogawa
-print("Setting up Yokogawa GS610...")
-yoko = qt.instruments.create('yoko', 'Yokogawa_GS610', address='GPIB::1')
-
 print('All instruments set up and good to go!')
-
-#b = qdac1.getSerialNumber()
-#a = keithley1.readlast()
-#print(a)
-#print(b)
