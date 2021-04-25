@@ -64,6 +64,7 @@ class GS610(Instrument):
                                "or program sweep) or queries the current "
                                "setting.",
                            option_list=('fixed', 'sweep', 'list'))
+        # TODO fix min/max options for bound and type checking
         self.add_parameter('source_delay_value', type=float,
                            flags=Instrument.FLAG_GETSET,
                            minval=self._do_get_source_delay_minimum(),
@@ -83,7 +84,6 @@ class GS610(Instrument):
                            option_list=('min', 'max'))
         self.add_function('get_source_delay')
         self.add_function('set_source_delay')
-        # -----------
         # TODO add min/max options
         self.add_parameter('source_pulse_width', type=float,
                            flags=Instrument.FLAG_GETSET,
@@ -93,17 +93,13 @@ class GS610(Instrument):
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the program sweep pattern file or "
                                "queries the current setting.")
-        # TODO fix list type issues
         self.add_parameter('source_list_catalog', type=list,
                            flags=Instrument.FLAG_GET,
                            doc="Queries the list of program sweep pattern "
                                "files.")
-        # TODO determine add_function options, implement
-        self.add_function('source_list_delete', type=str,
-                          doc="Deletes the program sweep pattern file.")
-        # TODO determine add_function options, implement
-        self.add_function('source_list_define', type=str,
-                          doc="Creates a program sweep pattern file.")
+        self.add_function('source_list_delete')
+        self.add_function('source_list_define')
+        # ------------
         # TODO add min/max/up/down options, discretize input
         self.add_parameter('source_voltage_range', type=float,
                            flags=Instrument.FLAG_GETSET,
@@ -373,7 +369,8 @@ class GS610(Instrument):
     # output commands (output group)
     def _do_get_output_state(self):
         """
-        Queries and returns the output state (ON, OFF, or zero).
+        Queries and returns the current output state (ON, OFF, or
+        zero).
 
         ON and OFF indicates ON and OFF of the output relay. ZERO
         indicates the zero state. The zero state is defined using the
@@ -407,17 +404,19 @@ class GS610(Instrument):
 
     def _do_get_output_program(self):
         """
-        Queries and returns the programmable output state (ON or OFF).
+        Queries and returns the current programmable output state (ON
+        or OFF).
 
         The program output used here indicates pin 9 of the external
-        input/output connector. If the BNC output is set to programmable
-        output using the :ROUT:BOUT:SEL CONT;CONT PROG command, the same
-        signal is output to the BNC output.
+        input/output connector. If the BNC output is set to
+        programmable output using the :ROUT:BOUT:SEL CONT;CONT PROG
+        command, the same signal is output to the BNC output.
 
         Returns
         -------
         out : str
-            If `on`, currently ON (low). If `off`, currently OFF (high).
+            If `on`, currently ON (low). If `off`, currently OFF
+            (high).
         """
         format_map = {'0': 'off', '1': 'on'}
         state = self._visainstrument.query(':OUTP:PROG?').replace('\n', '')
@@ -446,7 +445,8 @@ class GS610(Instrument):
 
     def _do_get_source_function(self):
         """
-        Queries and returns the source function (voltage or current).
+        Queries and returns the current source function (voltage or
+        current).
 
         When the source function is changed, the output (:OUTP:STAT) is
         automatically turned OFF.
@@ -478,7 +478,7 @@ class GS610(Instrument):
 
     def _do_get_source_shape(self):
         """
-        Queries and returns the source mode (DC or pulse).
+        Queries and returns the current source mode (DC or pulse).
 
         This function corresponds to MODE on the front panel.
 
@@ -508,8 +508,8 @@ class GS610(Instrument):
 
     def _do_get_source_mode(self):
         """
-        Queries and returns the source pattern (fixed level, sweep, or
-        program sweep).
+        Queries and returns the current source pattern (fixed level,
+        sweep, or program sweep).
 
         This function corresponds to SWEEP on the front panel. Specify
         the linear or log setting of the sweep mode using the
@@ -546,7 +546,7 @@ class GS610(Instrument):
 
     def _do_get_source_delay_value(self):
         """
-        Queries and returns the source delay in seconds.
+        Queries and returns the current source delay in seconds.
 
         Returns
         -------
@@ -603,7 +603,7 @@ class GS610(Instrument):
 
     def get_source_delay(self, bound=None):
         """
-        Queries and returns the source delay in seconds.
+        Queries and returns the current source delay in seconds.
 
         TODO improve type checking and assert
 
@@ -624,14 +624,12 @@ class GS610(Instrument):
             assert bound in ['min', 'max']
 
             if bound == 'min':
-                return float(
-                    self._do_get_source_delay_minimum().replace('\n', '')
-                )
+                delay = self._do_get_source_delay_minimum().replace('\n', '')
+                return float(delay)
 
             if bound == 'max':
-                return float(
-                    self._do_get_source_delay_maximum().replace('\n', '')
-                )
+                delay = self._do_get_source_delay_maximum().replace('\n', '')
+                return float(delay)
 
         return float(self._do_get_source_delay_value().replace('\n', ''))
 
@@ -656,77 +654,113 @@ class GS610(Instrument):
         else:
             raise TypeError()
 
-    # ----------------
-
     def _do_get_source_pulse_width(self):
         """
-        Queries the current source pulse width.
+        Queries and returns the current pulse width for pulse
+        generation in seconds.
 
-        Input:
-            None
-
-        Output:
-            width (float) : source pulse width in seconds
+        Returns
+        -------
+        out : float
+            The current pulse width in seconds.
         """
-        return self._visainstrument.query(':SOUR:PULS:WIDT?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:PULS:WIDT?')
 
     def _do_set_source_pulse_width(self, width):
         """
-        Sets the source pulse width.
+        Sets the pulse width in seconds for pulse generation.
 
-        Input:
-            width (float) : source pulse width in seconds
-
-        Output:
-            None
+        Parameters
+        ----------
+        width : float
+            Sets the pulse width to the specified value in seconds.
         """
-        self._visainstrument.write(':SOUR:PULS:WIDT %e' % width)
+        self._visainstrument.write(':SOUR:PULS:WIDT {}'.format(width))
 
     def _do_get_source_list_select(self):
         """
-        Queries the current program sweep pattern file.
+        Queries and returns the current program sweep pattern file
+        name.
 
-        Input:
-            None
+        Select a file in the PROGRAM directory on the GS610ROM disk. An
+        error occurs if a file name that does not exist is specified.
+        The file name is not case sensitive.
 
-        Output:
-            file (str) : pattern file name
+        Returns
+        -------
+        out : str
+            The current program sweep pattern file name.
         """
         return self._visainstrument.query(':SOUR:LIST:SEL?').replace('\n', '')
 
-    def _do_set_source_list_select(self, file):
+    def _do_set_source_list_select(self, filename):
         """
-        Sets the program sweep pattern file.
+        Sets the program sweep pattern file name.
 
-        Input:
-            file (str) : pattern file name
+        Select a file in the PROGRAM directory on the GS610ROM disk. An
+        error occurs if a file name that does not exist is specified.
+        The file name is not case sensitive.
 
-        Output:
-            None
+        Parameters
+        ----------
+        filename : str
+            Sets the program sweep pattern file to the file with the
+            specified file name.
         """
-        self._visainstrument.write(':SOUR:LIST:SEL %s' % file)
+        self._visainstrument.write(':SOUR:LIST:SEL \"{}\"'.format(filename))
 
     def _do_get_source_list_catalog(self):
         """
-        Queries the list of program sweep pattern files.
+        Queries and returns a list of program sweep pattern file names.
 
-        Input:
-            None
+        Pattern files are files in the PROGRAM directory of the
+        GS610ROM disk.
 
-        Output:
-            files (list) : pattern file names
+        Returns
+        -------
+        out : list[str]
         """
-        return self._visainstrument.query(':SOUR:LIST:CAT?')
+        catalog = self._visainstrument.query(':SOUR:LIST:CAT?')
+        catalog = catalog.replace('\n', '')
+        return catalog.replace('\"', '').split(',')
 
     def source_list_delete(self, filename):
         """
-        TODO implement me
-        """
+        Deletes the program sweep pattern file.
 
-    def source_list_define(self, filename):
+        Select a file in the PROGRAM directory on the GS610ROM disk. An
+        error occurs if a file name that does not exist is specified.
+        The file name is not case sensitive.
+
+        Parameters
+        ----------
+        filename : str
+            Deletes the program sweep pattern file with the specified
+            file name.
         """
-        TODO implement me
+        self._visainstrument.write(':SOUR:LIST:DEL \"{}\"'.format(filename))
+
+    def source_list_define(self, filename, contents):
         """
+        Creates a program sweep pattern file.
+
+        The file is created in the PROGRAM directory of the GS610ROM
+        disk. If an existing file name is specified, the file is
+        overwritten.
+
+        Parameters
+        ----------
+        filename : str
+            Creates a program sweep pattern file with the specified
+            file name.
+        contents : list[float]
+            The contents to be written to the new program sweep pattern
+            file.
+        """
+        self._visainstrument.write(':SOUR:LIST:DEF \"{}\", \"{}\n\r\"'.format(
+            filename, '\n\r'.join(map(str, contents))))
+
+    # -----------
 
     def _do_get_source_voltage_range(self):
         """
