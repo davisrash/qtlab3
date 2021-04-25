@@ -4,20 +4,23 @@ TODO add docstring
 
 # import logging
 
-import numpy as np
+# import numpy as np
 import visa
 from source.instrument import Instrument
 
-########################################################################
+#######################################################################
 # TODO:
-#  - add doc parameters and docstrings
-#     - include references to :FUNCTIONS: for now, but remove later
+#  - continue from line with hypens
+#     - fix function implementation
+#     - update docstrings
+#        - include references to :FUNCTIONS: for now, but replace later
+#          with wrapper function names
 #  - add logging
 #  - add tags to relevant parameters
 #  - add 0/1/False/True options to `off`/`on` parameters
 #  - simplify parameter names
-#  - make better!
-########################################################################
+#  - improve instrument.py to work with list type with parameters
+#######################################################################
 
 
 class GS610(Instrument):
