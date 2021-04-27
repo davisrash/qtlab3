@@ -10,15 +10,12 @@ from source.instrument import Instrument
 
 #######################################################################
 # TODO:
-#  - continue from line with hypens
-#     - fix function implementation
-#     - update docstrings
-#        - include references to :FUNCTIONS: for now, but replace later
-#          with wrapper function names
+#  - continue implementing commented places
+#  - add docstring
 #  - add logging
 #  - add tags to relevant parameters
 #  - add 0/1/False/True options to `off`/`on` parameters
-#  - simplify parameter names
+#  - review parameter/function/function parameter names
 #  - improve instrument.py to work with list type with parameters
 #######################################################################
 
@@ -322,7 +319,16 @@ class GS610(Instrument):
                            option_list=('on', 'off'))
 
         # trigger commands (trigger group)
-        # ...
+        self.add_parameter('trigger_source', type=str,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the trigger source (constant period "
+                               "timer, external trigger, or no trigger wait) "
+                               "or queries the current setting.",
+                           option_list=('timer', 'external', 'immediate'))
+        self.add_parameter('trigger_timer', type=float,
+                           flags=Instrument.FLAG_GETSET,
+                           doc="Sets the period of the constant period timer "
+                               "or queries the current setting.")
 
         # computation commands (calculate group)
         # ...
@@ -1395,7 +1401,32 @@ class GS610(Instrument):
 
 
     # trigger commands (trigger group)
-    # ...
+
+    def _do_get_trigger_source(self):
+        """
+        TODO add docstring
+        """
+        format_map = {'TIM': 'timer', 'EXT': 'external', 'IMM': 'immediate'}
+        source = self._visainstrument.query(':TRIG:SOUR?').replace('\n', '')
+        return format_map[source]
+
+    def _do_set_trigger_source(self, source):
+        """
+        TODO add docstring
+        """
+        self._visainstrument.write(':TRIG:SOUR {}'.format(source))
+
+    def _do_get_trigger_timer(self):
+        """
+        TODO add docstring
+        """
+        return self._visainstrument.query(':TRIG:TIM?')
+
+    def _do_set_trigger_timer(self, period):
+        """
+        TODO add docstring
+        """
+        self._visainstrument.write(':TRIG:TIM {}'.format(period))
 
 
     # computation commands (calculate group)
