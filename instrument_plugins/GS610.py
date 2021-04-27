@@ -294,8 +294,7 @@ class GS610(Instrument):
                            doc="Sets the auto zero state (ON or OFF) or "
                                "queries the current setting.",
                            option_list=('on', 'off'))
-        self.add_function('sense_auto_zero_execute',
-                          doc="Executes auto zero.")
+        self.add_function('sense_auto_zero_execute')
         self.add_parameter('sense_average_state', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the average state (ON or OFF) or queries "
@@ -1096,21 +1095,21 @@ class GS610(Instrument):
             If `on`, currently ON. If `off`, currently OFF.
         """
         format_map = {'0': 'off', '1': 'on'}
-        setting = self._visainstrument.query(':SOUR:VOLT:RANG:AUTO?').replace(
+        auto = self._visainstrument.query(':SOUR:VOLT:RANG:AUTO?').replace(
             '\n', '')
-        return format_map[setting]
+        return format_map[auto]
 
-    def _do_set_source_range_auto(self, setting):
+    def _do_set_source_range_auto(self, auto):
         """
         Sets the source auto range setting (ON or OFF).
 
         Parameters
         ----------
-        setting : str
+        auto : str
             If `on`, turns auto range ON. If `off`, turns auto range
             OFF.
         """
-        self._visainstrument.write(':SOUR:VOLT:RANG:AUTO {}'.format(setting))
+        self._visainstrument.write(':SOUR:VOLT:RANG:AUTO {}'.format(auto))
 
     def _do_get_source_protection_state(self):
         """
@@ -1238,286 +1237,161 @@ class GS610(Instrument):
 
     def _do_get_sense_state(self):
         """
-        Queries the current measurement state (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : measurement state
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:STAT?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        state = self._visainstrument.query(':SENS:STAT?').replace('\n', '')
+        return format_map[state]
 
     def _do_set_sense_state(self, state):
         """
-        Sets the measurement state (ON or OFF).
-
-        Input:
-            state (int) : measurement state
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS %s' % state)
+        self._visainstrument.write(':SENS:STAT {}'.format(state))
 
     def _do_get_sense_function(self):
         """
-        Queries the current measurement function (voltage, current, or
-        resistance).
-
-        Input:
-            None
-
-        Output:
-            function (int) : measurement function
+        TODO add docstring
         """
-        format_map = self.get_parameters()['sense_function']['format_map']
-        return list(format_map.keys())[
-            list(format_map.values()).index(
-                self._visainstrument.query(':SENS:FUNC?').replace('\n', ''))]
+        format_map = {'VOLT': 'voltage',
+                      'CURR': 'current',
+                      'RES': 'resistance'}
+        function = self._visainstrument.query(':SENS:FUNC?').replace('\n', '')
+        return format_map[function]
 
     def _do_set_sense_function(self, function):
         """
-        Setst the measurement function (voltage, current, or resistance).
-
-        Input:
-            function (int) : measurement function
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:FUNC %s' % self.get_parameters()\
-            ['sense_function']['format_map'][function])
+        self._visainstrument.write(':SENS:FUNC {}'.format(function))
 
     def _do_get_sense_range_auto(self):
         """
-        Queries the current measurement autorange state (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            auto (int) : measurement autorange state
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:RANG:AUTO?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        auto = self._visainstrument.query(':SENS:RANG:AUTO?').replace('\n', '')
+        return format_map[auto]
 
     def _do_set_sense_range_auto(self, auto):
         """
-        Sets the measurement autorange state (ON or OFF).
-
-        Input:
-            auto (int) : measurement autorange state
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:RANG:AUTO %s' % auto)
+        self._visainstrument.write(':SENS:RANG:AUTO {}'.format(auto))
 
     def _do_get_sense_integration_time(self):
         """
-        Queries the current integration time (250 μs, 1 ms, 4 ms,
-        16.6 ms or 20 ms, 100 ms, or 200 ms).
-
-        Input:
-            None
-
-        Output:
-            time (float) : integration time in seconds
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:ITIM?').replace('\n', '')
+        return self._visainstrument.query(':SENS:ITIM?')
 
     def _do_set_sense_integration_time(self, time):
         """
-        Sets the integration time to the smallest setting that includes
-        the parameter (250 μs, 1 ms, 4 ms, 16.6 ms or 20 ms, 100 ms, or
-        200 ms).
-
-        Input:
-            time (float) : integration time in seconds
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:ITIM %e' % time)
+        self._visainstrument.write(':SENS:ITIM {}'.format(time))
 
     def _do_get_sense_delay(self):
         """
-        Queries the current measurement delay in seconds.
-
-        Input:
-            None
-
-        Output:
-            delay (float) : measurement delay in seconds
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:DEL?').replace('\n', '')
+        return self._visainstrument.query(':SENS:DEL?')
 
     def _do_set_sense_delay(self, delay):
         """
-        Sets the measurement delay in seconds.
-
-        Input:
-            delay (float) : measurement delay in seconds
-
-        Output:
-            None
+        TODO add docstring
         """
-        return self._visainstrument.write(':SENS:DEL %e' % delay)
+        return self._visainstrument.write(':SENS:DEL {}'.format(delay))
 
     def _do_get_sense_auto_zero_state(self):
         """
-        Queries the current autozero state (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : autozero state
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:AZER?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        state = self._visainstrument.query(':SENS:AZER:STAT?').replace(
+            '\n', '')
+        return format_map[state]
 
     def _do_set_sense_auto_zero_state(self, state):
         """
-        Sets the autozero state (ON or OFF).
-
-        Input:
-            state (int) : autozero state
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:AZER %s' % state)
+        self._visainstrument.write(':SENS:AZER:STAT {}'.format(state))
 
     def sense_auto_zero_execute(self):
         """
-        TODO implement me
+        TODO add docstring
         """
+        self._visainstrument.write(':SENS:AZER:EXEC')
 
     def _do_get_sense_average_state(self):
         """
-        Queries the current average state (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            state (int) : average state
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:AVER?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        state = self._visainstrument.query(':SENS:AVER:STAT?').replace(
+            '\n', '')
+        return format_map[state]
 
     def _do_set_sense_average_state(self, state):
         """
-        Sets the average state (ON or OFF).
-
-        Input:
-            state (int) : average state
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:AVER %s' % state)
+        self._visainstrument.write(':SENS:AVER:STAT {}'.format(state))
 
     def _do_get_sense_average_mode(self):
         """
-        Queries the current average mode (block or moving average).
-
-        Input:
-            None
-
-        Output:
-            mode (int) : average mode (block or moving average)
+        TODO add docstring
         """
-        format_map = self.get_parameters()['sense_average_mode']['format_map']
-        return list(format_map.keys())[list(format_map.values()).index(
-            self._visainstrument.query(':SENS:AVER:MODE?').replace('\n', ''))]
+        format_map = {'BLOC': 'block', 'MOV': 'moving'}
+        mode = self._visainstrument.query(':SENS:AVER:MODE?').replace('\n', '')
+        return format_map[mode]
 
     def _do_set_sense_average_mode(self, mode):
         """
-        Sets the average mode (block or moving average).
-
-        Input:
-            mode (int) : average mode (block or moving average)
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(
-            ':SENS:AVER:MODE %s' % self.get_parameters()['sense_average_mode']\
-                ['format_map'][mode])
+        self._visainstrument.write(':SENS:AVER:MODE {}'.format(mode))
 
     def _do_get_sense_average_count(self):
         """
-        Queries the current average count.
-
-        Input:
-            None
-
-        Output:
-            count (int) : average count
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:AVER:COUN?').replace('\n', '')
+        return self._visainstrument.query(':SENS:AVER:COUN?')
 
     def _do_set_sense_average_count(self, count):
         """
-        Sets the average count.
-
-        Input:
-            count (int) : average count
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:AVER:COUN %i' % count)
+        self._visainstrument.write(':SENS:AVER:COUN {}'.format(count))
 
     def _do_get_sense_auto_change(self):
         """
-        Queries the current auto-V/I mode (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            mode (int) : auto-V/I mode
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:ACH?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        mode = self._visainstrument.query(':SENS:ACH?').replace('\n', '')
+        return format_map[mode]
 
     def _do_set_sense_auto_change(self, mode):
         """
-        Sets the auto-V/I mode (ON or OFF).
-
-        Input:
-            mode (int) : auto-V/I mode
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:ACH %s' % mode)
+        self._visainstrument.write(':SENS:ACH {}'.format(mode))
 
     def _do_get_sense_remote_sense(self):
         """
-        Queries the current four-wire measurement (remote sense)
-        setting (ON or OFF).
-
-        Input:
-            None
-
-        Output:
-            sense (int) : four-wire measurement setting
+        TODO add docstring
         """
-        return self._visainstrument.query(':SENS:RSEN?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        sense = self._visainstrument.query(':SENS:RSEN?').replace('\n', '')
+        return format_map[sense]
 
     def _do_set_sense_remote_sense(self, sense):
         """
-        Sets the four-wire measurement (remote sense) setting (ON or
-        OFF).
-
-        Input:
-            sense (int) : four-wire measurement setting
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SENS:RSEN %s' % sense)
+        self._visainstrument.write(':SENS:RSEN {}'.format(sense))
 
 
     # trigger commands (trigger group)
