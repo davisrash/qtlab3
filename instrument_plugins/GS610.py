@@ -102,8 +102,7 @@ class GS610(Instrument):
                                "files.")
         self.add_function('source_list_delete')
         self.add_function('source_list_define')
-        # ------------
-        # TODO add min/max/up/down options, discretize input
+        # TODO add min/max/up/down options
         self.add_parameter('source_voltage_range', type=float,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the voltage source range setting "
@@ -225,16 +224,19 @@ class GS610(Instrument):
                            doc="Sets the zero source offset value for "
                                "generating current or queries the current "
                                "setting.")
+        # TODO add 1/0 options
         self.add_parameter('source_range_auto', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the source auto range (ON or OFF) or "
                                "queries the current setting.",
                            option_list=('on', 'off'))
+        # TODO add 1/0 options
         self.add_parameter('source_protection_state', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the limiter state (ON or OFF) or queries "
                                "the current setting.",
                            option_list=('on', 'off'))
+        # TODO add 1/0 options
         self.add_parameter('source_protection_linkage', type=str,
                            flags=Instrument.FLAG_GETSET,
                            doc="Sets the limiter tracking state (ON or OFF) "
@@ -450,9 +452,6 @@ class GS610(Instrument):
         """
         Queries and returns the current source function (voltage or
         current).
-
-        When the source function is changed, the output (:OUTP:STAT) is
-        automatically turned OFF.
 
         Returns
         -------
@@ -685,10 +684,6 @@ class GS610(Instrument):
         Queries and returns the current program sweep pattern file
         name.
 
-        Select a file in the PROGRAM directory on the GS610ROM disk. An
-        error occurs if a file name that does not exist is specified.
-        The file name is not case sensitive.
-
         Returns
         -------
         out : str
@@ -722,9 +717,10 @@ class GS610(Instrument):
         Returns
         -------
         out : list[str]
+            A list of the program sweep pattern files.
         """
-        catalog = self._visainstrument.query(':SOUR:LIST:CAT?')
-        catalog = catalog.replace('\n', '')
+        catalog = self._visainstrument.query(':SOUR:LIST:CAT?').replace(
+            '\n', '')
         return catalog.replace('\"', '').split(',')
 
     def source_list_delete(self, filename):
@@ -763,682 +759,444 @@ class GS610(Instrument):
         self._visainstrument.write(':SOUR:LIST:DEF \"{}\", \"{}\n\r\"'.format(
             filename, '\n\r'.join(map(str, contents))))
 
-    # -----------
-
     def _do_get_source_voltage_range(self):
         """
-        Queries the current voltage source range (200 mV, 2 V, 12 V,
-        20 V, 30 V, 60 V, or 110 V).
+        Queries and returns the current voltage source range setting
+        (200 mV, 2 V, 12 V, 20 V, 30 V, 60 V, or 110 V).
 
-        Input:
-            None
-
-        Output:
-            voltage_range (float) : voltage source range in volts
+        Returns
+        -------
+        out : float
+            The current voltage source range setting.
         """
-        return self._visainstrument.query(':SOUR:VOLT:RANG?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:RANG?')
 
     def _do_set_source_voltage_range(self, voltage_range):
         """
-        Sets the voltage source range to the smallest range that
-        includes the argument (200 mV, 2 V, 12 V, 20 V, 30 V, 60 V, or
-        110 V).
+        Sets the voltage source range setting (200 mV, 2 V, 12 V, 20 V,
+        30 V, 60 V, or 110 V).
 
-        Input:
-            voltage_range (float) : voltage source range in volts
+        If the range setting is changed when auto range is ON by the
+        SOUR:VOLT:RANG:AUTO ON command, auto range is automatically
+        disabled.
 
-        Output:
-            None
+        Parameters
+        ----------
+        voltage_range : float
+            Sets the voltage source range to the smallest range setting
+            that includes the specified value.
         """
-        self._visainstrument.write(':SOUR:VOLT:RANG %e' % voltage_range)
+        self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(voltage_range))
 
     def _do_get_source_voltage_level(self):
         """
-        Queries the current voltage source level.
+        Queries and returns the current voltage source level value in
+        volts.
 
-        Input:
-            None
-
-        Output:
-            level (float) : voltage source level in volts
+        Returns
+        -------
+        out : float
+            The voltage level in volts.
         """
-        return self._visainstrument.query(':SOUR:VOLT:LEV?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:LEV?')
 
     def _do_set_source_voltage_level(self, level):
         """
-        Sets the voltage source level.
+        Sets the voltage source level value in volts.
 
-        Input:
-            level (float) : voltage source level in volts
-
-        Output:
-            None
+        Parameters
+        ----------
+        level : float
+            Sets the voltage level to the specified value in volts.
         """
-        self._visainstrument.write(':SOUR:VOLT:LEV %e' % level)
+        self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(level))
 
     def _do_get_source_voltage_pulse_base(self):
         """
-        Queries the current voltage source pulse base value.
+        Queries and returns the current pulse base value for voltage
+        pulse generation in volts.
 
-        Input:
-            None
-
-        Output:
-            pulse_base (float) : voltage source pulse base in volts
+        Returns
+        -------
+        out : float
+            The pulse base value in volts.
         """
-        return self._visainstrument.query(':SOUR:VOLT:PBAS?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:PBAS?')
 
     def _do_set_source_voltage_pulse_base(self, pulse_base):
         """
-        Sets the voltage source pulse base value.
+        Sets the pulse base value for voltage generation in volts.
 
-        Input:
-            pulse_base (float) : voltage source pulse base in volts
-
-        Output:
-            None
+        Parameters
+        ----------
+        pulse_base : float
+            Sets the pulse base value to the specified value in volts.
         """
-        self._visainstrument.write(':SOUR:VOLT:PBAS %e' % pulse_base)
+        self._visainstrument.write(':SOUR:VOLT:PBAS {}'.format(pulse_base))
 
     def _do_get_source_voltage_protection_upper_limit(self):
         """
-        Queries the current source upper voltage limiter value.
+        Queries and returns the current upper voltage limiter value
+        (for generating current) in volts.
 
-        Input:
-            None
+        Note that the voltage limiter is activated when the source
+        function is set to current (:SOUR:FUNC CURR).
 
-        Output:
-            limit (float) : source upper voltage limiter value
+        Returns
+        -------
+        out : float
+            The limiter value.
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:PROT:ULIM?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:PROT:ULIM?')
 
     def _do_set_source_voltage_protection_upper_limit(self, limit):
         """
-        Sets the source upper voltage limiter value.
+        Sets the upper voltage limiter value (for generating current)
+        in volts.
 
-        Input:
-            limit (float) : source upper voltage limiter value
+        Note that the voltage limiter is activated when the source
+        function is set to current (:SOUR:FUNC CURR).
 
-        Output:
-            None
+        Parameters
+        ----------
+        limit : float
+            Sets the limiter value to the specified value.
         """
-        self._visainstrument.write(':SOUR:VOLT:PROT:ULIM %e' % limit)
+        self._visainstrument.write(':SOUR:VOLT:PROT:ULIM {}'.format(limit))
 
     def _do_get_source_voltage_protection_lower_limit(self):
         """
-        Queries the current source lower voltage limiter value.
-
-        Input:
-            None
-
-        Output:
-            limit (float) : source lower voltage limiter value
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:PROT:LLIM?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:PROT:LLIM?')
 
     def _do_set_source_voltage_protection_lower_limit(self, limit):
         """
-        Sets the source lower voltage limiter value.
-
-        Input:
-            limit (float) : source lower voltage limiter value
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:PROT:LLIM %e' % limit)
+        self._visainstrument.write(':SOUR:VOLT:PROT:LLIM {}'.format(limit))
 
     def _do_get_source_voltage_sweep_start(self):
         """
-        Queries the current start value of the voltage sweep.
-
-        Input:
-            None
-
-        Output:
-            start (float) : start value of voltage sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:SWE:STAR?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:SWE:STAR?')
 
     def _do_set_source_voltage_sweep_start(self, start):
         """
-        Sets the start value of the voltage sweep.
-
-        Input:
-            start (float) : start value of the voltage sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:SWE:STAR %e' % start)
+        self._visainstrument.write(':SOUR:VOLT:SWE:STAR {}'.format(start))
 
     def _do_get_source_voltage_sweep_stop(self):
         """
-        Queries the current stop value of the voltage sweep.
-
-        Input:
-            None
-
-        Output:
-            stop (float) : stop value of voltage sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:SWE:STOP?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:SWE:STOP?')
 
     def _do_set_source_voltage_sweep_stop(self, stop):
         """
-        Sets the stop value of the voltage sweep.
-
-        Input:
-            stop (float) : stop value of voltage sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:SWE:STOP %e' % stop)
+        self._visainstrument.write(':SOUR:VOLT:SWE:STOP {}'.format(stop))
 
     def _do_get_source_voltage_sweep_step(self):
         """
-        Queries the current step value of the linear voltage sweep.
-
-        Input:
-            None
-
-        Output:
-            step (float) : step value of the linear voltage sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:SWE:STEP?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:SWE:STEP?')
 
     def _do_set_source_voltage_sweep_step(self, step):
         """
-        Sets the step value of the linear voltage sweep.
-
-        Input:
-            step (float) : step value of the linear voltage sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:SWE:STEP %e' % step)
+        self._visainstrument.write(':SOUR:VOLT:SWE:STEP {}'.format(step))
 
     def _do_get_source_voltage_sweep_points(self):
         """
-        Queries the current step count of the logarithmic voltage sweep.
-
-        Input:
-            None
-
-        Output:
-            points (int) : step count of logarithmic voltage sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:SWE:POIN?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:SWE:POIN?')
 
     def _do_set_source_voltage_sweep_points(self, points):
         """
-        Sets the step count of the logarithmic voltage sweep.
-
-        Input:
-            points (int) : step count of logarithmic voltage sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:SWE:POIN %i' % points)
+        self._visainstrument.write(':SOUR:VOLT:SWE:POIN {}'.format(points))
 
     def _do_get_source_voltage_zero_impedance(self):
         """
-        Queries the current zero source impedance for generating
-        voltage (LOW or HIGH).
-
-        Input:
-            None
-
-        Output:
-            impedance (int) : zero source impedance for generating
-                              voltage
+        TODO add docstring
         """
-        format_map = self.get_parameters()['source_voltage_zero_impedance']\
-            ['format_map']
-        return list(format_map.keys())[
-            list(format_map.values()).index(
-                self._visainstrument.query(
-                    ':SOUR:VOLT:ZERO:IMP?').replace('\n', ''))]
+        format_map = {'HIGH': 'high', 'LOW': 'low'}
+        impedance = self._visainstrument.query(':SOUR:VOLT:ZERO:IMP?').replace(
+            '\n', '')
+        return format_map[impedance]
 
     def _do_set_source_voltage_zero_impedance(self, impedance):
         """
-        Sets the zero source impedance for generating voltage (LOW or
-        HIGH).
-
-        Input:
-            impedance (int) : zero source impedance for generating
-                              voltage
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(
-            ':SOUR:VOLT:ZERO:IMP %s' % self.get_parameters()['output']\
-                ['format_map'][impedance])
+        self._visainstrument.write(':SOUR:VOLT:ZERO:IMP {}'.format(impedance))
 
     def _do_get_source_voltage_zero_offset(self):
         """
-        Queries the current zero source offset for generating voltage.
-
-        Input:
-            None
-
-        Output:
-            offset (float) : zero source offset for generating voltage
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:ZERO:OFFS?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:VOLT:ZERO:OFFS?')
 
     def _do_set_source_voltage_zero_offset(self, offset):
         """
-        Sets the zero source offset for generating voltage.
-
-        Input:
-            offset (float) : zero source offset for generating voltage
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:VOLT:ZERO:OFFS %e' % offset)
+        self._visainstrument.write(':SOUR:VOLT:ZERO:OFFS {}'.format(offset))
 
     def _do_get_source_current_range(self):
         """
-        Queries the current current source range (20 μA, 200 μA, 2 mA,
-        20 mA, 200 mA, 0.5 A, 1 A, 2 A, or 3 A).
-
-        Input:
-            None
-
-        Output:
-            current_range (float) : current source range in amperes
+        TODO add docstring
         """
-        return self._visainstrument.query(':SOUR:CURR:RANG?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:RANG?')
 
     def _do_set_source_current_range(self, current_range):
         """
-        Sets the current source range to the smallest range that
-        includes the argument (20 μA, 200 μA, 2 mA, 20 mA, 200 mA,
-        0.5 A, 1 A, 2 A, or 3 A).
-
-        Input:
-            current_range (float) : current source range in amperes
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:RANG %e' % current_range)
+        self._visainstrument.write(':SOUR:CURR:RANG {}'.format(current_range))
 
     def _do_get_source_current_level(self):
         """
-        Queries the current current source level.
-
-        Input:
-            None
-
-        Output:
-            level (float) : current source level in amperes
+        TODO add docstring
         """
-        return self._visainstrument.query(':SOUR:CURR:LEV?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:LEV?')
 
     def _do_set_source_current_level(self, level):
         """
-        Sets the current source level.
-
-        Input:
-            level (float) : current source level in amperes
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:LEV %e' % level)
+        self._visainstrument.write(':SOUR:CURR:LEV {}'.format(level))
 
     def _do_get_source_current_pulse_base(self):
         """
-        Queries the current current source pulse base value.
-
-        Input:
-            None
-
-        Output:
-            pulse_base (float) : current source pulse base in amperes
+        TODO add docstring
         """
-        return self._visainstrument.query(':SOUR:CURR:PBAS?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:PBAS?')
 
     def _do_set_source_current_pulse_base(self, pulse_base):
         """
-        Sets the current source pulse base value.
-
-        Input:
-            pulse_base (float) : current source pulse base in amperes
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:PBAS %e' % pulse_base)
+        self._visainstrument.write(':SOUR:CURR:PBAS {}'.format(pulse_base))
 
     def _do_get_source_current_protection_upper_limit(self):
         """
-        Queries the current source upper current limiter value.
-
-        Input:
-            None
-
-        Output:
-            limit (float) : source upper current limiter value
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:PROT:ULIM?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:PROT:ULIM?')
 
     def _do_set_source_current_protection_upper_limit(self, limit):
         """
-        Sets the source upper current limiter value.
-
-        Input:
-            limit (float) : source upper current limiter value
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:PROT:ULIM %e' % limit)
+        self._visainstrument.write(':SOUR:CURR:PROT:ULIM {}'.format(limit))
 
     def _do_get_source_current_protection_lower_limit(self):
         """
-        Queries the current source lower current limiter value.
-
-        Input:
-            None
-
-        Output:
-            limit (float) : source lower current limiter value
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:PROT:LLIM?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:PROT:LLIM?')
 
     def _do_set_source_current_protection_lower_limit(self, limit):
         """
-        Sets the source lower current limiter value.
-
-        Input:
-            limit (float) : source lower current limiter value
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:PROT:LLIM %e' % limit)
+        self._visainstrument.write(':SOUR:CURR:PROT:LLIM {}'.format(limit))
 
     def _do_get_source_current_sweep_start(self):
         """
-        Queries the current start value of the current sweep.
-
-        Input:
-            None
-
-        Output:
-            start (float) : start value of current sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:SWE:STAR?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:SWE:STAR?')
 
     def _do_set_source_current_sweep_start(self, start):
         """
-        Sets the start value of the current sweep.
-
-        Input:
-            start (float) : start value of the current sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:SWE:STAR %e' % start)
+        self._visainstrument.write(':SOUR:CURR:SWE:STAR {}'.format(start))
 
     def _do_get_source_current_sweep_stop(self):
         """
-        Queries the current stop value of the current sweep.
-
-        Input:
-            None
-
-        Output:
-            stop (float) : stop value of current sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:SWE:STOP?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:SWE:STOP?')
 
     def _do_set_source_current_sweep_stop(self, stop):
         """
-        Sets the stop value of the current sweep.
-
-        Input:
-            stop (float) : stop value of current sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:SWE:STOP %e' % stop)
+        self._visainstrument.write(':SOUR:CURR:SWE:STOP {}'.format(stop))
 
     def _do_get_source_current_sweep_step(self):
         """
-        Queries the current step value of the linear current sweep.
-
-        Input:
-            None
-
-        Output:
-            step (float) : step value of the linear current sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:SWE:STEP?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:SWE:STEP?')
 
     def _do_set_source_current_sweep_step(self, step):
         """
-        Sets the step value of the linear current sweep.
-
-        Input:
-            step (float) : step value of the linear current sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:SWE:STEP %e' % step)
+        self._visainstrument.write(':SOUR:CURR:SWE:STEP {}'.format(step))
 
     def _do_get_source_current_sweep_points(self):
         """
-        Queries the current step count of the logarithmic current sweep.
-
-        Input:
-            None
-
-        Output:
-            points (int) : step count of logarithmic current sweep
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:SWE:POIN?').replace('\n', '')
+        return self._visainstrument.query(':SOUR:CURR:SWE:POIN?')
 
     def _do_set_source_current_sweep_points(self, points):
         """
-        Sets the step count of the logarithmic current sweep.
-
-        Input:
-            points (int) : step count of logarithmic current sweep
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:SWE:POIN %i' % points)
+        self._visainstrument.write(':SOUR:CURR:SWE:POIN {}'.format(points))
 
     def _do_get_source_current_zero_impedance(self):
         """
-        Queries the current zero source impedance for generating
-        current (LOW or HIGH).
-
-        Input:
-            None
-
-        Output:
-            impedance (int) : zero source impedance for generating
-                              current
+        TODO add docstring
         """
-        format_map = self.get_parameters()['source_current_zero_impedance']\
-            ['format_map']
-        return list(format_map.keys())[
-            list(format_map.values()).index(
-                self._visainstrument.query(
-                    ':SOUR:CURR:ZERO:IMP?').replace('\n', ''))]
+        format_map = {'HIGH': 'high', 'LOW': 'low'}
+        impedance = self._visainstrument.query(':SOUR:CURR:ZERO:IMP?').replace(
+            '\n', '')
+        return format_map[impedance]
 
     def _do_set_source_current_zero_impedance(self, impedance):
         """
-        Sets the zero source impedance for generating current (LOW or
-        HIGH).
-
-        Input:
-            impedance (int) : zero source impedance for generating
-                              current
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(
-            ':SOUR:CURR:ZERO:IMP %s' % self.get_parameters()['output']\
-                ['format_map'][impedance])
+        self._visainstrument.write(':SOUR:CURR:ZERO:IMP {}'.format(impedance))
 
     def _do_get_source_current_zero_offset(self):
         """
-        Queries the current zero source offset for generating current.
-
-        Input:
-            None
-
-        Output:
-            offset (float) : zero source offset for generating current
+        TODO add docstring
         """
-        return self._visainstrument.query(
-            ':SOUR:CURR:ZERO:OFFS?').replace('\n', '')
-
+        return self._visainstrument.query(':SOUR:CURR:ZERO:OFFS?')
     def _do_set_source_current_zero_offset(self, offset):
         """
-        Sets the zero source offset for generating current.
-
-        Input:
-            offset (float) : zero source offset for generating current
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SOUR:CURR:ZERO:OFFS %e' % offset)
+        self._visainstrument.write(':SOUR:CURR:ZERO:OFFS {}'.format(offset))
 
     def _do_get_source_range_auto(self):
         """
-        Queries the current source autorange setting.
+        Queries and returns the current source auto range setting (ON
+        or OFF).
 
-        Input:
-            None
-
-        Output:
-            auto (int) : source autorange
+        Returns
+        -------
+        out : str
+            If `on`, currently ON. If `off`, currently OFF.
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:RANG:AUTO?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        setting = self._visainstrument.query(':SOUR:VOLT:RANG:AUTO?').replace(
+            '\n', '')
+        return format_map[setting]
 
-    def _do_set_source_range_auto(self, auto):
+    def _do_set_source_range_auto(self, setting):
         """
-        Sets the source autorange setting.
+        Sets the source auto range setting (ON or OFF).
 
-        Intput:
-            auto (int) : source autorange
-
-        Output:
-            None
+        Parameters
+        ----------
+        setting : str
+            If `on`, turns auto range ON. If `off`, turns auto range
+            OFF.
         """
-        self._visainstrument.write(':SOUR:VOLT:RANG:AUTO %i' % auto)
+        self._visainstrument.write(':SOUR:VOLT:RANG:AUTO {}'.format(setting))
 
     def _do_get_source_protection_state(self):
         """
-        Queries the current source limiter state (ON or OFF).
+        Queries and returns the current limiter state (ON or OFF).
 
-        Input:
-            None
-
-        Output:
-            state (int) : source limiter state
+        Returns
+        -------
+        out : str
+            If `on`, currently ON. If `off`, currently OFF.
         """
-        return self._visainstrument.query(':SOUR:VOLT:PROT?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        state = self._visainstrument.query(':SOUR:VOLT:PROT:STAT?').replace(
+            '\n', '')
+        return format_map[state]
 
     def _do_set_source_protection_state(self, state):
         """
-        Sets the source limiter state (ON or OFF).
+        Sets the limiter state (ON or OFF).
 
-        Input:
-            state (int) : source limiter state
-
-        Output:
-            None
+        Parameters
+        ----------
+        state : str
+            If `on`, turns the limiter ON. If `off`, turns the limiter
+            OFF.
         """
-        self._visainstrument.write(':SOUR:VOLT:PROT %i' % state)
+        self._visainstrument.write(':SOUR:VOLT:PROT:STAT {}'.format(state))
 
     def _do_get_source_protection_linkage(self):
         """
-        Queries the current source limiter tracking state (ON or OFF).
+        Queries and returns the current limiter tracking state (ON or
+        OFF).
 
-        Input:
-            None
-
-        Output:
-            state (int) : source limiter tracking state
+        Returns
+        -------
+        out : str
+            If `on`, currently ON. If `off`, currently OFF.
         """
-        return self._visainstrument.query(
-            ':SOUR:VOLT:PROT:LINK?').replace('\n', '')
+        format_map = {'0': 'off', '1': 'on'}
+        state = self._visainstrument.query(':SOUR:VOLT:PROT:LINK?').replace(
+            '\n', '')
+        return format_map[state]
 
     def _do_set_source_protection_linkage(self, state):
         """
-        Sets the source limiter tracking state (ON or OFF).
+        Sets the limiter tracking state (ON or OFF).
 
-        Input:
-            state (int) : source limiter tracking state
-
-        Output:
-            None
+        Parameters
+        ----------
+        state : str
+            If `on`, turns limiter tracking ON. If `off`, turns limiter
+            tracking OFF.
         """
-        self._visainstrument.write(':SOUR:VOLT:PROT:LINK %i' % state)
+        self._visainstrument.write(':SOUR:VOLT:PROT:LINK {}'.format(state))
 
     def _do_get_source_sweep_spacing(self):
         """
-        Queries the current sweep mode (linear or log).
+        Queries and returns the current sweep mode (linear or log).
 
-        Input:
-            None
+        This setting is used when the source pattern is set to sweep
+        (:SOUR:MODE SWE).
 
-        Output:
-            spacing (int) : sweep mode
+        Returns
+        -------
+        out : str
+            If `linear`, currently set to linear. If `log`, currently
+            set to logarithmic.
         """
-        format_map = self.get_parameters()['source_sweep_spacing']\
-            ['format_map']
-        return list(format_map.keys())[
-            list(format_map.values()).index(
-                self._visainstrument.query(
-                    ':SOUR:VOLT:SWE:SPAC?').replace('\n', ''))]
+        format_map = {'LIN': 'linear', 'LOG': 'log'}
+        spacing = self._visainstrument.query(':SOUR:VOLT:SWE:SPAC?').replace(
+            '\n', '')
+        return format_map[spacing]
 
     def _do_set_source_sweep_spacing(self, spacing):
         """
         Sets the sweep mode (linear or log).
 
-        Input:
-            spacing (int) : sweep mode
+        This setting is used when the source pattern is set to sweep
+        (:SOUR:MODE SWE).
 
-        Output:
-            None
+        Parameters
+        ----------
+        spacing : str
+            If `linear`, sets the sweep mode to linear. If `log`, sets
+            the sweep mode to logarithmic.
         """
-        self._visainstrument.write(
-            ':SOUR:VOLT:SWE:SPAC %s' % self.get_parameters()\
-                ['source_sweep_spacing']['format_map'][spacing])
+        self._visainstrument.write(':SOUR:VOLT:SWE:SPAC {}'.format(spacing))
 
 
     # sweep commands (sweep group)
