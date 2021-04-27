@@ -1203,68 +1203,35 @@ class GS610(Instrument):
 
     def sweep_trigger(self):
         """
-        TODO implement me
+        TODO add docstring
         """
+        self._visainstrument.write(':SWE:TRIG')
 
     def _do_get_sweep_count(self):
         """
-        Queries the current sweep repeat count (a count of 0
-        corresponds to infinity).
-
-        Input:
-            None
-
-        Output:
-            count (int) : sweep repeat count
+        TODO add docstring
         """
-        count = self._visainstrument.query(':SWE:COUN?').replace('\n', '')
-        return count if count != 'INF' else 0
+        return self._visainstrument.query(':SWE:COUN?')
 
     def _do_set_sweep_count(self, count):
         """
-        Sets the sweep repeat count (a count of 0 corresponds to
-        infinity).
-
-        Input:
-            count (int) : sweep repeat count
-
-        Output:
-            None
+        TODO add docstring
         """
-        if count != 0:
-            self._visainstrument.write(':SWE:COUN %i' % count)
-        else:
-            self._visainstrument.write(':SWE:COUN INF')
+        self._visainstrument.write(':SWE:COUN {}'.format(count))
 
     def _do_get_sweep_last(self):
         """
-        Queries the current sweep termination mode (keep level or
-        return to initial level).
-
-        Input:
-            None
-
-        Output:
-            level (int) : sweep termination mode
+        TODO add docstring
         """
-        format_map = self.get_parameters()['sweep_last']['format_map']
-        return list(format_map.keys())[
-            list(format_map.values()).index(
-                self._visainstrument.query(':SWE:LAST?').replace('\n', ''))]
+        format_map = {'KEEP': 'keep', 'RET': 'return'}
+        mode = self._visainstrument.query(':SWE:LAST?').replace('\n', '')
+        return format_map[mode]
 
-    def _do_set_sweep_last(self, level):
+    def _do_set_sweep_last(self, mode):
         """
-        Sets the sweep termination mode (keep level or return to
-        initial level).
-
-        Input:
-            level (int) : sweep termination mode
-
-        Output:
-            None
+        TODO add docstring
         """
-        self._visainstrument.write(':SWE:LAST %s' % self.get_parameters()\
-            ['sweep_last']['format_map'][level])
+        self._visainstrument.write(':SWE:LAST {}'.format(mode))
 
 
     # measurement commands (sense group)
