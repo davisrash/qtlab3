@@ -1488,10 +1488,18 @@ class GS610(Instrument):
         self._visainstrument.write('*RST')
 
 
-    def gateset(self, xend, intrasweep_delay, ramp_rate):
+    def gateset(self, end, intrasweep_delay, ramp_rate):
         """
         TODO add docstring
         """
+        # set source function to voltage
+        self._visainstrument.write(':SOUR:FUNC VOLT')
+
+        # set 
+        self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(end))
+        self._visainstrument.write(':SOUR:CURR:PROT:LINK ON')
+
+
         # self._do_set_source_voltage_range(xend)
 
         # self._do_set_sense(1)

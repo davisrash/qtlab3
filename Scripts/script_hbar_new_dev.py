@@ -18,7 +18,7 @@ meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
 
 class Script():
     """
-    add docstring
+    TODO add docstring
     """
 
     def __init__(self):
@@ -29,12 +29,7 @@ class Script():
                     y_coordinate, y_parameter, z_vector, z_coordinate,
                     z_parameter):
         """
-        Generates the data file, spyview file, and copies the python script.
-
-        Input:
-
-        Output:
-
+        TODO add docstring
         """
         qt.Data.set_filename_generator(self.generator)
         data = qt.Data(name=FILENAME)
@@ -67,7 +62,6 @@ class Script():
         """
         add docstring
         """
-
         qt.mstart()
 
         # create sweep vectors
