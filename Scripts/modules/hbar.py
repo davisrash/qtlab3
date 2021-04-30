@@ -9,7 +9,7 @@ import numpy as np
 from source import qt
 from source.data import Data, IncrementalGenerator
 
-def create_data(filename, lockin, vectors, names, num_gates=6):
+def create_data(filename, vectors, names, num_gates=6):
     """
     Generates the data file.
 
@@ -46,9 +46,9 @@ def create_data(filename, lockin, vectors, names, num_gates=6):
         data.add_value('Gate {} V meas'.format(i))
         data.add_value('Gate {} leak'.format(i))
 
-    data.add_value('{} X raw'.format(lockin.get_name()))
-    data.add_value('{} X pros'.format(lockin.get_name()))
-    data.add_value('{} Y raw'.format(lockin.get_name()))
+    data.add_value('Lockin X raw')
+    data.add_value('Lockin X pros')
+    data.add_value('Lockin Y raw')
 
     data.create_file()
     copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
@@ -57,18 +57,18 @@ def create_data(filename, lockin, vectors, names, num_gates=6):
 
     return data
 
-def take_data(lockin, meter, input_voltage, sense_resistance, num_gates=6):
+def take_data(lockin, meter, input_voltage, sense_resistance,
+              num_gates=6):
     """
     TODO add docstring
     """
-
     if lockin.get_type() == 'SR830':
         x = lockin.get_X()
         y = lockin.get_Y()
 
     elif lockin.get_type() == 'SR860':
-        x = lockin.get_data_param(0)
-        y = lockin.get_data_param(1)
+        x = lockin.get_data_param0()
+        y = lockin.get_data_param1()
 
     x_pros = (input_voltage - x) * sense_resistance / (1e-9 if x == 0.0 else x)
 
@@ -126,21 +126,37 @@ def gate_sweep(filename, lockin, meter, **kwargs):
     """
     qt.mstart()
 
-    vectors = (np.arange(kwargs['start'], kwargs['stop'], kwargs['step']),
-               [], [])
+    ramp = np.linspace(kwargs['start'], kwargs['stop'],
+                       int(np.ceil(np.abs((kwargs['start'] - kwargs['stop'])
+                                          / kwargs['step']) + 1)))
+    vectors = (ramp, [0], [0])
     names = (kwargs['name'], 'none', 'none')
 
-    data = create_data(filename, lockin, vectors, names)
+    data = create_data(filename, vectors, names, num_gates=kwargs['num_gates'])
 
-    for x in vectors[0]:
-        meter.ramp_to_voltage(x, kwargs['step'])
+    if meter.get_type() == 'GS610':
+        meter.configure_voltage_ramp(kwargs['stop'])
+        meter.set_output_state('on')
 
-        #elif meter.get_type() == 'QDevilQdac':
-        #    meter.rampDCVoltage(kwargs['channel'], i)
+    for level in vectors[0][1:]:
+        if meter.get_type() == 'GS610':
+            meter.set_source_voltage_level(level)
+        elif meter.get_type() == 'Keithley_2400':
+            meter.set_voltage(level)
 
         data_vals = take_data(lockin, meter, kwargs['input_voltage'],
-                              kwargs['sense_resistance'])
-        data.add_data_point([x, 0, 0] + data_vals)
+                              kwargs['sense_resistance'],
+                              num_gates=kwargs['num_gates'])
+
+        data.add_data_point(level, 0, 0, data_vals[0], data_vals[1],
+                            data_vals[2], data_vals[3], data_vals[4],
+                            data_vals[5], data_vals[6], data_vals[7],
+                            data_vals[8], data_vals[9], data_vals[10],
+                            data_vals[11], data_vals[12], data_vals[13],
+                            data_vals[14])
+
+    if meter.get_type() == 'GS610':
+        meter.set_output_state('off')
 
     data._write_settings_file()  # pylint: disable=protected-access
     data.close_file()

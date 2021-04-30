@@ -375,7 +375,7 @@ class GS610(Instrument):
         # self.add_function('wait_to_continue')
 
         # script commands
-        self.add_function('ramp_to_voltage')
+        self.add_function('configure_voltage_ramp')
 
         if reset:
             self.reset()
@@ -1476,9 +1476,10 @@ class GS610(Instrument):
 
         Returns
         -------
-        out : TODO what is the type? what should it be?
+        out : float
+            The result of the measurement.
         """
-        return self._visainstrument.query(':READ?').replace('\n', '')
+        return float(self._visainstrument.query(':READ?').replace('\n', ''))
 
 
     # common command group
@@ -1493,7 +1494,7 @@ class GS610(Instrument):
         self._visainstrument.write('*RST')
 
 
-    def ramp_to_voltage(self, stop, step):
+    def configure_voltage_ramp(self, stop):
         """
         Ramps the source voltage from the current level to the desired
         level in linear steps.
@@ -1516,22 +1517,7 @@ class GS610(Instrument):
         self._visainstrument.write(':SOUR:CURR:PROT:ULIM 0.5')
         self._visainstrument.write(':SOUR:CURR:PROT:STAT ON')
 
-        # measurement OFF
-        self._visainstrument.write(':SENS:STAT OFF')
-
         # trigger settings
-        self._visainstrument.write(':TRIG:SOUR IMM')
+        self._visainstrument.write(':TRIG:SOUR TIM')
+        self._visainstrument.write(':TRIG:TIM 500E-6')
         self._visainstrument.write(':SOUR:DEL MIN')
-
-        # output ON
-        self._visainstrument.write(':OUTP:STAT ON')
-
-        # step voltage from start to stop
-        ramp = np.linspace(start, stop,
-                           int(np.ceil(np.abs((start - stop) / step) + 1)))
-        for i in ramp[1:]:
-            self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
-            sleep(0.001)
-
-        # output OFF
-        self._visainstrument.write(':OUTP:STAT OFF')
