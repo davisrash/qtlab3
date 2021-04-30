@@ -15,6 +15,9 @@ meters = qt.instruments.get_instruments_by_type('Keithley_2400') \
     + qt.instruments.get_instruments_by_type('GS610') \
     + qt.instruments.get_instruments_by_type('QDevilQdac')
 
+# NUM_LOCKINS =
+NUM_GATES = 6
+
 
 class Script():
     """
@@ -349,42 +352,10 @@ class Script():
         keithley.set_voltage(xend)
         qt.msleep(INTRASWEEP_DELAY)
 
-    # assumes only one yoko!
-    def yoko_gateset(self, xend):
-        """
-        add docstring
-        """
-        # keep an eye out for errors here! the yoko driver is changing!
-		# all changed parameters are well-documented
-
-        yoko = qt.instruments.get_instruments_by_type('GS610')[0]
-        yoko.set_source_voltage_range(xend)
-
-        yoko.set_sense(1)
-        yoko.set_sense_function(1)
-
-        yoko.set_trigger_source(0)
-        yoko.set_trigger_timer(INTRASWEEP_DELAY)
-
-        yoko.set_output_state('on')
-
-        xcurrent = yoko.get_source_voltage_level()
-
-        ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / RAMP_RATE) + 1))
-        temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
-
-        for i in temp_ramp[1:]:
-            yoko.set_source_voltage_level(
-                xend if (i > xend) ^ (xcurrent > xend) else i)
-            qt.msleep(0.01)
-
-        yoko.set_source_voltage_level(xend)
-        qt.msleep(INTRASWEEP_DELAY)
-
 
 def take_data():
     """
-    add docstring
+    TODO add docstring
     """
     qt.msleep(INTRASWEEP_DELAY)
 
@@ -423,8 +394,6 @@ def take_data():
     return [i for j in zip(gates, leaks) for i in j] \
         + [i for j in zip(X, X_pros, Y) for i in j]
 
-
-NUM_GATES = 6
 
 FILENAME = 'test'
 INTRASWEEP_DELAY = 0.001

@@ -3,9 +3,11 @@ TODO add docstring
 """
 
 # import logging
+from time import sleep
 
-# import numpy as np
 import visa
+import numpy as np
+
 from source.instrument import Instrument
 
 #######################################################################
@@ -371,6 +373,9 @@ class GS610(Instrument):
         # self.add_function('operation_complete')
         # self.add_function('is_operation_complete')
         # self.add_function('wait_to_continue')
+
+        # script commands
+        self.add_function('ramp_to_voltage')
 
         if reset:
             self.reset()
@@ -1488,35 +1493,45 @@ class GS610(Instrument):
         self._visainstrument.write('*RST')
 
 
-    def gateset(self, end, intrasweep_delay, ramp_rate):
+    def ramp_to_voltage(self, stop, step):
         """
-        TODO add docstring
+        Ramps the source voltage from the current level to the desired
+        level in linear steps.
+
+        Parameters
+        ----------
+        stop : float
+            The voltage to be reached by the end of the sweep in volts.
+
+        step : float
+            The ramp step size in volts.
         """
-        # set source function to voltage
+        start = float(self._visainstrument.query(':SOUR:VOLT:LEV?'))
+
+        # source settings
         self._visainstrument.write(':SOUR:FUNC VOLT')
-
-        # set 
-        self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(end))
+        self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(
+            max(start, stop)))
         self._visainstrument.write(':SOUR:CURR:PROT:LINK ON')
+        self._visainstrument.write(':SOUR:CURR:PROT:ULIM 0.5')
+        self._visainstrument.write(':SOUR:CURR:PROT:STAT ON')
 
+        # measurement OFF
+        self._visainstrument.write(':SENS:STAT OFF')
 
-        # self._do_set_source_voltage_range(xend)
+        # trigger settings
+        self._visainstrument.write(':TRIG:SOUR IMM')
+        self._visainstrument.write(':SOUR:DEL MIN')
 
-        # self._do_set_sense(1)
-        # self._do_set_sense_function(1)
+        # output ON
+        self._visainstrument.write(':OUTP:STAT ON')
 
-        # self._do_set_trigger_source(0)
-        # self._do_set_trigger_timer(intrasweep_delay)
+        # step voltage from start to stop
+        ramp = np.linspace(start, stop,
+                           int(np.ceil(np.abs((start - stop) / step) + 1)))
+        for i in ramp[1:]:
+            self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
+            sleep(0.001)
 
-        # self._do_set_output_state('on')
-
-        # xcurrent = self._do_get_source_voltage_level()
-
-        # ramp_steps = int(np.ceil(np.abs((xcurrent - xend) / ramp_rate) + 1))
-        # temp_ramp = np.linspace(xcurrent, xend, ramp_steps)
-
-        # for i in temp_ramp[1:]:
-        #     self._do_set_source_voltage_level(
-        #         xend if (i > xend) ^ (xcurrent > xend) else i)
-
-        # self._do_set_source_voltage_level(xend)
+        # output OFF
+        self._visainstrument.write(':OUTP:STAT OFF')
