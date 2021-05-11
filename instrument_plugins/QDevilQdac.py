@@ -4,9 +4,8 @@
 import serial
 
 
-from instrument import Instrument
-import types
-#import pyvisa.vpp43 as vpp43
+from source.instrument import Instrument
+
 import pyvisa
 rm = pyvisa.ResourceManager()
 lib = rm.visalib

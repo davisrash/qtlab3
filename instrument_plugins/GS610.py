@@ -3,11 +3,10 @@ TODO add docstring
 """
 
 # import logging
-from time import sleep
 
 import visa
 import numpy as np
-
+import source.qt as qt
 from source.instrument import Instrument
 
 #######################################################################
@@ -365,7 +364,7 @@ class GS610(Instrument):
                           doc="Resets the GS610 to factory default settings.")
         # self.add_function('save')
         # self.add_function('recall')
-        # self.add_function('clear_status')
+        self.add_function('clear_status')
         # self.add_function('read_status_byte')
         # self.add_function('service_request_enable')
         # self.add_function('standard_event_status_register')
@@ -374,8 +373,8 @@ class GS610(Instrument):
         # self.add_function('is_operation_complete')
         # self.add_function('wait_to_continue')
 
-        # script commands
-        self.add_function('configure_voltage_ramp')
+        # hbar module commands
+        self.add_function('ramp_to_voltage')
 
         if reset:
             self.reset()
@@ -1493,8 +1492,15 @@ class GS610(Instrument):
         """
         self._visainstrument.write('*RST')
 
+    def clear_status(self):
+        """
+        Clears the event register and error queue.
+        """
+        self._visainstrument.write('*CLS')
 
-    def configure_voltage_ramp(self, stop):
+
+    # hbar module commands
+    def ramp_to_voltage(self, stop, step):
         """
         Ramps the source voltage from the current level to the desired
         level in linear steps.
@@ -1517,7 +1523,20 @@ class GS610(Instrument):
         self._visainstrument.write(':SOUR:CURR:PROT:ULIM 0.5')
         self._visainstrument.write(':SOUR:CURR:PROT:STAT ON')
 
+        # measurement OFF
+        self._visainstrument.write(':SENS:STAT OFF')
+
         # trigger settings
         self._visainstrument.write(':TRIG:SOUR TIM')
-        self._visainstrument.write(':TRIG:TIM 500E-6')
+        # self._visainstrument.write(':TRIG:TIM 500E-6')
         self._visainstrument.write(':SOUR:DEL MIN')
+
+        # step voltage from start to stop
+        ramp = np.linspace(start, stop,
+                           int(np.ceil(np.abs((start - stop) / step)) + 1))
+        for i in ramp[1:]:
+            self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
+            qt.msleep(0.001)
+
+        # measurement ON
+        self._visainstrument.write(':SENS:STAT ON')

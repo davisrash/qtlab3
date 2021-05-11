@@ -366,7 +366,7 @@ class Keithley_2400(Instrument):
 
         # step voltage from start to stop
         ramp = np.linspace(start, stop,
-                           int(np.ceil(np.abs((start - stop) / step) + 1)))
+                           int(np.ceil(np.abs((start - stop) / step)) + 1))
         for i in ramp[1:]:
             self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
             sleep(0.001)

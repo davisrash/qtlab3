@@ -6,8 +6,9 @@ import sys
 from shutil import copyfile
 
 import numpy as np
-from source import qt
+import source.qt as qt
 from source.data import Data, IncrementalGenerator
+
 
 def create_data(filename, vectors, names, num_gates=6):
     """
@@ -57,21 +58,10 @@ def create_data(filename, vectors, names, num_gates=6):
 
     return data
 
-def take_data(lockin, meter, input_voltage, sense_resistance,
-              num_gates=6):
+def take_data(lockins, meter, input_voltage, sense_resistance, num_gates=6):
     """
     TODO add docstring
     """
-    if lockin.get_type() == 'SR830':
-        x = lockin.get_X()
-        y = lockin.get_Y()
-
-    elif lockin.get_type() == 'SR860':
-        x = lockin.get_data_param0()
-        y = lockin.get_data_param1()
-
-    x_pros = (input_voltage - x) * sense_resistance / (1e-9 if x == 0.0 else x)
-
     gates = [999] * num_gates
     leaks = [999] * num_gates
 
@@ -90,6 +80,36 @@ def take_data(lockin, meter, input_voltage, sense_resistance,
     #    for i in range(1, num_gates + 1):
     #        gates[i] = meter.getDCVoltage(i)
     #        leaks[i] = meter.getCurrentReading(i)
+
+    if isinstance(lockins, (tuple, list)):
+        x = y = []
+
+        # x = [lockins[i].get_X() for i, _ in enumerate(lockins)]
+
+        for lockin in lockins:
+            if lockin.get_type() == 'SR830':
+                x.append(lockin.get_X())
+                y.append(lockin.get_Y())
+
+            elif lockin.get_type() == 'SR860':
+                x.append(lockin.get_data_param0())
+                y.append(lockin.get_data_param1())
+
+            #x_pros = [(input_voltage - x[i]) * sense_resistance / (1e-9 if x[i] == 0.0 else x[i] for i in len(x))]
+
+    else:
+        lockin = lockins
+
+        if lockin.get_type() == 'SR830':
+            x = lockin.get_X()
+            y = lockin.get_Y()
+
+        elif lockin.get_type() == 'SR860':
+            x = lockin.get_data_param0()
+            y = lockin.get_data_param1()
+
+        x_pros = (input_voltage - x) * sense_resistance \
+            / (1e-9 if x == 0.0 else x)
 
     return [i for j in zip(gates, leaks) for i in j] + [x, x_pros, y]
 
@@ -118,32 +138,35 @@ def gate_sweep(filename, lockin, meter, **kwargs):
         the sweep.
 
     TODO improve docstring for **kwargs
-    name : str
-        A name describing the data collected.
-    sweep_params : dict[str, float]
-        A dict of the three parameters `start`, `stop`, and `step`,
-        which define the sweep.
+        name : str
+            A name describing the data collected.
+
+        start : float
+        stop : float
+        step : float
+        ramp_rate : float
+        input_voltage : float
+        sense_resistance : float
+        num_gates : int
     """
     qt.mstart()
 
     ramp = np.linspace(kwargs['start'], kwargs['stop'],
                        int(np.ceil(np.abs((kwargs['start'] - kwargs['stop'])
-                                          / kwargs['step']) + 1)))
+                                          / kwargs['step'])) + 1))
     vectors = (ramp, [0], [0])
     names = (kwargs['name'], 'none', 'none')
 
     data = create_data(filename, vectors, names, num_gates=kwargs['num_gates'])
 
     if meter.get_type() == 'GS610':
-        meter.configure_voltage_ramp(kwargs['stop'])
         meter.set_output_state('on')
 
+    qt.msleep(0.01)
     for level in vectors[0][1:]:
-        if meter.get_type() == 'GS610':
-            meter.set_source_voltage_level(level)
-        elif meter.get_type() == 'Keithley_2400':
-            meter.set_voltage(level)
+        meter.ramp_to_voltage(level, kwargs['ramp_rate'])
 
+        qt.msleep(0.001)
         data_vals = take_data(lockin, meter, kwargs['input_voltage'],
                               kwargs['sense_resistance'],
                               num_gates=kwargs['num_gates'])
