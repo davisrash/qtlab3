@@ -10,7 +10,7 @@ import source.qt as qt
 from source.data import Data, IncrementalGenerator
 
 
-def create_data(filename, vectors, names, num_gates=6):
+def create_data(filename, lockin_name, vectors, names, num_gates=6):
     """
     Generates the data file.
 
@@ -39,17 +39,15 @@ def create_data(filename, vectors, names, num_gates=6):
 
     data = Data(name=filename)
 
-    for i, dim in enumerate(['x', 'y', 'z']):
+    for i, dim in enumerate(['x', 'y']):
         data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vectors[i]),
                             start=vectors[i][0], end=vectors[i][-1])
+        data.add_value(lockin_name + ' ' + dim + ' raw')
+        data.add_value(lockin_name + ' ' + dim + ' pros')
 
     for i in range(1, num_gates + 1):
         data.add_value('Gate {} V meas'.format(i))
         data.add_value('Gate {} leak'.format(i))
-
-    data.add_value('Lockin X raw')
-    data.add_value('Lockin X pros')
-    data.add_value('Lockin Y raw')
 
     data.create_file()
     copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
@@ -62,20 +60,6 @@ def take_data(lockins, meter, input_voltage, sense_resistance, num_gates=6):
     """
     TODO add docstring
     """
-    gates = [999] * num_gates
-    leaks = [999] * num_gates
-
-    if meter.get_type() == 'Keithley_2400':
-        gates[0] = meter.get_voltage()
-        leaks[0] = meter.get_current()
-
-    elif meter.get_type() == 'GS610':
-        meter.set_sense_function('voltage')
-        gates[0] = meter.read()
-
-        meter.set_sense_function('current')
-        leaks[0] = meter.read()
-
     #elif meter.get_type() == 'QDevilQdac':
     #    for i in range(1, num_gates + 1):
     #        gates[i] = meter.getDCVoltage(i)
@@ -100,29 +84,39 @@ def take_data(lockins, meter, input_voltage, sense_resistance, num_gates=6):
     else:
         lockin = lockins
 
+        # TODO standardize these function names!
         if lockin.get_type() == 'SR830':
-            x = lockin.get_X()
-            y = lockin.get_Y()
+            x, y = lockin.get_X(), lockin.get_Y()
 
         elif lockin.get_type() == 'SR860':
-            x = lockin.get_data_param0()
-            y = lockin.get_data_param1()
+            x, y = lockin.get_data_param0(), lockin.get_data_param1()
 
         x_pros = (input_voltage - x) * sense_resistance \
             / (1e-9 if x == 0.0 else x)
+        y_pros = (input_voltage - y) * sense_resistance \
+            / (1e-9 if y == 0.0 else y)
 
-    return [i for j in zip(gates, leaks) for i in j] + [x, x_pros, y]
+    gates = [999] * num_gates
+    leaks = [999] * num_gates
 
-def gate_sweep(filename, lockin, meter, **kwargs):
+    if meter.get_type() == 'Keithley_2400':
+        gates[0] = meter.get_voltage()
+        leaks[0] = meter.get_current()
+
+    elif meter.get_type() == 'GS610':
+        meter.set_sense_function('voltage')
+        gates[0] = meter.read()
+
+        meter.set_sense_function('current')
+        leaks[0] = meter.read()
+
+    return [x, x_pros, y, y_pros] + [i for j in zip(gates, leaks) for i in j]
+
+def gate_sweep(filename, lockin, meter, dims=1, **kwargs):
     """
     Creates a data file and then performs a voltage sweep with the
     source set by the meter and the output measured by the lockin. The
     data is written to the file.
-
-    This function currently works with either the SR830 or SR860 and
-    either the K2400 or GS610 as the lockin and meter, respectively.
-
-    This function only works for one data dimension, namely `x`.
 
     Parameters
     ----------
@@ -137,51 +131,115 @@ def gate_sweep(filename, lockin, meter, **kwargs):
         Either the K2400 or GS610, which sets the source voltage for
         the sweep.
 
-    TODO improve docstring for **kwargs
-        name : str
-            A name describing the data collected.
+    dims : int
+        Blah
 
-        start : float
-        stop : float
-        step : float
-        ramp_rate : float
-        input_voltage : float
-        sense_resistance : float
-        num_gates : int
+    **kwargs : dict
+        'channels' : tuple[int]
+            Blah
+
+        'names' : tuple[str]
+            Blah
+
+        'start' : tuple[float]
+            Blah
+
+        'stop' : tuple[float]
+            Blah
+
+        'step' : tuple[float]
+            Blah
+
+        'ramp_rate' : float
+            Blah
+
+        'input_voltage' : float
+            Blah
+
+        'sense_resistance' : float
+            Blah
+
+        'num_gates' : int
+            Blah
     """
     qt.mstart()
 
-    ramp = np.linspace(kwargs['start'], kwargs['stop'],
-                       int(np.ceil(np.abs((kwargs['start'] - kwargs['stop'])
-                                          / kwargs['step'])) + 1))
-    vectors = (ramp, [0], [0])
-    names = (kwargs['name'], 'none', 'none')
+    # get kwargs
+    channels = kwargs['channels']
+    start = kwargs['start']
+    stop = kwargs['stop']
+    step = kwargs['step']
 
-    data = create_data(filename, vectors, names, num_gates=kwargs['num_gates'])
+    vectors = [[0], [0]]
+    for i in range(dims):
+        vectors[i] = np.linspace(start[i], stop[i], int(np.ceil(np.abs(
+                            (stop[i] - start[i]) / step[i]
+                        )) + 1))
+
+    data = create_data(filename, lockin.get_name(), vectors, kwargs['names'],
+                       num_gates=kwargs['num_gates'])
 
     if meter.get_type() == 'GS610':
         meter.set_output_state('on')
+    elif meter.get_type() == 'Keithley_2400':
+        pass
 
     qt.msleep(0.01)
-    for level in vectors[0][1:]:
-        meter.ramp_to_voltage(level, kwargs['ramp_rate'])
+    for x in vectors[0][1:]:
+        meter.ramp_to_voltage(x, kwargs['ramp_rate'], channel=channels[0])
 
-        qt.msleep(0.001)
-        data_vals = take_data(lockin, meter, kwargs['input_voltage'],
-                              kwargs['sense_resistance'],
-                              num_gates=kwargs['num_gates'])
+        if dims == 2:
+            for y in vectors[1][1:]:
+                meter.ramp_to_voltage(y, kwargs['ramp_rate'],
+                                      channel=channels[1])
 
-        data.add_data_point(level, 0, 0, data_vals[0], data_vals[1],
-                            data_vals[2], data_vals[3], data_vals[4],
-                            data_vals[5], data_vals[6], data_vals[7],
-                            data_vals[8], data_vals[9], data_vals[10],
-                            data_vals[11], data_vals[12], data_vals[13],
-                            data_vals[14])
+                qt.msleep(0.001)
+                data_vals = take_data(lockin, meter, kwargs['input_voltage'],
+                                      kwargs['sense_resistance'],
+                                      num_gates=kwargs['num_gates'])
+
+                data.add_data_point(x, y, data_vals[0], data_vals[1],
+                                    data_vals[2], data_vals[3], data_vals[4],
+                                    data_vals[5], data_vals[6], data_vals[7],
+                                    data_vals[8], data_vals[9], data_vals[10],
+                                    data_vals[11], data_vals[12],
+                                    data_vals[13], data_vals[14],
+                                    data_vals[15])
+        else:
+            qt.msleep(0.001)
+            data_vals = take_data(lockin, meter, kwargs['input_voltage'],
+                                  kwargs['sense_resistance'],
+                                  num_gates=kwargs['num_gates'])
+
+            data.add_data_point(x, 0, data_vals[0], data_vals[1], data_vals[2],
+                                data_vals[3], data_vals[4], data_vals[5],
+                                data_vals[6], data_vals[7], data_vals[8],
+                                data_vals[9], data_vals[10], data_vals[11],
+                                data_vals[12], data_vals[13], data_vals[14],
+                                data_vals[15])
 
     if meter.get_type() == 'GS610':
         meter.set_output_state('off')
+    elif meter.get_type() == 'Keithley_2400':
+        pass
 
     data._write_settings_file()  # pylint: disable=protected-access
     data.close_file()
 
     qt.mend()
+
+def gate_sweep_helper(data, lockin, meter, x, **kwargs):
+    meter.ramp_to_voltage(x, kwargs['ramp_rate'], channel=kwargs['channel'])
+
+    qt.msleep(0.001)
+    data_vals = take_data(lockin, meter, kwargs['input_voltage'],
+                          kwargs['sense_resistance'],
+                          num_gates=kwargs['num_gates'])
+
+    data.add_data_point(x, 0, 0, data_vals[0], data_vals[1], data_vals[2],
+                        data_vals[3], data_vals[4], data_vals[5], data_vals[6],
+                        data_vals[7], data_vals[8], data_vals[9],
+                        data_vals[10], data_vals[11], data_vals[12],
+                        data_vals[13], data_vals[14])
+    
+    return data

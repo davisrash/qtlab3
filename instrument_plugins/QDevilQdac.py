@@ -258,12 +258,37 @@ class QDevilQdac(Instrument):
             self.setDCVoltage(self, channel, v)
             qt.msleep(delay0)
         
-       
-        
+    def ramp_to_voltage(self, stop, step, channel=0):
+        """
+        Ramps the source voltage from the current level to the desired
+        level in linear steps.
+
+        Parameters
+        ----------
+        stop : float
+            The voltage to be reached by the end of the sweep in volts.
+
+        step : float
+            The ramp step size in volts.
+
+        channel : int
+            Selects the channel to ramp.
+        """
+        assert channel > 0
+
+        start = self.getDCVoltage(self, channel)
+
+        # step voltage from start to stop
+        ramp = np.linspace(start, stop,
+                           int(np.ceil(np.abs((stop - start) / step)) + 1))
+        for v in ramp[1:]:
+            self.setDCVoltage(self, channel, v)
+            qt.msleep(0.001)
+
+
     def allToZero(self):
         for i in range(1,25):
-            self.rampDCVoltage(i, 0)        
-        
+            self.rampDCVoltage(i, 0)
 
     def setRawDAC(self, channel, dacValue):
         # Sets the DAC output of a channel as a raw integer

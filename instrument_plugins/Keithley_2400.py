@@ -7,8 +7,7 @@ from time import time, sleep
 
 import visa
 import numpy as np
-
-from source import qt
+import source.qt as qt
 from source.instrument import Instrument
 
 
@@ -341,7 +340,7 @@ class Keithley_2400(Instrument):
             self.set_current(target_current)
             qt.msleep(delay0)
 
-    def ramp_to_voltage(self, stop, step):
+    def ramp_to_voltage(self, stop, step, channel=None):
         """
         Ramps the source voltage from the current level to the desired
         level in linear steps.
@@ -353,7 +352,15 @@ class Keithley_2400(Instrument):
 
         step : float
             The ramp step size in volts.
+
+        channel : int
+            Selects the channel to ramp. Included for compatibility
+            with meters with channels, as the 2400 Series uses only
+            one.
         """
+        # for compatibility with meters with channels
+        assert channel is None
+
         start = float(self._visainstrument.query(':SOUR:VOLT:LEV?'))
 
         # source settings
@@ -366,10 +373,10 @@ class Keithley_2400(Instrument):
 
         # step voltage from start to stop
         ramp = np.linspace(start, stop,
-                           int(np.ceil(np.abs((start - stop) / step)) + 1))
+                           int(np.ceil(np.abs((stop - start) / step)) + 1))
         for i in ramp[1:]:
             self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
-            sleep(0.001)
+            qt.msleep(0.001)
 
         # output OFF
         self._visainstrument.write(':OUTP OFF')
