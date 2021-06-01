@@ -1,5 +1,5 @@
 """
-TODO add docstring
+docstring
 """
 
 import sys
@@ -10,7 +10,7 @@ import source.qt as qt
 from source.data import Data, IncrementalGenerator
 
 
-def create_data(filename, lockin_name, vectors, names, num_gates=6):
+def create_data(filename, lockins, vectors, num_gates, names):
     """
     Generates the data file.
 
@@ -19,36 +19,56 @@ def create_data(filename, lockin_name, vectors, names, num_gates=6):
     filename : str
         The name of the data file to create.
 
-    lockin : Instrument
-        The lockin measuring the data.
+    lockins : Instrument | list[Instrument] | tuple[Instrument]
+        One or multiple of the SR830 and the SR860, which measure the
+        channel parameters X and Y.
 
-    vectors : tuple[np.ndarray[float]]
-        An tuple of vectors representing data in the dimensions x, y,
-        and z.
+    vectors : list[np.ndarray[float]]
+        An list of vectors representing data for the channel parameters
+        X and Y.
 
-    names : tuple[str]
-        A tuple of names describing the vectors.
+    names : list[str]
+        A list of names describing the vectors.
 
     Returns
     -------
     data : Data
         A special Data object containing all data.
     """
+    # TODO investigate use of additional add_value parameters
+
+    # incrementally number filenames in the given data directory
     generator = IncrementalGenerator(qt.config['datadir'] + '\\' + filename)
     Data.set_filename_generator(generator)
 
+    # create data object
     data = Data(name=filename)
 
-    for i, dim in enumerate(['x', 'y']):
-        data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vectors[i]),
-                            start=vectors[i][0], end=vectors[i][-1])
-        data.add_value(lockin_name + ' ' + dim + ' raw')
-        data.add_value(lockin_name + ' ' + dim + ' pros')
+    # create coordinates
+    for i, (dim, vector) in enumerate(vectors.items()):
+        data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vector),
+                            start=vector[0], end=vector[-1])
 
-    for i in range(1, num_gates + 1):
-        data.add_value('Gate {} V meas'.format(i))
-        data.add_value('Gate {} leak'.format(i))
+    # add data fields for multiple lockins
+    if isinstance(lockins, (list, tuple)):
+        for lockin in lockins:
+            for dim in vectors:
+                data.add_value(lockin.get_name() + ' ' + dim + ' raw')
+                data.add_value(lockin.get_name() + ' ' + dim + ' pros')
 
+    # add data fields for a single lockin
+    else:
+        lockin = lockins
+        for dim in vectors:
+            data.add_value(lockin + ' ' + dim + ' raw')
+            data.add_value(lockin + ' ' + dim + ' pros')
+
+    # add data for each gate
+    for i in range(num_gates):
+        data.add_value('Gate {} V meas'.format(i + 1))
+        data.add_value('Gate {} leak'.format(i + 1))
+
+    # create data file
     data.create_file()
     copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
              data.get_dir() + '\\' + filename + '_'
@@ -56,20 +76,43 @@ def create_data(filename, lockin_name, vectors, names, num_gates=6):
 
     return data
 
-def take_data(lockins, meter, input_voltage, sense_resistance, num_gates=6):
+def take_data(lockins, meters, input_voltage, sense_resistance, num_gates,
+              channels=None):
     """
-    TODO add docstring
+    Measures and returns the voltage on the X and Y channels using the
+    meter and the gate voltage and leakage current using the lockin.
+
+    Parameters
+    ----------
+    lockins : Instrument | list[Instrument] | tuple[Instrument]
+        One or multiple of the SR830 and the SR860, which measure the
+        channel parameters X and Y.
+
+    meter : Instrument | list[Instrument] | tuple[Instrument]
+        One or multiple of K2400, GS610, or QDAC, which measure the
+        voltage and leakage current on one or more gates.
+
+    input_voltage : float
+        TODO add description
+
+    sense_resistance : float
+        TODO add description
+
+    channels : tuple[int] | None
+        TODO add description
+
+    num_gates : int
+        The number of gates on the device. The lockin may not have
+        sufficiently many channels for the gates.
     """
-    #elif meter.get_type() == 'QDevilQdac':
-    #    for i in range(1, num_gates + 1):
-    #        gates[i] = meter.getDCVoltage(i)
-    #        leaks[i] = meter.getCurrentReading(i)
+    # TODO standardize parameter measuring, i.e. get_X()
+    # and get_data_param0()
 
-    if isinstance(lockins, (tuple, list)):
-        x = y = []
+    # define lists for X and Y channel data
+    x, y = [], []
 
-        # x = [lockins[i].get_X() for i, _ in enumerate(lockins)]
-
+    # measure X and Y channels on multiple lockins
+    if isinstance(lockins, (list, tuple)):
         for lockin in lockins:
             if lockin.get_type() == 'SR830':
                 x.append(lockin.get_X())
@@ -79,40 +122,77 @@ def take_data(lockins, meter, input_voltage, sense_resistance, num_gates=6):
                 x.append(lockin.get_data_param0())
                 y.append(lockin.get_data_param1())
 
-            #x_pros = [(input_voltage - x[i]) * sense_resistance / (1e-9 if x[i] == 0.0 else x[i] for i in len(x))]
-
+    # measure X and Y channels on a single lockin
     else:
         lockin = lockins
 
-        # TODO standardize these function names!
         if lockin.get_type() == 'SR830':
-            x, y = lockin.get_X(), lockin.get_Y()
+            x.append(lockin.get_X())
+            y.append(lockin.get_Y())
 
         elif lockin.get_type() == 'SR860':
-            x, y = lockin.get_data_param0(), lockin.get_data_param1()
+            x.append(lockin.get_data_param0())
+            y.append(lockin.get_data_param1())
 
-        x_pros = (input_voltage - x) * sense_resistance \
-            / (1e-9 if x == 0.0 else x)
-        y_pros = (input_voltage - y) * sense_resistance \
-            / (1e-9 if y == 0.0 else y)
+    # calculate x_pros and y_pros
+    x_pros = [(input_voltage - x[i]) * sense_resistance /
+              (1e-9 if x[i] == 0.0 else x[i]) for i in range(len(x))]
+    y_pros = [(input_voltage - y[i]) * sense_resistance /
+              (1e-9 if y[i] == 0.0 else y[i]) for i in range(len(y))]
 
-    gates = [999] * num_gates
-    leaks = [999] * num_gates
+    # define lists for gate voltage and leakage current data
+    gates, leaks = [], []
 
-    if meter.get_type() == 'Keithley_2400':
-        gates[0] = meter.get_voltage()
-        leaks[0] = meter.get_current()
+    # measure gate voltage and leakage current for multiple meters
+    if isinstance(meters, (list, tuple)):
+        for meter in meters:
+            if meter.get_type() == 'Keithley_2400':
+                gates.append(meter.get_voltage())
+                leaks.append(meter.get_current())
 
-    elif meter.get_type() == 'GS610':
-        meter.set_sense_function('voltage')
-        gates[0] = meter.read()
+            elif meter.get_type() == 'GS610':
+                meter.set_sense_function('voltage')
+                gates.append(meter.read())
 
-        meter.set_sense_function('current')
-        leaks[0] = meter.read()
+                meter.set_sense_function('current')
+                leaks.append(meter.read())
 
-    return [x, x_pros, y, y_pros] + [i for j in zip(gates, leaks) for i in j]
+            elif meter.get_type() == 'QDevilQdac':
+                for channel in channels:
+                    gates.append(meter.getDCVoltage(channel))
+                    leaks.append(meter.getCurrentReading(channel))
 
-def gate_sweep(filename, lockin, meter, dims=1, **kwargs):
+    # measure gate voltage and leakage current for a single meter
+    else:
+        meter = meters
+
+        if meter.get_type() == 'Keithley_2400':
+            gates.append(meter.get_voltage())
+            leaks.append(meter.get_current())
+
+        elif meter.get_type() == 'GS610':
+            meter.set_sense_function('voltage')
+            gates.append(meter.read())
+
+            meter.set_sense_function('current')
+            leaks.append(meter.read())
+
+        elif meter.get_type() == 'QDevilQdac':
+            for channel in channels:
+                gates.append(meter.getDCVoltage(channel))
+                leaks.append(meter.getCurrentReading(channel))
+
+    # set all other gate voltages and leakage currents to 999
+    for _ in range(num_gates - len(gates)):
+        gates.append(999)
+        leaks.append(999)
+
+    return [i for j in zip(x, x_pros, y, y_pros) for i in j] \
+        + [i for j in zip(gates, leaks) for i in j]
+
+def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
+               num_gates, sweeps, ramp_rate, intrasweep_delay,
+               intersweep_delay, channels):
     """
     Creates a data file and then performs a voltage sweep with the
     source set by the meter and the output measured by the lockin. The
@@ -123,123 +203,89 @@ def gate_sweep(filename, lockin, meter, dims=1, **kwargs):
     filename : str
         The name of the data file to create.
 
-    lockin : Instrument
-        Either the SR830 or the SR860, which measures the results of
-        the sweep.
+    lockins : Instrument | list[Instrument] | tuple[Instrument]
+        One or multiple of the SR830 and the SR860, which measure the
+        results of the sweep.
 
-    meter : Instrument
-        Either the K2400 or GS610, which sets the source voltage for
-        the sweep.
+    meters : Instrument | list[Instrument] | tuple[Instrument]
+        One or multiple of K2400, GS610, or QDAC, which set the source
+        voltage for the sweep and measure the voltage and leakage
+        current on one or more gates.
 
-    dims : int
-        Blah
+    input_voltage : float
+        TODO add description
 
-    **kwargs : dict
-        'channels' : tuple[int]
-            Blah
-
-        'names' : tuple[str]
-            Blah
-
-        'start' : tuple[float]
-            Blah
-
-        'stop' : tuple[float]
-            Blah
-
-        'step' : tuple[float]
-            Blah
-
-        'ramp_rate' : float
-            Blah
-
-        'input_voltage' : float
-            Blah
-
-        'sense_resistance' : float
-            Blah
-
-        'num_gates' : int
-            Blah
+    sense_resistance : float
+        TODO add description
     """
+
     qt.mstart()
 
-    # get kwargs
-    channels = kwargs['channels']
-    start = kwargs['start']
-    stop = kwargs['stop']
-    step = kwargs['step']
+    if not isinstance(lockins, (list, tuple)):
+        lockins = [lockins]
+    if not isinstance(meters, (list, tuple)):
+        meters = [meters]
 
-    vectors = [[0], [0]]
-    for i in range(dims):
-        vectors[i] = np.linspace(start[i], stop[i], int(np.ceil(np.abs(
-                            (stop[i] - start[i]) / step[i]
-                        )) + 1))
+    vectors = []
+    for sweep in sweeps:
+        vectors.append(np.linspace(
+            sweep['start'], sweep['stop'],
+            int(np.ceil(np.abs(
+                (sweep['stop'] - sweep['start']) / sweep['step']
+            )) + 1)
+        ))
 
-    data = create_data(filename, lockin.get_name(), vectors, kwargs['names'],
-                       num_gates=kwargs['num_gates'])
+    for meter in meters:
+        if meter.get_type() == 'Keithley_2400':
+            pass
+        elif meter.get_type() == 'GS610':
+            meter.set_output_state('on')
+        elif meter.get_type() == 'QDevilQdac':
+            pass
 
-    if meter.get_type() == 'GS610':
-        meter.set_output_state('on')
-    elif meter.get_type() == 'Keithley_2400':
-        pass
+    if len(sweeps) == 1:
+        data = create_data(filename, lockins, dict(zip(['x'], vectors)),
+                           num_gates, [sweep['name'] for sweep in sweeps])
 
-    qt.msleep(0.01)
-    for x in vectors[0][1:]:
-        meter.ramp_to_voltage(x, kwargs['ramp_rate'], channel=channels[0])
+        qt.msleep(intersweep_delay)
 
-        if dims == 2:
+        for x in vectors[0][1:]:
+            meters[0].ramp_to_voltage(x, ramp_rate, channel=channels[0])
+
+            qt.msleep(intrasweep_delay)
+            data_vals = take_data(lockins, meters, input_voltage,
+                                  sense_resistance, num_gates, channels)
+
+            data.add_data_point([x, 0] + data_vals)
+
+    elif len(sweeps) == 2:
+        data = create_data(filename, lockins, dict(zip(['x', 'y'], vectors)),
+                           num_gates, [sweep['name'] for sweep in sweeps])
+                           
+        qt.msleep(intersweep_delay)
+
+        for x in vectors[0][1:]:
+            meters[0].ramp_to_voltage(x, ramp_rate, channel=channels[0])
+
+            qt.msleep(intrasweep_delay)
             for y in vectors[1][1:]:
-                meter.ramp_to_voltage(y, kwargs['ramp_rate'],
-                                      channel=channels[1])
+                meters[1].ramp_to_voltage(y, ramp_rate, channel=channels[1])
 
-                qt.msleep(0.001)
-                data_vals = take_data(lockin, meter, kwargs['input_voltage'],
-                                      kwargs['sense_resistance'],
-                                      num_gates=kwargs['num_gates'])
+                qt.msleep(intrasweep_delay)
+                data_vals = take_data(lockins, meters, input_voltage,
+                                      sense_resistance, num_gates, channels)
 
-                data.add_data_point(x, y, data_vals[0], data_vals[1],
-                                    data_vals[2], data_vals[3], data_vals[4],
-                                    data_vals[5], data_vals[6], data_vals[7],
-                                    data_vals[8], data_vals[9], data_vals[10],
-                                    data_vals[11], data_vals[12],
-                                    data_vals[13], data_vals[14],
-                                    data_vals[15])
-        else:
-            qt.msleep(0.001)
-            data_vals = take_data(lockin, meter, kwargs['input_voltage'],
-                                  kwargs['sense_resistance'],
-                                  num_gates=kwargs['num_gates'])
+                data.add_data_point([x, y] + data_vals)
 
-            data.add_data_point(x, 0, data_vals[0], data_vals[1], data_vals[2],
-                                data_vals[3], data_vals[4], data_vals[5],
-                                data_vals[6], data_vals[7], data_vals[8],
-                                data_vals[9], data_vals[10], data_vals[11],
-                                data_vals[12], data_vals[13], data_vals[14],
-                                data_vals[15])
-
-    if meter.get_type() == 'GS610':
-        meter.set_output_state('off')
-    elif meter.get_type() == 'Keithley_2400':
-        pass
+    for meter in meters:
+        if meter.get_type() == 'Keithley_2400':
+            pass
+        elif meter.get_type() == 'GS610':
+            meter.set_output_state('off')
+        elif meter.get_type() == 'QDevilQdac':
+            pass
 
     data._write_settings_file()  # pylint: disable=protected-access
     data.close_file()
 
     qt.mend()
-
-def gate_sweep_helper(data, lockin, meter, x, **kwargs):
-    meter.ramp_to_voltage(x, kwargs['ramp_rate'], channel=kwargs['channel'])
-
-    qt.msleep(0.001)
-    data_vals = take_data(lockin, meter, kwargs['input_voltage'],
-                          kwargs['sense_resistance'],
-                          num_gates=kwargs['num_gates'])
-
-    data.add_data_point(x, 0, 0, data_vals[0], data_vals[1], data_vals[2],
-                        data_vals[3], data_vals[4], data_vals[5], data_vals[6],
-                        data_vals[7], data_vals[8], data_vals[9],
-                        data_vals[10], data_vals[11], data_vals[12],
-                        data_vals[13], data_vals[14])
-    
-    return data

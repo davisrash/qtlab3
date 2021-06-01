@@ -8,17 +8,20 @@ import Scripts.modules.hbar as hbar
 
 FILENAME = 'test'
 
-START = (0.0, 0.0)
-STOP = (1.0, 0.0)
-STEP = (0.1, 0.0)
-
-NAMES = ('Gate 1', 'Gate 2')
-
-RAMP_RATE = 0.01
+# circuit parameters
 INPUT_VOLTAGE = 100e-6
 SENSE_RESISTANCE = 992.0
-
 NUM_GATES = 6
+
+# sweep parameters
+X_SWEEP = {'name': 'Gate 1', 'start': 0.0, 'stop': 1.0, 'step': 0.1}
+Y_SWEEP = {'name': 'Gate 2', 'start': 0.0, 'stop': 1.0, 'step': 0.1}
+RAMP_RATE = 0.01
+INTRASWEEP_DELAY = 0.01
+INTERSWEEP_DELAY = 0.1
+
+# Qdac channels (must be same size as num sweeps)
+CHANNELS = [None]
 
 # get source-measure units
 gs610 = qt.instruments.get('gs610')
@@ -28,7 +31,7 @@ keith = qt.instruments.get('keithley1')  # TODO update keithley type name
 sr830 = qt.instruments.get('sr830')
 sr860 = qt.instruments.get('sr860')
 
-hbar.gate_sweep(FILENAME, lockin=sr830, meter=gs610, dims=1,
-                channels=(None, None), names=NAMES, start=START, stop=STOP,
-                step=STEP, ramp_rate=RAMP_RATE, input_voltage=INPUT_VOLTAGE,
-                sense_resistance=SENSE_RESISTANCE, num_gates=NUM_GATES)
+# pylint: disable-msg=too-many-arguments
+hbar.gate_sweep(FILENAME, [sr830], [gs610], INPUT_VOLTAGE, SENSE_RESISTANCE,
+                NUM_GATES, [X_SWEEP], RAMP_RATE, INTRASWEEP_DELAY,
+                INTERSWEEP_DELAY, CHANNELS)
