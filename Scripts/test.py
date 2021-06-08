@@ -1,12 +1,13 @@
 """
-TODO add docstring
+add docstring
 """
 
+from Scripts.gate_sweep import INPUT_VOLTAGE, INTERSWEEP_DELAY, INTRASWEEP_DELAY, RAMP_RATE
 import source.qt as qt
-import Scripts.modules.hbar as hbar
+import Scripts.modules.hbar_magnet as hbarm
 
 
-FILENAME = 'test'
+FILENAME = 'test_magnet'
 
 # circuit parameters
 INPUT_VOLTAGE = 100e-6
@@ -20,18 +21,3 @@ RAMP_RATE = 0.01
 INTRASWEEP_DELAY = 0.01
 INTERSWEEP_DELAY = 0.1
 
-# Qdac channels (must be same size as num sweeps)
-CHANNELS = [None, None]
-
-# get source-measure units
-gs610 = qt.instruments.get('gs610')
-keith = qt.instruments.get('keithley1')  # TODO update keithley type name
-
-# get lock-in amplifiers
-sr830 = qt.instruments.get('sr830')
-sr860 = qt.instruments.get('sr860')
-
-# pylint: disable-msg=too-many-arguments
-hbar.gate_sweep(FILENAME, [sr830, sr860], [gs610, keith], INPUT_VOLTAGE,
-                SENSE_RESISTANCE, NUM_GATES, [X_SWEEP, Y_SWEEP], RAMP_RATE,
-                INTRASWEEP_DELAY, INTERSWEEP_DELAY, CHANNELS)

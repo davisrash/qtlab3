@@ -368,21 +368,12 @@ class Keithley_2400(Instrument):
         self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(
             max(start, stop)))
 
-        # beeper OFF
-        self._visainstrument.write(':SYST:BEEP:STAT OFF')
-
-        # output ON
-        self._visainstrument.write(':OUTP ON')
-
         # step voltage from start to stop
         ramp = np.linspace(start, stop,
                            int(np.ceil(np.abs((stop - start) / step)) + 1))
         for i in ramp[1:]:
             self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
             qt.msleep(0.001)
-
-        # output OFF
-        self._visainstrument.write(':OUTP OFF')
 
     def get_resistance(self):
         self.measure_resistance()

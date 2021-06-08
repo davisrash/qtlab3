@@ -1530,9 +1530,6 @@ class GS610(Instrument):
         self._visainstrument.write(':SOUR:CURR:PROT:ULIM 0.5')
         self._visainstrument.write(':SOUR:CURR:PROT:STAT ON')
 
-        # measurement OFF
-        self._visainstrument.write(':SENS:STAT OFF')
-
         # trigger settings
         self._visainstrument.write(':TRIG:SOUR TIM')
         # self._visainstrument.write(':TRIG:TIM 500E-6')
@@ -1544,6 +1541,3 @@ class GS610(Instrument):
         for i in ramp[1:]:
             self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
             qt.msleep(0.001)
-
-        # measurement ON
-        self._visainstrument.write(':SENS:STAT ON')
