@@ -276,13 +276,13 @@ class QDevilQdac(Instrument):
         """
         assert channel > 0
 
-        start = self.getDCVoltage(self, channel)
+        start = self.getDCVoltage(channel)
 
         # step voltage from start to stop
         ramp = np.linspace(start, stop,
                            int(np.ceil(np.abs((stop - start) / step)) + 1))
         for v in ramp[1:]:
-            self.setDCVoltage(self, channel, v)
+            self.setDCVoltage(channel, v)
             qt.msleep(0.001)
 
 

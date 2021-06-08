@@ -25,7 +25,7 @@ import qt
 import os
 import os.path
 import time
-import numpy as np
+import numpy
 import types
 import re
 import logging
@@ -259,22 +259,22 @@ class Data:
     '''
     _INT_TYPES = (
             types.IntType, types.LongType,
-            np.int, np.int0, np.int8,
-            np.int16, np.int32, np.int64,
+            numpy.int, numpy.int0, numpy.int8,
+            numpy.int16, numpy.int32, numpy.int64,
     )
     '''
 
     _INT_TYPES = (
         int, int,
-        np.int, np.int0, np.int8,
-        np.int16, np.int32, np.int64,
+        numpy.int, numpy.int0, numpy.int8,
+        numpy.int16, numpy.int32, numpy.int64,
     )
 
     def __init__(self, *args, **kwargs):
         '''
         Create data object. There are three different uses:
         1) create an empty data object for use in a measurement
-        2) create a data object and fill immediately with a np array
+        2) create a data object and fill immediately with a numpy array
         3) create a data object from an existing data file
 
         All inputs are optional.
@@ -286,7 +286,7 @@ class Data:
 
         args input:
             filename (string), set the filename to load.
-            data (np.array), array to construct data object for
+            data (numpy.array), array to construct data object for
 
         kwargs input:
             name (string), default will be 'data<n>'
@@ -343,12 +343,12 @@ class Data:
         #    replace=True, idle_emit=True)
 
         data = get_arg_type(args, kwargs,
-                            (np.ndarray, list, tuple),
+                            (numpy.ndarray, list, tuple),
                             'data')
         if data is not None:
             self.set_data(data)
         else:
-            self._data = np.array([])
+            self._data = numpy.array([])
             self._infile = infile
 
         #filepath = get_arg_type(args, kwargs, types.StringType, 'filepath')
@@ -485,7 +485,7 @@ class Data:
 
     def get_data(self, reshape=False):
         '''
-        Return data as a np.array.
+        Return data as a numpy.array.
 
         Normally the data is just a 2D array, with a set of values on each
         'line'. However, if reshape is True, the data will be reshaped into
@@ -723,7 +723,7 @@ class Data:
     def _write_data_line(self, args):
         '''
         Write a line of data.
-        Args can be a single value or a 1d np.array / list / tuple.
+        Args can be a single value or a 1d numpy.array / list / tuple.
         '''
 
         if hasattr(args, '__len__'):
@@ -767,7 +767,7 @@ class Data:
 
         lastvals = None
         for vals in self._data:
-            if type(vals) is np.ndarray and lastvals is not None:
+            if type(vals) is numpy.ndarray and lastvals is not None:
                 for i in range(len(vals)):
                     if blockcols[i] and vals[i] != lastvals[i]:
                         self._file.write('\n')
@@ -877,9 +877,10 @@ class Data:
         Output:
             None
         '''
-        # check what type of data are being added
-        shapes = [np.shape(i) for i in args]
-        dims = np.array([len(i) for i in shapes])
+
+        # Check what type of data is being added
+        shapes = [numpy.shape(i) for i in args]
+        dims = numpy.array([len(i) for i in shapes])
 
         if len(args) == 0:
             logging.warning('add_data_point(): no data specified')
@@ -890,8 +891,8 @@ class Data:
                 npoints = shapes[0][0]
                 args = args[0]
             elif dims[0] == 1:
-                ncols = shapes[0][0]
-                npoints = 1
+                ncols = 1
+                npoints = shapes[0][0]
                 args = args[0]
             elif dims[0] == 0:
                 ncols = 1
@@ -944,9 +945,9 @@ class Data:
         #   - a 2d tuple/list/array, for adding >1 data points
         if self._inmem:
             if len(self._data) == 0:
-                self._data = np.atleast_2d(args)
+                self._data = numpy.atleast_2d(args)
             else:
-                self._data = np.append(self._data, [args], axis=0)
+                self._data = numpy.append(self._data, [args], axis=0)
 
         if self._infile:
             if npoints == 1:
@@ -1000,12 +1001,12 @@ class Data:
 
     def set_data(self, data):
         '''
-        Set data, can be a np.array or a list / tuple. The latter will be
-        converted to a np.array.
+        Set data, can be a numpy.array or a list / tuple. The latter will be
+        converted to a numpy.array.
         '''
 
-        if not isinstance(data, np.ndarray):
-            data = np.array(data)
+        if not isinstance(data, numpy.ndarray):
+            data = numpy.array(data)
         self._data = data
         self._inmem = True
         self._infile = False
@@ -1122,7 +1123,7 @@ class Data:
         self._add_missing_dimensions(nfields)
         self._count_coord_val_dims()
 
-        self._data = np.array(data)
+        self._data = numpy.array(data)
         self._npoints = len(self._data)
         self._inmem = True
 

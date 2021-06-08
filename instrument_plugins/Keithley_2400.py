@@ -368,6 +368,9 @@ class Keithley_2400(Instrument):
         self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(
             max(start, stop)))
 
+        # beeper OFF
+        self._visainstrument.write(':SYST:BEEP:STAT OFF')
+
         # output ON
         self._visainstrument.write(':OUTP ON')
 
