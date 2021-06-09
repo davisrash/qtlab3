@@ -4,11 +4,14 @@ docstring
 
 import sys
 from shutil import copyfile
+from time import time
 
 import numpy as np
 import source.qt as qt
 from source.data import Data, IncrementalGenerator
 
+
+current_time = time()
 
 def create_data(filename, lockins, vectors, num_gates, names):
     """
@@ -35,7 +38,6 @@ def create_data(filename, lockins, vectors, num_gates, names):
     data : Data
         A special Data object containing all data.
     """
-    # TODO investigate use of additional add_value parameters
 
     # incrementally number file names in the given data directory
     generator = IncrementalGenerator(qt.config['datadir'] + '\\' + filename)
@@ -49,30 +51,35 @@ def create_data(filename, lockins, vectors, num_gates, names):
         data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vectors[i]),
                             start=vectors[i][0], end=vectors[i][-1])
 
-    # add data fields for multiple lockins
-    if isinstance(lockins, (list, tuple)):
-        for lockin in lockins:
-            for dim in ['x', 'y']:
-                data.add_value(lockin.get_name() + ' ' + dim + ' raw')
-                data.add_value(lockin.get_name() + ' ' + dim + ' pros')
+    # put lockins into lists if necessary for looping
+    if not isinstance(lockins, (list, tuple)):
+        lockins = [lockins]
 
-    # add data fields for a single lockin
-    else:
-        lockin = lockins
-        for dim in vectors:
-            data.add_value(lockin + ' ' + dim + ' raw')
-            data.add_value(lockin + ' ' + dim + ' pros')
+    # create lockin data
+    for lockin in lockins:
+        for dim in ['x', 'y']:
+            data.add_value(dim + ' raw', instrument=lockin.get_name(),
+                           units='V')
+            data.add_value(dim + ' pros', instrument=lockin.get_name(),
+                           units='V')
 
     # add data for each gate
     for i in range(num_gates):
-        data.add_value('Gate {} V meas'.format(i + 1))
-        data.add_value('Gate {} leak'.format(i + 1))
+        data.add_value('gate {} V meas'.format(i + 1),
+                       #instrument=meter,
+                       units='A')
+        data.add_value('gate {} leak'.format(i + 1),
+                       #instrument=meter,
+                       units='A')
+
+    # add time data
+    data.add_value('time', units='s')
 
     # create data file
     data.create_file()
-    copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
+    copyfile(sys._getframe().f_code.co_filename,
              data.get_dir() + '\\' + filename + '_'
-             + str(generator.counter - 1) + '.py')
+                 + str(generator.counter - 1) + '.py')
 
     return data
 
@@ -120,7 +127,7 @@ def take_data(lockins, meters, input_voltage, sense_resistance,
         meters = [meters]
 
     # measure X and Y channels on lockins
-    for i, lockin in enumerate(lockins):
+    for lockin in lockins:
         if lockin.get_type() == 'SR830':
             x.append(lockin.get_X())
             y.append(lockin.get_Y())
@@ -158,8 +165,10 @@ def take_data(lockins, meters, input_voltage, sense_resistance,
         gates.append(999)
         leaks.append(999)
 
+    t = time() - current_time
+
     return [i for j in zip(x, x_pros, y, y_pros) for i in j] \
-        + [i for j in zip(gates, leaks) for i in j]
+        + [i for j in zip(gates, leaks) for i in j] + [t]
 
 def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
                num_gates, sweeps, ramp_rate, intrasweep_delay,

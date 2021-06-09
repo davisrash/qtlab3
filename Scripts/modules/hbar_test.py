@@ -4,38 +4,21 @@ docstring
 
 import sys
 from shutil import copyfile
+from time import time
 
 import numpy as np
 import source.qt as qt
 from source.data import Data, IncrementalGenerator
 
 
-def create_data(filename, lockins, vectors, num_gates, names):
+current_time = time()
+
+magnet_instrument = qt.instruments.get('magnet')
+
+def create_data(filename, instruments, vectors, num_gates, names):
     """
-    Generates the data file.
-
-    Parameters
-    ----------
-    filename : str
-        The name of the data file to create.
-
-    lockins : Instrument | list[Instrument] | tuple[Instrument]
-        One or multiple of the SR830 and the SR860, which measure the
-        channel parameters X and Y.
-
-    vectors : list[np.ndarray[float]]
-        An list of vectors representing data for the channel parameters
-        X and Y.
-
-    names : list[str]
-        A list of names describing the vectors.
-
-    Returns
-    -------
-    data : Data
-        A special Data object containing all data.
+    add docstring
     """
-    # TODO investigate use of additional add_value parameters
 
     # incrementally number file names in the given data directory
     generator = IncrementalGenerator(qt.config['datadir'] + '\\' + filename)
@@ -45,39 +28,51 @@ def create_data(filename, lockins, vectors, num_gates, names):
     data = Data(name=filename)
 
     # create coordinates
-    for i, (dim, vector) in enumerate(vectors.items()):
-        data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vector),
-                            start=vector[0], end=vector[-1])
+    for i, dim in enumerate(['x', 'y']):
+        data.add_coordinate(dim + ' (' + names[i] + ')', size=len(vectors[i]),
+                            start=vectors[i][0], end=vectors[i][-1])
 
-    # add data fields for multiple lockins
-    if isinstance(lockins, (list, tuple)):
-        for lockin in lockins:
-            for dim in vectors:
-                data.add_value(lockin.get_name() + ' ' + dim + ' raw')
-                data.add_value(lockin.get_name() + ' ' + dim + ' pros')
+    # put lockins into lists if necessary for looping
+    if not isinstance(lockins, (list, tuple)):
+        lockins = [lockins]
 
-    # add data fields for a single lockin
-    else:
-        lockin = lockins
-        for dim in vectors:
-            data.add_value(lockin + ' ' + dim + ' raw')
-            data.add_value(lockin + ' ' + dim + ' pros')
+    # create lockin data
+    for lockin in lockins:
+        for dim in ['x', 'y']:
+            data.add_value(dim + ' raw', instrument=lockin.get_name(),
+                           units='V')
+            data.add_value(dim + ' pros', instrument=lockin.get_name(),
+                           units='V')
 
     # add data for each gate
     for i in range(num_gates):
-        data.add_value('Gate {} V meas'.format(i + 1))
-        data.add_value('Gate {} leak'.format(i + 1))
+        data.add_value('gate {} V meas'.format(i + 1),
+                       #instrument=meter,
+                       units='A')
+        data.add_value('gate {} leak'.format(i + 1),
+                       #instrument=meter,
+                       units='A')
+
+    # add magnet data
+    if magnet is not None:
+        data.add_value('magnet z',
+                       instrument=magnet.get_name(),
+                       #units='T',
+                       )
+
+    # add time data
+    data.add_value('time', units='s')
 
     # create data file
     data.create_file()
-    copyfile(sys._getframe().f_code.co_filename,  # pylint: disable=protected-access
+    copyfile(sys._getframe().f_code.co_filename,
              data.get_dir() + '\\' + filename + '_'
-             + str(generator.counter - 1) + '.py')
+                 + str(generator.counter - 1) + '.py')
 
     return data
 
-def take_data(lockins, meters, num_sweeps, input_voltage, sense_resistance,
-              num_gates, channels=None):
+def take_data(lockins, meters, input_voltage, sense_resistance,
+              num_gates, channels=None, magnet=None):
     """
     Measures and returns the voltage on the X and Y channels using the
     meter and the gate voltage and leakage current using the lockin.
@@ -91,14 +86,6 @@ def take_data(lockins, meters, num_sweeps, input_voltage, sense_resistance,
     meters : Instrument | list[Instrument] | tuple[Instrument]
         One or multiple of K2400, GS610, or QDAC, which measure the
         voltage and leakage current on one or more gates.
-
-    num_sweeps : int | list[int] | tuple[int]
-        If using one lockin, then `num_sweeps` should be `1` or `2`
-        corresponding to a sweep across the lockin's X channel or both
-        X and Y channels. If using two lockins, then `num_sweeps`
-        should be either `[2, 0]`, `[0, 2]`, or `[1, 1]`
-        corresponding to the number of sweeps to be run on the lockins
-        enumerated by `lockins`.
 
     input_voltage : float
         TODO add description
@@ -127,27 +114,17 @@ def take_data(lockins, meters, num_sweeps, input_voltage, sense_resistance,
     if not isinstance(meters, (list, tuple)):
         meters = [meters]
 
-    if not isinstance(num_sweeps, (list, tuple)):
-        num_sweeps = [num_sweeps]
-
     # measure X and Y channels on lockins
-    for i, lockin in enumerate(lockins):
+    for lockin in lockins:
         if lockin.get_type() == 'SR830':
-            if num_sweeps[i] == 1:
-                x.append(lockin.get_X())
-            elif num_sweeps[i] == 2:
-                x.append(lockin.get_X())
-                y.append(lockin.get_Y())
+            x.append(lockin.get_X())
+            y.append(lockin.get_Y())
 
         elif lockin.get_type() == 'SR860':
-            if num_sweeps[i] == 1:
-                x.append(lockin.get_data_param0())
-            elif num_sweeps[i] == 2:
-                x.append(lockin.get_data_param0())
-                y.append(lockin.get_data_param1())
+            x.append(lockin.get_data_param0())
+            y.append(lockin.get_data_param1())
 
     # calculate x_pros and y_pros
-    # TODO calculate y_pros only if necessary
     x_pros = [(input_voltage - x[i]) * sense_resistance /
               (1e-9 if x[i] == 0.0 else x[i]) for i in range(len(x))]
     y_pros = [(input_voltage - y[i]) * sense_resistance /
@@ -176,15 +153,17 @@ def take_data(lockins, meters, num_sweeps, input_voltage, sense_resistance,
         gates.append(999)
         leaks.append(999)
 
-    data = []
-    for num in num_sweeps:
-        if num == 1:
-            data.append([i for j in zip(x, x_pros) for i in j])
-        elif num == 2:
-            data.append([i for j in zip(x, x_pros, y, y_pros) for i in j])
+    if magnet:
+        z = 0
 
-    return [i for j in data for i in j] \
-        + [i for j in zip(gates, leaks) for i in j]
+    t = time() - current_time
+
+    if magnet:
+        return [i for j in zip(x, x_pros, y, y_pros) for i in j] \
+            + [i for j in zip(gates, leaks) for i in j] + [z, t]
+
+    return [i for j in zip(x, x_pros, y, y_pros) for i in j] \
+        + [i for j in zip(gates, leaks) for i in j] + [t]
 
 def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
                num_gates, sweeps, ramp_rate, intrasweep_delay,
@@ -223,6 +202,12 @@ def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
         meters = [meters]
 
     vectors = []
+    if len(sweeps) == 1:
+        sweeps.append({'name': 'None', 'start': 0.0, 'stop': 0.0, 'step': 0.1})
+        dims = 1
+    else:
+        dims = 2
+
     for sweep in sweeps:
         vectors.append(np.linspace(
             sweep['start'], sweep['stop'],
@@ -231,48 +216,46 @@ def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
             )) + 1)
         ))
 
+    # ensure devices on
     for meter in meters:
         if meter.get_type() == 'Keithley_2400':
             pass
         elif meter.get_type() == 'GS610':
-            meter.set_output_state('on')
+            pass
         elif meter.get_type() == 'QDevilQdac':
             pass
 
-    if len(sweeps) == 1:
-        data = create_data(filename, lockins, dict(zip(['x'], vectors)),
-                           num_gates, [sweep['name'] for sweep in sweeps])
+    if dims == 1:
+        data = create_data(filename, lockins, vectors, num_gates,
+                           [sweep['name'] for sweep in sweeps])
 
         qt.msleep(intersweep_delay)
 
-        for x in vectors[0][1:]:
+        for x in vectors[0][0:]:
             meters[0].ramp_to_voltage(x, ramp_rate, channel=channels[0])
 
             qt.msleep(intrasweep_delay)
-            data_vals = take_data(lockins, meters, 1, input_voltage,
+            data_vals = take_data(lockins, meters, input_voltage,
                                   sense_resistance, num_gates, channels)
 
-            data.add_data_point([x] + data_vals)
-            print([x] + data_vals)
-            print(len([x] + data_vals))
+            data.add_data_point([x, 0] + data_vals)
 
-    elif len(sweeps) == 2:
-        data = create_data(filename, lockins, dict(zip(['x', 'y'], vectors)),
-                           num_gates, [sweep['name'] for sweep in sweeps])
+    elif dims == 2:
+        data = create_data(filename, lockins, vectors, num_gates,
+                           [sweep['name'] for sweep in sweeps])
 
         qt.msleep(intersweep_delay)
 
-        for x in vectors[0][1:]:
+        for x in vectors[0][0:]:
             meters[0].ramp_to_voltage(x, ramp_rate, channel=channels[0])
 
             qt.msleep(intrasweep_delay)
-            for y in vectors[1][1:]:
+            for y in vectors[1][0:]:
                 meters[1].ramp_to_voltage(y, ramp_rate, channel=channels[1])
 
                 qt.msleep(intrasweep_delay)
-                data_vals = take_data(lockins, meters, [1, 1],
-                                      input_voltage, sense_resistance,
-                                      num_gates, channels)
+                data_vals = take_data(lockins, meters, input_voltage,
+                                      sense_resistance, num_gates, channels)
 
                 data.add_data_point([x, y] + data_vals)
 
@@ -280,7 +263,7 @@ def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
         if meter.get_type() == 'Keithley_2400':
             pass
         elif meter.get_type() == 'GS610':
-            meter.set_output_state('off')
+            pass
         elif meter.get_type() == 'QDevilQdac':
             pass
 
@@ -288,3 +271,52 @@ def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
     data.close_file()
 
     qt.mend()
+
+def magnet_sweep(filename, instruments, stop, ramp_rate, delay):
+    """
+    add docstring
+    """
+
+    qt.mstart()
+
+    if not isinstance(instruments['lockins'], (list, tuple)):
+        instruments['lockins'] = [instruments['lockins']]
+    if not isinstance(instruments['meters'], (list, tuple)):
+        instruments['meters'] = [instruments['meters']]
+
+    start = instruments['magnet'].get_fieldZ()
+    step = int(np.abs((stop - start)) / ramp_rate * 60 / delay) + 5
+    
+    
+    x = np.linspace(B_now, B_end, bstep1)
+
+    data = create_data(filename, lockins, vectors, num_gates, )
+
+def record(voltage, time0, timestep):
+    """
+    add docstring
+    """
+
+    qt.mstart()
+
+    x_vector = np.arange(0, time0, timestep)
+    y_vector = [0]
+    z_vector = [0]
+
+    vals = []
+
+    data = create_data(filename, lockins, vectors, num_gates, names, magnet)
+
+    data_vals = take_data()
+
+    meter.ramp_to_voltage(V_Gate)
+
+    qt.msleep(delay1)
+
+    t = 0
+    t_offset = time()
+
+    while (t < time0):
+        tval = time()
+
+        data_vals = take_data(fast=True)

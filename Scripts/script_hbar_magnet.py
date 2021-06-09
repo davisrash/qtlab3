@@ -1,3 +1,4 @@
+from Scripts.gate_sweep import INTRASWEEP_DELAY
 from numpy import pi, random, arange, size, array, sin, cos, linspace, sinc, sqrt, flip
 from time import time, sleep
 from shutil import copyfile
@@ -38,7 +39,7 @@ class S1():
     
     def __init__(self): 
         self.filename = filename
-        self.generator = d.IncrementalGenerator(qt.config['datadir'] + '\\' + self.filename, 1);
+        self.generator = d.IncrementalGenerator(qt.config['datadir'] + '\\' + self.filename, 1)
     
     
     # Function generates data file, spyview file and copies the python script.
@@ -577,7 +578,8 @@ class S1():
         elif (keithon==0):
             qdac1.rampDCVoltage(channel,V_Gate)
         
-        
+        #qt.msleep(INTRASWEEP_DELAY)
+
         B_now = magnet.get_fieldZ()
         bstep1 = np.int(np.abs((B_end-B_now))/Bramp*60/delay)+5
         x = np.linspace(B_now,B_end,bstep1)
@@ -607,7 +609,7 @@ class S1():
         
     def keithley_gateset(self,num,xend):
         if num==1 :
-            xcurrent = keithley1.get_voltage()                                                                                      #ramp function
+            xcurrent = keithley1.get_voltage()
             ramp_steps = np.int(np.ceil(np.abs((xcurrent-xend)/ramprate)+1))
             temp_ramp = np.linspace(xcurrent,xend,ramp_steps)
             #print(temp_ramp)    
