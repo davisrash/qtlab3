@@ -719,35 +719,13 @@ threshold = None
 compliance = 100E-6
 ramprate = 5E-3
 
-
-#parameters for magnet sweep
-#Bramp = .03   #Ramp rate in T/Min
-#B_end = 4
-#V_Gate = 0
 keithon=1
 delay = 1
 tstop = 100000
-#a.qdac_gateset(1,-2.5)
 
 
-#print('Voltage 1 is:' )
-#print(qdac1.getDCVoltage(1))
-#print(magnet.get_fieldZ())
+###########
 
-
-#a.Magnet_sweep(B_end,1,V_Gate,delay,Bramp)
-#a.Magnet_sweep(0,1,V_Gate,delay,Bramp)
-
-#a.record(V_Gate,tstop,delay)
-
-'''
-### NOTE GO UNCOMMENT THE GET MAGNET Z IN FUNCTIONS TAKE DATA AND TAKE DATA QUICK ###
-################### SEE ABOVE ################################
-'''
-
-#a.tunnelcond(1,1,'voltage',start1,end1,xstep1,'current',start2,end2,xstep2)
-a.qdac_gateset(1,0.0)
-a.qdac_1gate(2,'gate_right',start1,end1,xstep1,rev,threshold,compliance)
-
-#a.qdac_2gate(1,3,'gate_left',start1,end1,xstep1,'gate_right',start2,end2,xstep2,threshold,compliance)
+import source.qt as qt
+import Scripts.modules.hbar as hbar
 

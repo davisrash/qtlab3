@@ -3,7 +3,7 @@ add docstring
 """
 
 import source.qt as qt
-import Scripts.modules.hbar_test as hbar
+import Scripts.modules.hbar_dev as hbar
 
 
 FILENAME = 'test_magnet'
@@ -23,21 +23,25 @@ MAG = qt.instruments.get('magnet')
 #
 INSTRUMENTS = {'meters' : [GS610, KEITH],
                'lockins': [SR830, SR860],
-               'magnet' : MAG}
+               'magnets': MAG}
 
-# circuit parameters
-INPUT_VOLTAGE = 100e-6
-SENSE_RESISTANCE = 992.0
-NUM_GATES = 2
+CIRCUIT = {'input_voltage'   : 100e-6,
+           'sense_resistance': 992.0,
+           'num_gates'       : 2}
 
-# sweep parameters
-SWEEP = {'name': 'magnetic field', 'start': 0.0, 'stop': 10, 'step': 0.1}
-RAMP_RATE = 0.01
-INTRASWEEP_DELAY = 0.01
-INTERSWEEP_DELAY = 0.1
+SWEEPS = {'name' : 'magnetic field',
+          'start': 0.0,
+          'stop' : 10.0,
+          'step' : 0.1,
+          'intrasweep_delay': 0.01,
+          'intersweep_delay': 0.1,
+          'ramp_rate': 0.01,
+          'v_gate': 1.0,
+          'vector': None}
 
 # Qdac channels
 CHANNELS = [None]
 
 # run magnet sweep
-hbar.magnet_sweep(FILENAME, INSTRUMENTS, END, RAMP_RATE)
+#hbar.magnet_sweep(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS)
+hbar.record(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS, 10, 1)

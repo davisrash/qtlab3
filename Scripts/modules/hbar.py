@@ -272,7 +272,7 @@ def gate_sweep(filename, lockins, meters, input_voltage, sense_resistance,
         elif meter.get_type() == 'QDevilQdac':
             pass
 
-    data._write_settings_file()  # pylint: disable=protected-access
+    data._write_settings_file()
     data.close_file()
 
     qt.mend()
