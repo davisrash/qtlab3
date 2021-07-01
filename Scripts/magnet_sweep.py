@@ -11,7 +11,7 @@ FILENAME = 'test_magnet'
 # get source-measure units
 GS610 = qt.instruments.get('gs610')
 KEITH = qt.instruments.get('keithley1')  # TODO update keithley name
-#QDAC = qt.instruments.get('qdac1')  # TODO update qdac name
+# QDAC = qt.instruments.get('qdac1')  # TODO update qdac name
 
 # get lock-in amplifiers
 SR830 = qt.instruments.get('sr830')
@@ -21,18 +21,18 @@ SR860 = qt.instruments.get('sr860')
 MAG = qt.instruments.get('magnet')
 
 #
-INSTRUMENTS = {'meters' : [GS610, KEITH],
+INSTRUMENTS = {'meters': [GS610, KEITH],
                'lockins': [SR830, SR860],
                'magnets': MAG}
 
-CIRCUIT = {'input_voltage'   : 100e-6,
+CIRCUIT = {'input_voltage': 100e-6,
            'sense_resistance': 992.0,
-           'num_gates'       : 2}
+           'num_gates': 2}
 
-SWEEPS = {'name' : 'magnetic field',
+SWEEPS = {'name': 'magnetic field',
           'start': 0.0,
-          'stop' : 10.0,
-          'step' : 0.1,
+          'stop': 10.0,
+          'step': 0.1,
           'intrasweep_delay': 0.01,
           'intersweep_delay': 0.1,
           'ramp_rate': 0.01,

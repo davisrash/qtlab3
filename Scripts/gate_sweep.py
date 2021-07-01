@@ -3,7 +3,7 @@ add docstring
 """
 
 import source.qt as qt
-import Scripts.modules.hbar as hbar
+import Scripts.modules.hbar_dev as hbar
 
 
 FILENAME = 'test'
