@@ -8,31 +8,45 @@ import Scripts.modules.hbar as hbar
 
 FILENAME = 'test'
 
-# circuit parameters
-INPUT_VOLTAGE = 100e-6
-SENSE_RESISTANCE = 992.0
-NUM_GATES = 2
-
-# sweep parameters
-X_SWEEP = {'name': 'Gate 1', 'start': 0.0, 'stop': 0.1, 'step': 0.1}
-Y_SWEEP = {'name': 'Gate 2', 'start': 0.0, 'stop': 0.1, 'step': 0.1}
-RAMP_RATE = 0.01
-INTRASWEEP_DELAY = 0.01
-INTERSWEEP_DELAY = 0.1
-
-# Qdac channels (must be same size as num sweeps)
-CHANNELS = [None, None]
-
 # get source-measure units
-gs610 = qt.instruments.get('gs610')
-keith = qt.instruments.get('keithley1')  # TODO update keithley name
-#qdac = qt.instruments.get('qdac1')  # TODO update qdac name
+GS610 = qt.instruments.get('gs610')
+KEITH = qt.instruments.get('keithley1')  # TODO update keithley name
+# QDAC = qt.instruments.get('qdac1')     # TODO update qdac name
 
 # get lock-in amplifiers
-sr830 = qt.instruments.get('sr830')
-sr860 = qt.instruments.get('sr860')
+SR830 = qt.instruments.get('sr830')
+SR860 = qt.instruments.get('sr860')
+
+#
+INSTRUMENTS = {'meters': [GS610, KEITH],
+               'lockins': [SR830, SR860]}
+
+CIRCUIT = {'input_voltage': 100e-6,
+           'sense_resistance': 992.0,
+           'num_gates': 3,
+           'compliance': None,
+           'threshold': None}
+
+X_SWEEP = {'name': 'gate 1',
+           'start': 0.0,
+           'stop': 0.1,
+           'step': 0.02,
+           'ramp_rate': 0.01,
+           'intrasweep_delay': 0.1,
+           'intersweep_delay': 0.1,
+           'channel': 1}
+
+Y_SWEEP = {'name': 'gate 2',
+           'start': 0.0,
+           'stop': 0.1,
+           'step': 0.02,
+           'ramp_rate': 0.01,
+           'intrasweep_delay': 0.1,
+           'intersweep_delay': 0.1,
+           'channel': 2}
+
+# QDAC channels
+CHANNELS = [1, 2, 3]
 
 # run gate sweep
-hbar.gate_sweep(FILENAME, [sr830, sr860], [gs610, keith], INPUT_VOLTAGE,
-                SENSE_RESISTANCE, NUM_GATES, [X_SWEEP, Y_SWEEP], RAMP_RATE,
-                INTRASWEEP_DELAY, INTERSWEEP_DELAY, CHANNELS)
+hbar.gate_sweep(FILENAME, INSTRUMENTS, CIRCUIT, [X_SWEEP, Y_SWEEP], CHANNELS)

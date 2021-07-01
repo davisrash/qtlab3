@@ -11,7 +11,7 @@ FILENAME = 'test_magnet'
 # get source-measure units
 GS610 = qt.instruments.get('gs610')
 KEITH = qt.instruments.get('keithley1')  # TODO update keithley name
-#qdac = qt.instruments.get('qdac1')  # TODO update qdac name
+#QDAC = qt.instruments.get('qdac1')  # TODO update qdac name
 
 # get lock-in amplifiers
 SR830 = qt.instruments.get('sr830')

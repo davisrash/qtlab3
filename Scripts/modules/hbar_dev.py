@@ -13,11 +13,6 @@ from source.data import Data, IncrementalGenerator
 
 current_time = time()
 
-class HallBar():
-    """
-    add docstring
-    """
-
 
 def create_data(filename, instruments, circuit, sweeps):
     """
@@ -31,15 +26,18 @@ def create_data(filename, instruments, circuit, sweeps):
     # create data object
     data = Data(name=filename)
 
+    # TODO make this better (hard fix for forced x AND y)
     if isinstance(sweeps, dict):
-        sweeps = [sweeps, {'name': 'empty', 'vector': [0]}]
+        sweeps = [sweeps, {'name': 'empty, you should fix me! code is ugly :(',
+                           'start': np.nan, 'stop': np.nan,
+                           'vector': [np.nan]}]
 
     # create coordinates
     for i, dim in enumerate(['x', 'y']):
         data.add_coordinate(dim + ' (' + sweeps[i]['name'] + ')',
                             size=len(sweeps[i]['vector']),
-                            start=sweeps[i]['vector'][0],
-                            end=sweeps[i]['vector'][-1])
+                            start=sweeps[i]['start'],
+                            end=sweeps[i]['stop'])
 
     # put instruments into lists if necessary for looping
     for instrument_type in instruments:
@@ -49,18 +47,18 @@ def create_data(filename, instruments, circuit, sweeps):
     # create lockin data
     for lockin in instruments['lockins']:
         for dim in ['x', 'y']:
-            data.add_value(dim + ' raw', instrument=lockin.get_name(),
-                           units='V')
-            data.add_value(dim + ' pros', instrument=lockin.get_name(),
-                           units='V')
+            data.add_value(lockin.get_name() + ' ' + dim + ' raw',
+                           instrument=lockin.get_name(), units='V')
+            data.add_value(lockin.get_name() + ' ' + dim + ' pros',
+                           instrument=lockin.get_name(), units='V')
 
     # add data for each gate
     for i in range(circuit['num_gates']):
         data.add_value('gate {} V meas'.format(i + 1),
-                       #instrument=meter,
+                       # instrument=meter,
                        units='A')
         data.add_value('gate {} leak'.format(i + 1),
-                       #instrument=meter,
+                       # instrument=meter,
                        units='A')
 
     # add magnet data
@@ -69,7 +67,7 @@ def create_data(filename, instruments, circuit, sweeps):
         for magnet in instruments['magnets']:
             data.add_value('magnet z',
                            instrument=magnet.get_name(),
-                           #units='T',
+                           # units='T',
                            )
 
     # add time data
@@ -79,9 +77,10 @@ def create_data(filename, instruments, circuit, sweeps):
     data.create_file()
     copyfile(sys._getframe().f_code.co_filename,
              data.get_dir() + '\\' + filename + '_'
-                 + str(generator.counter - 1) + '.py')
+             + str(generator.counter - 1) + '.py')
 
     return data
+
 
 def take_data(instruments, circuit, channels=None):
     """
@@ -106,8 +105,8 @@ def take_data(instruments, circuit, channels=None):
             y.append(lockin.get_Y())
 
         elif lockin.get_type() == 'SR860':
-            x.append(lockin.get_data_param0())
-            y.append(lockin.get_data_param1())
+            x.append(lockin.get_data_param0())  # get_data_param(0)
+            y.append(lockin.get_data_param1())  # get_data_param(1)
 
     # calculate x_pros and y_pros
     x_pros = [(circuit['input_voltage'] - x[i]) * circuit['sense_resistance'] /
@@ -116,7 +115,7 @@ def take_data(instruments, circuit, channels=None):
               (1e-9 if y[i] == 0.0 else y[i]) for i in range(len(y))]
 
     # measure gate voltage and leakage current for meters
-    for meter in instruments['meters']:
+    for i, meter in enumerate(instruments['meters']):
         if meter.get_type() == 'Keithley_2400':
             gates.append(meter.get_voltage())
             leaks.append(meter.get_current())
@@ -129,14 +128,9 @@ def take_data(instruments, circuit, channels=None):
             leaks.append(meter.read())
 
         elif meter.get_type() == 'QDevilQdac':
-            for channel in channels:
-                gates.append(meter.getDCVoltage(channel))
-                leaks.append(meter.getCurrentReading(channel))
-
-    # set all other gate voltages and leakage currents to 999
-    for _ in range(circuit['num_gates'] - len(gates)):
-        gates.append(999)
-        leaks.append(999)
+            for j in range(circuit['num_gates'] - i):
+                gates.append(meter.getDCVoltage(channels[j]))
+                leaks.append(meter.getCurrentReading(channels[j]))
 
     # get magnetic field
     if 'magnets' in instruments \
@@ -148,10 +142,10 @@ def take_data(instruments, circuit, channels=None):
     t = time() - current_time
 
     return [i for j in zip(x, x_pros, y, y_pros) for i in j] \
-            + [i for j in zip(gates, leaks) for i in j] + z + [t]
+        + [i for j in zip(gates, leaks) for i in j] + z + [t]
 
-'''
-def gate_sweep(filename, instruments, circuit, sweeps, channels):
+
+def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
     """
     add docstring
     """
@@ -163,58 +157,125 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels):
         if not isinstance(instruments[instrument_type], (list, tuple)):
             instruments[instrument_type] = [instruments[instrument_type]]
 
+    # put sweeps into lists if necessary for looping
+    if isinstance(sweeps, dict):
+        sweeps = [sweeps]
+
+    # TODO fix ugly sweep counting and manual adding of second empty sweep
     if len(sweeps) == 1:
-        sweeps.append({'name': 'None', 'start': 0.0, 'stop': 0.0, 'step': 0.1})
         dims = 1
-    else:
+        sweeps.append({'name': 'None', 'start': 0.0, 'stop': 0.0, 'step': 0.1})
+    elif len(sweeps) == 2:
         dims = 2
 
     for sweep in sweeps:
-        sweep['vector'].append(np.linspace(
+        sweep['vector'] = np.linspace(
             sweep['start'], sweep['stop'],
             int(np.ceil(np.abs(
-                (sweep['stop'] - sweep['start']) / sweep['step']
-            )) + 1)
-        ))
+                (sweep['stop'] - sweep['start']) / sweep['step'])
+            ) + 1))
+
+    data = create_data(filename, instruments, circuit, sweeps)
 
     if dims == 1:
-        data = create_data(filename, instruments, circuit, sweeps)
+        sweep = sweeps[0]
 
-        qt.msleep(sweeps[0]['intersweep_delay'])
+        qt.msleep(sweep['intersweep_delay'])
 
-        for x in sweeps[0]['vector'][0][0:]:
-            instruments['meters'][0].ramp_to_voltage(x, sweeps[0]['ramp_rate'],
-                                                     channel=channels[0])
+        for x in sweep['vector']:
+            instruments['meters'][0].ramp_to_voltage(
+                x, sweep['ramp_rate'], channel=sweep['channel']
+            )
 
-            qt.msleep(sweeps[0]['intrasweep_delay'])
+            qt.msleep(sweep['intrasweep_delay'])
             data_vals = take_data(instruments, circuit, channels)
 
-            data.add_data_point([x, 0] + data_vals)
+            data.add_data_point([x, np.nan] + data_vals)
+
+            if circuit['compliance'] is not None:
+                for i in range(circuit['num_gates']):
+                    if data_vals[(i - circuit['num_gates']) * 2] \
+                            > sweep['compliance']:
+                        print('gate leakage!')
+
+                        data._write_settings_file()
+                        data.close_file()
+
+                        qt.mend()
+
+                        raise SystemExit
+
+            if circuit['threshold'] is not None:
+                for i, _ in enumerate(instruments['lockins']):
+                    if data_vals[4 * i - 1] > circuit['threshold']:
+                        print('threshold reached!')
+
+                        data._write_settings_file()
+                        data.close_file()
+
+                        qt.mend()
+
+                        raise SystemExit
 
     elif dims == 2:
+        for sweep in sweeps:
+            sweep['vector'] = np.linspace(
+                sweep['start'], sweep['stop'],
+                int(np.ceil(np.abs(
+                    (sweep['stop'] - sweep['start']) / sweep['step'])
+                ) + 1))
+
         data = create_data(filename, instruments, circuit, sweeps)
 
         qt.msleep(sweeps[0]['intersweep_delay'])
 
-        for x in sweeps[1]['vector'][0][0:]:
-            instruments['meters'][0].ramp_to_voltage(x, sweeps[1]['ramp_rate'],
-                                                     channel=channels[0])
+        for x in sweeps[0]['vector']:
+            instruments['meters'][0].ramp_to_voltage(
+                x, sweeps[0]['ramp_rate'], channel=sweeps[0]['channel']
+            )
 
-            qt.msleep(sweeps[1]['intrasweep_delay'])
-            for y in sweeps[1]['vector'][1][0:]:
-                instruments['meters'][1].ramp_to_voltage(y, ramp_rate,
-                                                         channel=channels[1])
+            qt.msleep(sweeps[1]['intersweep_delay'])
 
-                qt.msleep(intrasweep_delay)
+            for y in sweeps[1]['vector']:
+                instruments['meters'][1].ramp_to_voltage(
+                    y, sweeps[1]['ramp_rate'], channel=sweeps[1]['channel']
+                )
+
+                qt.msleep(sweeps[1]['intrasweep_delay'])
                 data_vals = take_data(instruments, circuit, channels)
 
                 data.add_data_point([x, y] + data_vals)
+
+                if circuit['compliance'] is not None:
+                    for i in range(circuit['num_gates']):
+                        if data_vals[(i - circuit['num_gates']) * 2] \
+                                > circuit['compliance']:
+                            print('gate leakage!')
+
+                            data._write_settings_file()
+                            data.close_file()
+
+                            qt.mend()
+
+                            raise SystemExit
+
+                if circuit['threshold'] is not None:
+                    for i, _ in enumerate(instruments['lockins']):
+                        if data_vals[4 * i - 1] > circuit['threshold']:
+                            print('threshold reached!')
+
+                            data._write_settings_file()
+                            data.close_file()
+
+                            qt.mend()
+
+                            raise SystemExit
 
     data._write_settings_file()
     data.close_file()
 
     qt.mend()
-'''
+
 
 def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
     """
@@ -239,8 +300,8 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
     # TODO conform to standard instrument looping, fix start and step
     for magnet in instruments['magnets']:
         sweeps['start'] = magnet.get_fieldZ()
-        sweeps['step'] = int(np.abs((sweeps['stop'] - sweeps['start'])) \
-            / sweeps['ramp_rate'] * 60 / sweeps['intrasweep_delay']) + 5
+        sweeps['step'] = int(np.abs((sweeps['stop'] - sweeps['start']))
+                             / sweeps['ramp_rate'] * 60 / sweeps['intrasweep_delay']) + 5
 
         sweeps['vector'] = np.linspace(sweeps['start'], sweeps['stop'],
                                        sweeps['step'])
@@ -281,6 +342,7 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
         data.close_file()
 
         qt.mend()
+
 
 def record(filename, instruments, circuit, sweeps, time0, timestep):
     """
