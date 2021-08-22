@@ -12,9 +12,9 @@ from source.instrument import Instrument
 
 
 def bool_to_str(val):
-    '''
+    """
     Function to convert boolean to 'ON' or 'OFF'
-    '''
+    """
     if val:
         return "ON"
 
@@ -22,21 +22,24 @@ def bool_to_str(val):
 
 
 class Keithley_2400(Instrument):
-    '''
+    """
     This is the driver for the Keithley 2400
 
     Usage:
     Initialize with
-    <name> = instruments.create('<name>', 'Keithley_2400',
-        address='<GBIP address>',
+    <name> = instruments.create(
+        "<name>", "Keithley_2400",
+        address="<GBIP address>",
         reset=<bool>,
         change_display=<bool>,
-        change_autozero=<bool>)
-    '''
+        change_autozero=<bool>,
+    )
+    """
 
-    def __init__(self, name, address, reset=False, change_display=True,
-                 change_autozero=True):
-        '''
+    def __init__(
+        self, name, address, reset=False, change_display=True, change_autozero=True
+    ):
+        """
         Initializes the Keithley_2000, and communicates with the wrapper.
 
         Input:
@@ -49,81 +52,89 @@ class Keithley_2400(Instrument):
                                         autozero during measurements.
         Output:
             None
-        '''
+        """
         # Initialize wrapper functions
-        logging.info('Initializing instrument Keithley_2000')
-        Instrument.__init__(self, name, tags=['physical'])
+        logging.info("Initializing instrument Keithley_2000")
+        Instrument.__init__(self, name, tags=["physical"])
 
         # Add some global constants
         self._address = address
         self.name = name
-        #self._visainstrument = visa.instrument(self._address)
+        # self._visainstrument = visa.instrument(self._address)
         rm = visa.ResourceManager()
         self._visainstrument = rm.get_instrument(self._address)
 
-        self.modes = ['VOLT:AC', 'VOLT:DC', 'CURR:AC', 'CURR:DC', 'RES',
-                      'FRES', 'TEMP', 'FREQ']
+        self.modes = [
+            "VOLT:AC",
+            "VOLT:DC",
+            "CURR:AC",
+            "CURR:DC",
+            "RES",
+            "FRES",
+            "TEMP",
+            "FREQ",
+        ]
         self.change_display = change_display
         self.change_autozero = change_autozero
-        self.averaging_types = ['MOV', 'REP']
+        self.averaging_types = ["MOV", "REP"]
         self.trigger_sent = False
 
-        self.add_function('enable_source')
-        self.add_function('disable_source')
-        self.add_function('measure_resistance')
-        self.add_function('measure_voltage')
-        self.add_function('measure_current')
-        self.add_function('auto_range_source')
-        self.add_function('beep')
-        self.add_function('triad')
-        self.add_function('check_errors')
+        self.add_function("enable_source")
+        self.add_function("disable_source")
+        self.add_function("measure_resistance")
+        self.add_function("measure_voltage")
+        self.add_function("measure_current")
+        self.add_function("auto_range_source")
+        self.add_function("beep")
+        self.add_function("triad")
+        self.add_function("check_errors")
 
-        self.add_function('set_current')
-        self.add_function('set_current_source')
-        self.add_function('set_current_comp')
+        self.add_function("set_current")
+        self.add_function("set_current_source")
+        self.add_function("set_current_comp")
 
-        self.add_function('set_voltage')
-        self.add_function('set_voltage_source')
-        self.add_function('set_voltage_comp')
+        self.add_function("set_voltage")
+        self.add_function("set_voltage_source")
+        self.add_function("set_voltage_comp")
 
-        self.add_function('set_res_range')
+        self.add_function("set_res_range")
 
-        self.add_function('reset')
-        self.add_function('ramp_to_current')
-        self.add_function('ramp_to_voltage')
-        self.add_function('trigger')
-        self.add_function('trigger_immediately')
-        self.add_function('trigger_on_bus')
-        self.add_function('set_trigger_counts')
-        self.add_function('disable_buffer')
-        self.add_function('sample_continuously')
-        self.add_function('set_timed_arm')
-        self.add_function('trigger_on_external')
-        self.add_function('output_trigger_on_external')
-        self.add_function('disable_output_trigger')
+        self.add_function("reset")
+        self.add_function("ramp_to_current")
+        self.add_function("ramp_to_voltage")
+        self.add_function("trigger")
+        self.add_function("trigger_immediately")
+        self.add_function("trigger_on_bus")
+        self.add_function("set_trigger_counts")
+        self.add_function("disable_buffer")
+        self.add_function("sample_continuously")
+        self.add_function("set_timed_arm")
+        self.add_function("trigger_on_external")
+        self.add_function("output_trigger_on_external")
+        self.add_function("disable_output_trigger")
 
-        self.add_function('get_resistance')
-        self.add_function('get_current')
-        self.add_function('get_voltage')
+        self.add_function("get_resistance")
+        self.add_function("get_current")
+        self.add_function("get_voltage")
 
-        self.add_function('set_mode')
-        self.add_function('read_val')
+        self.add_function("set_mode")
+        self.add_function("read_val")
 
         if reset:
             self.reset()
 
     def enable_source(self):
-        """ Enables the source of current or voltage depending on the
-        configuration of the instrument. """
+        """Enables the source of current or voltage depending on the
+        configuration of the instrument."""
         self._visainstrument.write("OUTPUT ON")
 
     def disable_source(self):
-        """ Disables the source of current or voltage depending on the
-        configuration of the instrument. """
+        """Disables the source of current or voltage depending on the
+        configuration of the instrument."""
         self._visainstrument.write("OUTPUT OFF")
 
     def measure_resistance(self, nplc=1, resistance=2.1e5, auto_range=True):
-        """ Configures the measurement of resistance.
+        """Configures the measurement of resistance.
 
         :param nplc: Number of power line cycles (NPLC) from 0.01 to 10
         :param resistance: Upper limit of resistance in Ohms, from -210 MOhms to 210 MOhms
@@ -142,7 +153,7 @@ class Keithley_2400(Instrument):
         self.check_errors()
 
     def measure_voltage(self, nplc=1, voltage=21.0, auto_range=True):
-        """ Configures the measurement of voltage.
+        """Configures the measurement of voltage.
 
         :param nplc: Number of power line cycles (NPLC) from 0.01 to 10
         :param voltage: Upper limit of voltage in Volts, from -210 V to 210 V
@@ -151,19 +162,19 @@ class Keithley_2400(Instrument):
         logging.debug("%s is measuring voltage." % self.name)
 
         self._visainstrument.write(":SENS:FUNC 'VOLT';")
-        self._visainstrument.write(
-            ":SENS:VOLT:NPLC %f;:FORM:ELEM VOLT;" % nplc)
+        self._visainstrument.write(":SENS:VOLT:NPLC %f;:FORM:ELEM VOLT;" % nplc)
 
         if auto_range:
             self._visainstrument.write(":SENS:VOLT:RANG:AUTO 1;")
         else:
             # self._visainstrument.write(":SENS:VOLT:RANG?")
             self._visainstrument.write(
-                ":SENS:VOLT:RANG:AUTO 0;:SENS:VOLT:RANG %g" % voltage)
+                ":SENS:VOLT:RANG:AUTO 0;:SENS:VOLT:RANG %g" % voltage
+            )
         self.check_errors()
 
     def measure_current(self, nplc=1, current=1.05e-4, auto_range=True):
-        """ Configures the measurement of current.
+        """Configures the measurement of current.
 
         :param nplc: Number of power line cycles (NPLC) from 0.01 to 10
         :param current: Upper limit of current in Amps, from -1.05 A to 1.05 A
@@ -172,15 +183,15 @@ class Keithley_2400(Instrument):
         logging.debug("%s is measuring current." % self.name)
 
         self._visainstrument.write(":SENS:FUNC 'CURR';")
-        self._visainstrument.write(
-            ":SENS:CURR:NPLC %f;:FORM:ELEM CURR;" % nplc)
+        self._visainstrument.write(":SENS:CURR:NPLC %f;:FORM:ELEM CURR;" % nplc)
 
         if auto_range:
             self._visainstrument.write(":SENS:CURR:RANG:AUTO 1;")
         else:
             self._visainstrument.write(":SENS:CURR:RANG?")
             self._visainstrument.write(
-                ":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % current)
+                ":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % current
+            )
 
         self.check_errors()
 
@@ -204,7 +215,7 @@ class Keithley_2400(Instrument):
 
         self._visainstrument.write(":SENS:FUNC 'CURR';")
         self._visainstrument.write(":SENS:CURR:PROT %g" % max)
-        #self._visainstrument.write(":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % range)
+        # self._visainstrument.write(":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % range)
 
     def set_voltage_source(self, range):
         # range of voltage in Volts
@@ -212,7 +223,7 @@ class Keithley_2400(Instrument):
 
         self._visainstrument.write(":SOUR:FUNC VOLT")
         self._visainstrument.write(":SOUR:VOLT:RANG %g" % range)
-        #self._visainstrument.write(":SENS:VOLT:RANG %g" % range)
+        # self._visainstrument.write(":SENS:VOLT:RANG %g" % range)
 
     def set_voltage_comp(self, max):
         # range of voltage in Volts
@@ -224,39 +235,38 @@ class Keithley_2400(Instrument):
 
         self._visainstrument.write(":SENS:FUNC 'VOLT';")
         self._visainstrument.write(":SENS:VOLT:PROT %g" % max)
-        #self._visainstrument.write(":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % range)
+        # self._visainstrument.write(":SENS:CURR:RANG:AUTO 0;:SENS:CURR:RANG %g" % range)
 
     def set_res_range(self, range):
         self._visainstrument.write(":SENS:RES:RANG %g" % range)
 
     def auto_range_source(self):
-        """ Configures the source to use an automatic range.
-        """
+        """Configures the source to use an automatic range."""
         # if self.source_mode == 'current':
         #    self._visainstrument.write(":SOUR:CURR:RANG:AUTO 1")
         # else:
         #    self._visainstrument.write(":SOUR:VOLT:RANG:AUTO 1")
 
     def set_current(self, target_current):
-        #target_current in Amps
+        # target_current in Amps
         logging.debug("%s is sourcing current." % self.name)
 
-        #self._visainstrument.write(":SOUR:FUNC CURR")
+        # self._visainstrument.write(":SOUR:FUNC CURR")
         self._visainstrument.write(":SOUR:CURR:LEV %g" % target_current)
 
         self.check_errors()
 
     def set_voltage(self, target_voltage):
-        #target_current in Amps
+        # target_current in Amps
         logging.debug("%s is sourcing voltage." % self.name)
 
-        #self._visainstrument.write(":SOUR:FUNC VOLT")
+        # self._visainstrument.write(":SOUR:FUNC VOLT")
         self._visainstrument.write(":SOUR:VOLT:LEV %g" % target_voltage)
 
         self.check_errors()
 
     def beep(self, frequency, duration):
-        """ Sounds a system beep.
+        """Sounds a system beep.
 
         :param frequency: A frequency in Hz between 65 Hz and 2 MHz
         :param duration: A time in seconds between 0 and 7.9 seconds
@@ -264,7 +274,7 @@ class Keithley_2400(Instrument):
         self._visainstrument.write(":SYST:BEEP %g, %g" % (frequency, duration))
 
     def triad(self, base_frequency, duration):
-        """ Sounds a musical triad using the system beep.
+        """Sounds a musical triad using the system beep.
 
         :param base_frequency: A frequency in Hz between 65 Hz and 1.3 MHz
         :param duration: A time in seconds between 0 and 7.9 seconds
@@ -277,36 +287,35 @@ class Keithley_2400(Instrument):
 
     @property
     def error(self):
-        """ Returns a tuple of an error code and message from a 
-        single error. """
-        #err = self.values(":system:error?")
+        """Returns a tuple of an error code and message from a
+        single error."""
+        # err = self.values(":system:error?")
         err = self._visainstrument.query(":system:error?")
 
         if len(err) < 2:
             err = self._visainstrument.read()  # Try reading again
 
-        s = err.split(',')
+        s = err.split(",")
 
         code = int(s[0])
-        message = s[1].replace('"', '')
+        message = s[1].replace('"', "")
 
         return (code, message)
 
     def check_errors(self):
-        """ Logs any system errors reported by the instrument.
-        """
+        """Logs any system errors reported by the instrument."""
         code, message = self.error
 
         while code != 0:
             t = time()
-            #logging.warning("Keithley 2400 reported error: %d, %s" % (code, message))
+            # logging.warning("Keithley 2400 reported error: %d, %s" % (code, message))
             print("Keithley 2400 reported error: %d, %s" % (code, message))
             code, message = self.error
             if (time() - t) > 10:
                 logging.warning("Timed out for Keithley 2400 error retrieval.")
 
     def reset(self):
-        """ Resets the instrument and clears the queue.  """
+        """Resets the instrument and clears the queue."""
         self._visainstrument.write("status:queue:clear;*RST;:stat:pres;:*CLS;")
 
     '''
@@ -329,11 +338,11 @@ class Keithley_2400(Instrument):
     '''
 
     def ramp_to_current(self, target_current, current_step):
-        delay0 = .005
+        delay0 = 0.005
 
         startI = self.get_current()
 
-        len = np.int(np.ceil(np.abs(target_current-startI)/current_step)+1)
+        len = np.int(np.ceil(np.abs(target_current - startI) / current_step) + 1)
         iList = np.linspace(startI, target_current, len)
 
         for _ in iList:
@@ -361,18 +370,18 @@ class Keithley_2400(Instrument):
         # for compatibility with meters with channels
         assert channel is None
 
-        start = float(self._visainstrument.query(':SOUR:VOLT:LEV?'))
+        start = float(self._visainstrument.query(":SOUR:VOLT:LEV?"))
 
         # source settings
-        self._visainstrument.write(':SOUR:FUNC VOLT')
-        self._visainstrument.write(':SOUR:VOLT:RANG {}'.format(
-            max(start, stop)))
+        self._visainstrument.write(":SOUR:FUNC VOLT")
+        self._visainstrument.write(
+            ":SOUR:VOLT:RANG {}".format(max(abs(start), abs(stop)))
+        )
 
         # step voltage from start to stop
-        ramp = np.linspace(start, stop,
-                           int(np.ceil(np.abs((stop - start) / step)) + 1))
+        ramp = np.linspace(start, stop, int(np.ceil(np.abs((stop - start) / step)) + 1))
         for i in ramp[1:]:
-            self._visainstrument.write(':SOUR:VOLT:LEV {}'.format(i))
+            self._visainstrument.write(":SOUR:VOLT:LEV {}".format(i))
             qt.msleep(0.001)
 
     def get_resistance(self):
@@ -388,46 +397,43 @@ class Keithley_2400(Instrument):
         return self.read_val()
 
     def trigger(self):
-        """ Executes a bus trigger, which can be used when 
-        :meth:`~.trigger_on_bus` is configured. 
+        """Executes a bus trigger, which can be used when
+        :meth:`~.trigger_on_bus` is configured.
         """
         return self._visainstrument.write("*TRG")
 
     def trigger_immediately(self):
-        """ Configures measurements to be taken with the internal
+        """Configures measurements to be taken with the internal
         trigger at the maximum sampling rate.
         """
         self._visainstrument.write(":ARM:SOUR IMM;:TRIG:SOUR IMM;")
 
     def trigger_on_bus(self):
-        """ Configures the trigger to detect events based on the bus
+        """Configures the trigger to detect events based on the bus
         trigger, which can be activated by :code:`GET` or :code:`*TRG`.
         """
         self._visainstrument.write(":ARM:COUN 1;:ARM:SOUR BUS;:TRIG:SOUR BUS;")
 
     def set_trigger_counts(self, arm, trigger):
-        """ Sets the number of counts for both the sweeps (arm) and the
+        """Sets the number of counts for both the sweeps (arm) and the
         points in those sweeps (trigger), where the total number of
         points can not exceed 2500
         """
         if arm * trigger > 2500 or arm * trigger < 0:
-            raise Exception(
-                "Keithley 2400 has a combined maximum of 2500 counts")
+            raise Exception("Keithley 2400 has a combined maximum of 2500 counts")
         if arm < trigger:
-            self._visainstrument.write(
-                ":ARM:COUN %d;:TRIG:COUN %d" % (arm, trigger))
+            self._visainstrument.write(":ARM:COUN %d;:TRIG:COUN %d" % (arm, trigger))
         else:
-            self._visainstrument.write(
-                ":TRIG:COUN %d;:ARM:COUN %d" % (trigger, arm))
+            self._visainstrument.write(":TRIG:COUN %d;:ARM:COUN %d" % (trigger, arm))
 
     def disable_buffer(self):
-        """ Disables the connection between measurements and the
+        """Disables the connection between measurements and the
         buffer, but does not abort the measurement process.
         """
         self._visainstrument.write(":TRAC:FEED:CONT NEV")
 
     def sample_continuously(self):
-        """ Causes the instrument to continuously read samples
+        """Causes the instrument to continuously read samples
         and turns off any buffer or output triggering
         """
         self.disable_buffer()
@@ -435,17 +441,18 @@ class Keithley_2400(Instrument):
         self.trigger_immediately()
 
     def set_timed_arm(self, interval):
-        """ Sets up the measurement to be taken with the internal
+        """Sets up the measurement to be taken with the internal
         trigger at a variable sampling rate defined by the interval
         in seconds between sampling points
         """
         if interval > 99999.99 or interval < 0.001:
             raise Exception(
-                "Keithley 2400 can only be time triggered between 1 ms and 1 Ms")
+                "Keithley 2400 can only be time triggered between 1 ms and 1 Ms"
+            )
         self._visainstrument.write(":ARM:SOUR TIM;:ARM:TIM %.3f" % interval)
 
     def trigger_on_external(self, line=1):
-        """ Configures the measurement trigger to be taken from a 
+        """Configures the measurement trigger to be taken from a
         specific line of an external trigger
 
         :param line: A trigger line from 1 to 4
@@ -454,8 +461,8 @@ class Keithley_2400(Instrument):
         cmd += ":ARM:ILIN %d;:TRIG:ILIN %d;" % (line, line)
         self._visainstrument.write(cmd)
 
-    def output_trigger_on_external(self, line=1, after='DEL'):
-        """ Configures the output trigger on the specified trigger link
+    def output_trigger_on_external(self, line=1, after="DEL"):
+        """Configures the output trigger on the specified trigger link
         line number, with the option of supplying the part of the
         measurement after which the trigger should be generated
         (default to delay, which is right before the measurement)
@@ -463,18 +470,16 @@ class Keithley_2400(Instrument):
         :param line: A trigger line from 1 to 4
         :param after: An event string that determines when to trigger
         """
-        self._visainstrument.write(
-            ":TRIG:OUTP %s;:TRIG:OLIN %d;" % (after, line))
+        self._visainstrument.write(":TRIG:OUTP %s;:TRIG:OLIN %d;" % (after, line))
 
     def disable_output_trigger(self):
-        """ Disables the output trigger for the Trigger layer
-        """
+        """Disables the output trigger for the Trigger layer"""
         self._visainstrument.write(":TRIG:OUTP NONE")
 
     def status(self):
         return self._visainstrument.query("status:queue?;")
 
-    '''
+    """
     def RvsI(self, startI, stopI, stepI, compliance, delay=10.0e-3, backward=False):
         num = int(float(stopI-startI)/float(stepI)) + 1
         currRange = 1.2*max(abs(stopI),abs(startI))
@@ -511,16 +516,16 @@ class Keithley_2400(Instrument):
         data.extend(self.RvsI(-minI, -maxI, -stepI, compliance=compliance, delay=delay, backward=True))
         self.disable_source()
         return data 
-    '''
+    """
 
     def use_rear_terminals(self):
-        """ Enables the rear terminals for measurement, and 
-        disables the front terminals. """
+        """Enables the rear terminals for measurement, and
+        disables the front terminals."""
         self._visainstrument.write(":ROUT:TERM REAR")
 
     def use_front_terminals(self):
-        """ Enables the front terminals for measurement, and 
-        disables the rear terminals. """
+        """Enables the front terminals for measurement, and
+        disables the rear terminals."""
         self._visainstrument.write(":ROUT:TERM FRON")
 
     '''
@@ -537,7 +542,7 @@ class Keithley_2400(Instrument):
     '''
 
     def set_mode(self, mode):
-        '''
+        """
         #Set the mode to the specified value
 
         Input:
@@ -545,14 +550,14 @@ class Keithley_2400(Instrument):
 
         Output:
             None
-        '''
+        """
 
-        logging.debug('Set mode to %s', mode)
+        logging.debug("Set mode to %s", mode)
         if mode in self.modes:
             string = 'SENS:FUNC "%s"' % mode
             self._visainstrument.write(string)
 
-            '''
+            """
             if mode.startswith('VOLT'):
                 self._change_units('V')
             elif mode.startswith('CURR'):
@@ -561,16 +566,16 @@ class Keithley_2400(Instrument):
                 self._change_units('Ohm')
             elif mode.startswith('FREQ'):
                 self._change_units('Hz')
-            '''
+            """
 
         else:
-            logging.error('invalid mode %s' % mode)
+            logging.error("invalid mode %s" % mode)
 
         # self.get_all()
-            # Get all values again because some paramaters depend on mode
+        # Get all values again because some paramaters depend on mode
 
     def read_val(self, ignore_error=False):
-        '''
+        """
         Aborts current trigger and sends a new trigger
         to the device and reads float value.
         Do not use when trigger mode is 'CONT'
@@ -581,9 +586,9 @@ class Keithley_2400(Instrument):
 
         Output:
             value(float) : currrent value on input
-        '''
+        """
 
-        '''
+        """
         trigger_status = self.get_trigger_continuous(query=False)
         if trigger_status:
             if ignore_error:
@@ -601,12 +606,12 @@ class Keithley_2400(Instrument):
         else:
             logging.error('Error in retrieving triggering status, no trigger sent.')
             
-        '''
+        """
 
-        logging.debug('Read current value')
-        #text = self._visainstrument.ask('READ?')
+        logging.debug("Read current value")
+        # text = self._visainstrument.ask('READ?')
         self._visainstrument.write(":OUTP ON")
-        text = self._visainstrument.query('READ?')
+        text = self._visainstrument.query("READ?")
         self._trigger_sent = False
 
         self.check_errors()
