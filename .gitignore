@@ -1,6 +1,5 @@
 .venv
-.vscode/settings.json
-.pylintrc
+.vscode
 qtlab.log
 qtlab.lock
 *.pyc
