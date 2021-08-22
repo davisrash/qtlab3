@@ -21,8 +21,8 @@ currenttime= time()
 
 
 ##### Declare no of LI'S
-numlock = 2
-DMM = True
+numlock = 1
+DMM = False
 ######
 
 
@@ -585,7 +585,7 @@ class S1():
             temp_ramp = np.linspace(xcurrent,xend,ramp_steps)
             #print(temp_ramp)    
             for y in temp_ramp[1:]:
-                magnet.get_fieldZ()   # to prevent timing out
+                #magnet.get_fieldZ()   # to prevent timing out
                 if (y > xend and xcurrent < xend) or (y < xend and xcurrent > xend):
                     keithley1.set_voltage(xend)
                     #print(x)
@@ -731,7 +731,7 @@ delay1 = 2.
 delay2 = 0.01
 
 
-filename = 'VA_485_Ebase_F'
+filename = 'VA_182Z_July2021'
 number_gates = 1
 
 a = S1()
@@ -789,7 +789,7 @@ tstop = 100000
 
 V_start = 0
 V_end = -5
-Step = .05
+Step = .01
 thresh = 1E5
 
 #print('hello')

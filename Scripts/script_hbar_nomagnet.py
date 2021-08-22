@@ -710,7 +710,7 @@ GainL1 = 1
 # Initialization of the lockins
 V_in = 100E-6
 #lockin1.set_amplitude(0.098)
-R_sense = 992
+R_sense = 985
 
 if DMM ==False : 
     #freq = 17.7
@@ -728,7 +728,7 @@ delay = 3.5
 delay_lines = 30
 
 
-filename = 'VA_182B_Jan2021'
+filename = 'VA_182Z_July2021'
 number_gates = 1
 
 a = S1()
@@ -740,13 +740,16 @@ ramprate = 1E-2
 #parameters for gate scan
  
 start1 = 0
-end1 = -4
+end1 = -5
 xstep1 = 1E-2
 start2 = -0.4
 end2 = -1.8
 xstep2 = 1E-2
 rev = False
-keithon  = 0
+keithon  = 1
 gate1isqdac=1
 gate2isqdac=1
-threshold_set=  1       # 0 = conductance threshold, 1 = current threshold
+threshold_set=  0       # 0 = conductance threshold, 1 = current threshold
+
+
+a.qdac_1gate(1,'gate_center',start1,end1,xstep1,False,1E5,compliance)
