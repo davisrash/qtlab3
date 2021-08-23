@@ -1,9 +1,7 @@
 """
-docstring
+TODO add docstring
 """
 
-import sys
-from shutil import copyfile
 from time import time
 
 import numpy as np
@@ -12,12 +10,9 @@ import source.qt as qt
 from source.data import Data, IncrementalGenerator
 
 
-current_time = time()
-
-
 def create_data(filename, instruments, circuit, sweeps):
     """
-    add docstring
+    TODO add docstring
     """
 
     # incrementally number file names in the given data directory
@@ -94,17 +89,13 @@ def create_data(filename, instruments, circuit, sweeps):
 
     # create data file
     data.create_file()
-    copyfile(
-        sys._getframe().f_code.co_filename,
-        data.get_dir() + "\\" + filename + "_" + str(generator.counter - 1) + ".py",
-    )
 
     return data
 
 
-def take_data(instruments, circuit, channels=None):
+def take_data(instruments, circuit, start_time, channels=None):
     """
-    add docstring
+    TODO add docstring
     """
     # TODO standardize parameter measuring, i.e. get_X()
     # and get_data_param0()
@@ -165,20 +156,17 @@ def take_data(instruments, circuit, channels=None):
         for magnet in instruments["magnets"]:
             z.append(magnet.get_fieldZ())
 
-    # get time
-    t = time() - current_time
-
     return (
         [i for j in zip(x, x_pros, y, y_pros) for i in j]
         + [i for j in zip(gates, leaks) for i in j]
         + z
-        + [t]
+        + [time() - start_time]
     )
 
 
 def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
     """
-    add docstring
+    TODO add docstring
     """
 
     qt.mstart()
@@ -213,13 +201,14 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
         qt.msleep(sweep["intersweep_delay"])
 
+        start_time = time()
         for x in sweep["vector"]:
             instruments["meters"][0].ramp_to_voltage(
                 x, sweep["ramp_rate"], channel=sweep["channel"]
             )
 
             qt.msleep(sweep["intrasweep_delay"])
-            data_vals = take_data(instruments, circuit, channels)
+            data_vals = take_data(instruments, circuit, start_time, channels)
 
             data.add_data_point([x, np.nan] + data_vals)
 
@@ -262,6 +251,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
         qt.msleep(sweeps[0]["intersweep_delay"])
 
+        start_time = time()
         for x in sweeps[0]["vector"]:
             instruments["meters"][0].ramp_to_voltage(
                 x, sweeps[0]["ramp_rate"], channel=sweeps[0]["channel"]
@@ -275,7 +265,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
                 )
 
                 qt.msleep(sweeps[1]["intrasweep_delay"])
-                data_vals = take_data(instruments, circuit, channels)
+                data_vals = take_data(instruments, circuit, start_time, channels)
 
                 data.add_data_point([x, y] + data_vals)
 
@@ -311,10 +301,12 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
     qt.mend()
 
+    return data
+
 
 def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
     """
-    add docstring
+    TODO add docstring
     """
     # TODO says `sweeps` but assumes only one, potentially OK but then need to
     # force one sweep and one magnet and then work around mandatory 2D data in
@@ -350,10 +342,9 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
     data = create_data(filename, instruments, circuit, sweeps)
 
     # TODO conform to "standard" instrument looping
+    start_time = time()
     for magnet in instruments["magnets"]:
-        current_time = time()
-
-        data_values = take_data(instruments, circuit)
+        data_values = take_data(instruments, circuit, start_time)
         data.add_data_point([sweeps["vector"][0], 0] + data_values)
 
         magnet.set_rampRateZ(sweeps["magnet_ramp_rate"])
@@ -370,17 +361,17 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
 
         while is_ramping:
             # TODO take data quickly (?)
-            data_values = take_data(instruments, circuit)
+            data_values = take_data(instruments, circuit, start_time)
             data.add_data_point([sweeps["vector"][counter], 0] + data_values)
 
-            counter = counter + 1
+            counter += 1
 
             qt.msleep(sweeps["intersweep_delay"])
 
             if magnet.get_rampStateZ() == 2 or magnet.get_rampStateZ() == 3:
                 is_ramping = False
 
-        data_values = take_data(instruments, circuit)
+        data_values = take_data(instruments, circuit, start_time)
         data.add_data_point([sweeps["stop"], 0] + data_values)
 
         print("ramp ended")
@@ -389,18 +380,19 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
 
         qt.mend()
 
+        return data
 
-def record(filename, instruments, circuit, sweeps, time0, timestep):
+
+def record(filename, instruments, circuit, sweeps, duration, timestep):
     """
-    add docstring
+    TODO add docstring
     """
 
     qt.mstart()
 
-    sweeps["vector"] = np.arange(0, time0, timestep)
+    sweeps["vector"] = np.arange(0, duration, timestep)
 
     data = create_data(filename, instruments, circuit, sweeps)
-    data_vals = take_data(instruments, circuit)
 
     # what meter to use?
     instruments["meters"][0].ramp_to_voltage(
@@ -409,10 +401,10 @@ def record(filename, instruments, circuit, sweeps, time0, timestep):
 
     qt.msleep(sweeps["intersweep_delay"])
 
-    current_time = time()
-    while time() - current_time < time0:
+    start_time = time()
+    while time() - start_time < duration:
         # TODO take data quickly (?)
-        data_vals = take_data(instruments, circuit)
+        data_vals = take_data(instruments, circuit, start_time)
         data.add_data_point([np.nan, np.nan] + data_vals)
 
         qt.msleep(timestep)
@@ -421,3 +413,5 @@ def record(filename, instruments, circuit, sweeps, time0, timestep):
     data.close_file()
 
     qt.mend()
+
+    return data

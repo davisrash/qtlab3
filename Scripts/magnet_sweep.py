@@ -2,6 +2,9 @@
 add docstring
 """
 
+import sys
+from shutil import copyfile
+
 import source.qt as qt
 import Scripts.modules.hbar_dev as hbar
 
@@ -48,5 +51,11 @@ SWEEPS = {
 CHANNELS = [None]
 
 # run magnet sweep
-# hbar.magnet_sweep(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS)
-hbar.record(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS, 10, 1)
+# data = hbar.magnet_sweep(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS)
+data = hbar.record(FILENAME, INSTRUMENTS, CIRCUIT, SWEEPS, 10, 1)
+
+
+copyfile(
+    sys._getframe().f_code.co_filename,
+    data.get_dir() + "\\" + data.get_filename()[:-4] + ".py",
+)

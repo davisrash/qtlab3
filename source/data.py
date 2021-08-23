@@ -16,9 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-#import gobject
-#import gi
-#from gi.repository import GObject as gobject
+# import gobject
+# import gi
+# from gi.repository import GObject as gobject
 import instruments
 import instrument
 import qt
@@ -37,9 +37,10 @@ from gettext import gettext as _L
 from source.lib import namedlist, temp
 from source.lib.misc import dict_to_ordered_tuples, get_arg_type
 from source.lib.config import get_config
+
 config = get_config()
-in_qtlab = config.get('qtlab', False)
-#from lib.network.object_sharer import SharedGObject, cache_result
+in_qtlab = config.get("qtlab", False)
+# from lib.network.object_sharer import SharedGObject, cache_result
 
 # if in_qtlab:
 
@@ -47,15 +48,17 @@ in_qtlab = config.get('qtlab', False)
 
 
 class DateTimeGenerator:
-    '''
+    """
     Class to generate filenames / directories based on the date and time.
-    '''
+    """
 
     def __init__(self):
         pass
 
-    def create_data_dir(self, datadir, name=None, ts=None, datesubdir=True, timesubdir=True):
-        '''
+    def create_data_dir(
+        self, datadir, name=None, ts=None, datesubdir=True, timesubdir=True
+    ):
+        """
         Create and return a new data directory.
 
         Input:
@@ -67,46 +70,46 @@ class DateTimeGenerator:
 
         Output:
             The directory to place the new file in
-        '''
+        """
 
         path = datadir
         if ts is None:
             ts = time.localtime()
         if datesubdir:
-            path = os.path.join(path, time.strftime('%Y%m%d', ts))
+            path = os.path.join(path, time.strftime("%Y%m%d", ts))
         if timesubdir:
-            tsd = time.strftime('%H%M%S', ts)
+            tsd = time.strftime("%H%M%S", ts)
             if name is not None:
-                tsd += '_' + name
+                tsd += "_" + name
             path = os.path.join(path, tsd)
 
         return path
 
     def new_filename(self, data_obj):
-        '''Return a new filename, based on name and timestamp.'''
+        """Return a new filename, based on name and timestamp."""
 
-        dir = self.create_data_dir(config['datadir'], name=data_obj._name,
-                                   ts=data_obj._localtime)
-        tstr = time.strftime('%H%M%S', data_obj._localtime)
-        filename = '%s_%s.dat' % (tstr, data_obj._name)
+        dir = self.create_data_dir(
+            config["datadir"], name=data_obj._name, ts=data_obj._localtime
+        )
+        tstr = time.strftime("%H%M%S", data_obj._localtime)
+        filename = "%s_%s.dat" % (tstr, data_obj._name)
 
         return os.path.join(dir, filename)
 
 
 class IncrementalGenerator:
-    '''
+    """
     Class to generate filenames that are incrementally numbered.
-    '''
+    """
 
     def __init__(self, basename, start=1):
         self._basename = basename
         self._counter = start
         self._counter = self._check_last_number(self._counter)
-        logging.info('IncrementalGenerator: starting counter at %d',
-                     self._counter)
+        logging.info("IncrementalGenerator: starting counter at %d", self._counter)
 
     def _fn(self, n):
-        return self._basename + ('_%d.dat' % n)
+        return self._basename + ("_%d.dat" % n)
 
     def _check_last_number(self, start=1):
         if not os.path.exists(self._fn(1)):
@@ -119,12 +122,12 @@ class IncrementalGenerator:
             stepsize *= 2
 
         dir = -1
-        #stepsize /= 2
-        stepsize = stepsize//2
+        # stepsize /= 2
+        stepsize = stepsize // 2
         while stepsize != 0:
             if os.path.exists(self._fn(curn)):
-                #stepsize /= 2
-                stepsize = stepsize//2
+                # stepsize /= 2
+                stepsize = stepsize // 2
                 curn += stepsize
             else:
                 curn -= stepsize
@@ -150,14 +153,14 @@ class IncrementalGenerator:
 
 class _DataList(namedlist.NamedList):
     def __init__(self, time_name=False):
-        namedlist.NamedList.__init__(self, base_name='data')
+        namedlist.NamedList.__init__(self, base_name="data")
 
         self._time_name = time_name
 
     def new_item_name(self, item, name):
-        '''Function to generate a new item name.'''
+        """Function to generate a new item name."""
 
-        if name == '':
+        if name == "":
             self._auto_counter += 1
             name = self._base_name + str(self._auto_counter)
 
@@ -168,14 +171,14 @@ class _DataList(namedlist.NamedList):
 
 
 class Data:
-    '''
+    """
     Data class
-    '''
+    """
 
     _data_list = _DataList()
     _filename_generator = DateTimeGenerator()
 
-    '''
+    """
     __gsignals__ = {
         'new-data-point': (gobject.SIGNAL_RUN_FIRST,
                             gobject.TYPE_NONE,
@@ -184,9 +187,9 @@ class Data:
                             gobject.TYPE_NONE,
                             ())
     }
-    '''
+    """
 
-    '''
+    """
     _METADATA_INFO = {
         'instrument': {
             're': re.compile('^#[ \t]*Ins?trument: ?(.*)$', re.I),
@@ -218,60 +221,56 @@ class Data:
             'function': lambda self, type: self._type_added(type)
         },
     }
-    '''
+    """
 
     _METADATA_INFO = {
-        'instrument': {
-            're': re.compile('^#[ \t]*Ins?trument: ?(.*)$', re.I),
-            'type': bytes
+        "instrument": {
+            "re": re.compile("^#[ \t]*Ins?trument: ?(.*)$", re.I),
+            "type": bytes,
         },
-        'parameter': {
-            're': re.compile('^#[ \t]*Parameter: ?(.*)$', re.I),
-            'type': bytes
+        "parameter": {
+            "re": re.compile("^#[ \t]*Parameter: ?(.*)$", re.I),
+            "type": bytes,
         },
-        'units': {
-            're': re.compile('^#[ \t]*Units?: ?(.*)$', re.I),
-            'type': bytes
+        "units": {"re": re.compile("^#[ \t]*Units?: ?(.*)$", re.I), "type": bytes},
+        "steps": {"re": re.compile("^#[ \t]*Steps?: ?(.*)$", re.I), "type": int},
+        "stepsize": {
+            "re": re.compile("^#[ \t]*Stepsizes?: ?(.*)$", re.I),
+            "type": float,
         },
-        'steps': {
-            're': re.compile('^#[ \t]*Steps?: ?(.*)$', re.I),
-            'type': int
-        },
-        'stepsize': {
-            're': re.compile('^#[ \t]*Stepsizes?: ?(.*)$', re.I),
-            'type': float
-        },
-        'name': {
-            're': re.compile('^#[ \t]*Name: ?(.*)$', re.I),
-            'type': bytes
-        },
-        'type': {
-            're': re.compile('^#[ \t]*Type?: ?(.*)$', re.I),
-            'type': bytes,
-            'function': lambda self, type: self._type_added(type)
+        "name": {"re": re.compile("^#[ \t]*Name: ?(.*)$", re.I), "type": bytes},
+        "type": {
+            "re": re.compile("^#[ \t]*Type?: ?(.*)$", re.I),
+            "type": bytes,
+            "function": lambda self, type: self._type_added(type),
         },
     }
 
-    _META_STEPRE = re.compile('^#.*[ \t](\\d+) steps', re.I)
-    _META_COLRE = re.compile('^#.*Column ?(\\d+)', re.I)
-    _META_COMMENTRE = re.compile('^#(.*)', re.I)
+    _META_STEPRE = re.compile("^#.*[ \t](\\d+) steps", re.I)
+    _META_COLRE = re.compile("^#.*Column ?(\\d+)", re.I)
+    _META_COMMENTRE = re.compile("^#(.*)", re.I)
 
-    '''
+    """
     _INT_TYPES = (
             types.IntType, types.LongType,
             np.int, np.int0, np.int8,
             np.int16, np.int32, np.int64,
     )
-    '''
+    """
 
     _INT_TYPES = (
-        int, int,
-        np.int, np.int0, np.int8,
-        np.int16, np.int32, np.int64,
+        int,
+        int,
+        np.int,
+        np.int0,
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
     )
 
     def __init__(self, *args, **kwargs):
-        '''
+        """
         Create data object. There are three different uses:
         1) create an empty data object for use in a measurement
         2) create a data object and fill immediately with a np array
@@ -295,17 +294,17 @@ class Data:
             tempfile (bool), default False. If True create a temporary file
                 for the data.
             binary (bool), default True. Whether tempfile should be binary.
-        '''
+        """
 
         # Init SharedGObject a bit lower
 
-        name = kwargs.get('name', '')
-        infile = kwargs.get('infile', True)
-        inmem = kwargs.get('inmem', False)
+        name = kwargs.get("name", "")
+        infile = kwargs.get("infile", True)
+        inmem = kwargs.get("inmem", False)
 
         self._inmem = inmem
-        self._tempfile = kwargs.get('tempfile', False)
-        self._temp_binary = kwargs.get('binary', True)
+        self._tempfile = kwargs.get("tempfile", False)
+        self._temp_binary = kwargs.get("binary", True)
         self._options = kwargs
         self._file = None
         self._stop_req_hid = None
@@ -332,8 +331,8 @@ class Data:
         self._comment = []
         self._localtime = time.localtime()
         self._timestamp = time.asctime(self._localtime)
-        self._timemark = time.strftime('%H%M%S', self._localtime)
-        self._datemark = time.strftime('%Y%m%d', self._localtime)
+        self._timemark = time.strftime("%H%M%S", self._localtime)
+        self._datemark = time.strftime("%Y%m%d", self._localtime)
 
         # FIXME: the name generation here is a bit nasty
         name = Data._data_list.new_item_name(self, name)
@@ -342,27 +341,25 @@ class Data:
         # SharedGObject.__init__(self, 'data_%s' % name,
         #    replace=True, idle_emit=True)
 
-        data = get_arg_type(args, kwargs,
-                            (np.ndarray, list, tuple),
-                            'data')
+        data = get_arg_type(args, kwargs, (np.ndarray, list, tuple), "data")
         if data is not None:
             self.set_data(data)
         else:
             self._data = np.array([])
             self._infile = infile
 
-        #filepath = get_arg_type(args, kwargs, types.StringType, 'filepath')
-        filepath = get_arg_type(args, kwargs, str, 'filepath')
+        # filepath = get_arg_type(args, kwargs, types.StringType, 'filepath')
+        filepath = get_arg_type(args, kwargs, str, "filepath")
         if self._tempfile:
             self.create_tempfile(filepath)
-        elif filepath is not None and filepath != '':
-            if 'inmem' not in kwargs:
+        elif filepath is not None and filepath != "":
+            if "inmem" not in kwargs:
                 inmem = True
             self.set_filepath(filepath, inmem)
             self._infile = True
         else:
-            self._dir = ''
-            self._filename = ''
+            self._dir = ""
+            self._filename = ""
             self._infile = infile
 
         # Don't hold references to temporary data files
@@ -379,65 +376,65 @@ class Data:
     def __setitem__(self, index, val):
         self._data[index] = val
 
-# Data info
+    # Data info
 
     def get_dimensions(self):
-        '''Return info for all dimensions.'''
+        """Return info for all dimensions."""
         return self._dimensions
 
     def get_dimension_size(self, dim):
-        '''Return size of dimensions dim'''
+        """Return size of dimensions dim"""
 
         if dim >= len(self._dimensions):
             return 0
 
-        if 'size' in self._dimensions[dim]:
-            return self._dimensions[dim]['size']
+        if "size" in self._dimensions[dim]:
+            return self._dimensions[dim]["size"]
         else:
             return 0
 
     def get_dimension_name(self, dim):
-        '''Return the name of dimension dim'''
+        """Return the name of dimension dim"""
 
         if dim >= len(self._dimensions):
-            return 'col%d' % dim
+            return "col%d" % dim
         else:
-            return self._dimensions[dim].get('name', 'col%d' % dim)
+            return self._dimensions[dim].get("name", "col%d" % dim)
 
     def get_ndimensions(self):
-        '''Return number of dimensions.'''
+        """Return number of dimensions."""
         return len(self._dimensions)
 
     def get_coordinates(self):
-        '''Return info for all coordinate dimensions.'''
-        return self._dimensions[:self._ncoordinates]
+        """Return info for all coordinate dimensions."""
+        return self._dimensions[: self._ncoordinates]
 
     def get_ncoordinates(self):
-        '''Return number of coordinate dimensions.'''
+        """Return number of coordinate dimensions."""
         return self._ncoordinates
 
     def get_values(self):
-        '''Return info for all value dimensions.'''
-        return self._dimensions[self._ncoordinates:]
+        """Return info for all value dimensions."""
+        return self._dimensions[self._ncoordinates :]
 
     def get_nvalues(self):
-        '''Return number of value dimensions.'''
+        """Return number of value dimensions."""
         return self._nvalues
 
     def get_npoints(self):
-        '''Return number of data points'''
+        """Return number of data points"""
         return self._npoints
 
     def get_npoints_max_block(self):
-        '''Return the maximum number of data points in a block.'''
+        """Return the maximum number of data points in a block."""
         return self._npoints_max_block
 
     def get_npoints_last_block(self):
-        '''Return number of data points in most recent block'''
+        """Return number of data points in most recent block"""
         return self.get_block_size(self.get_nblocks() - 1)
 
     def get_nblocks(self):
-        '''Return number of blocks.'''
+        """Return number of blocks."""
         nblocks = len(self._block_sizes)
         if self._npoints_last_block > 0:
             return nblocks + 1
@@ -445,7 +442,7 @@ class Data:
             return nblocks
 
     def get_nblocks_complete(self):
-        '''Return number of completed blocks.'''
+        """Return number of completed blocks."""
         return len(self._block_sizes)
 
     def get_block_size(self, blockid):
@@ -457,40 +454,40 @@ class Data:
             return self._block_sizes[blockid]
 
     def format_label(self, dim):
-        '''Return a formatted label for dimensions dim'''
+        """Return a formatted label for dimensions dim"""
 
         if dim >= len(self._dimensions):
-            return ''
+            return ""
 
         info = self._dimensions[dim]
 
-        label = ''
-        if 'name' in info:
-            label += info['name']
+        label = ""
+        if "name" in info:
+            label += info["name"]
 
-        if 'instrument' in info and 'parameter' in info:
-            insname = info['instrument']
+        if "instrument" in info and "parameter" in info:
+            insname = info["instrument"]
             if type(insname) not in (bytes, str):
                 insname = insname.get_name()
 
-            label += ' (%s.%s' % (insname, info['parameter'])
-            if 'units' in info:
-                label += ' [%s]' % info['units']
-            label += ')'
+            label += " (%s.%s" % (insname, info["parameter"])
+            if "units" in info:
+                label += " [%s]" % info["units"]
+            label += ")"
 
-        elif 'name' not in info:
-            label = 'dim%d' % dim
+        elif "name" not in info:
+            label = "dim%d" % dim
 
         return label
 
     def get_data(self, reshape=False):
-        '''
+        """
         Return data as a np.array.
 
         Normally the data is just a 2D array, with a set of values on each
         'line'. However, if reshape is True, the data will be reshaped into
         the detected dimension sizes.
-        '''
+        """
 
         if not self._inmem and self._infile:
             self._load_file()
@@ -504,31 +501,31 @@ class Data:
             return None
 
     def get_reshaped_data(self):
-        ''''Return data reshaped with the proper dimensions.'''
+        """'Return data reshaped with the proper dimensions."""
         return self.get_data(reshape=True)
 
     def get_title(self, coorddims, valdim):
-        '''
+        """
         Return a title that can be used in a plot, containing the filename
         and the name of the coordinate and value dimensions.
-        '''
+        """
 
-        dir = self.get_dir().rstrip('/\\')
+        dir = self.get_dir().rstrip("/\\")
         lastdir = os.path.split(dir)[-1]
-        dirfn = '%s/%s' % (lastdir, self.get_filename())
+        dirfn = "%s/%s" % (lastdir, self.get_filename())
 
-        title = '%s, %s vs ' % (dirfn, self.get_dimension_name(valdim))
+        title = "%s, %s vs " % (dirfn, self.get_dimension_name(valdim))
 
         first = True
         for coord in coorddims:
             if not first:
-                title += ', '
+                title += ", "
             first = False
-            title += '%s' % self.get_dimension_name(coord)
+            title += "%s" % self.get_dimension_name(coord)
 
         return title
 
-# File info
+    # File info
 
     @staticmethod
     def set_filename_generator(generator):
@@ -550,24 +547,24 @@ class Data:
         self._name = name
 
     def get_time_name(self):
-        return '%s_%s' % (self._timemark, self._name)
+        return "%s_%s" % (self._timemark, self._name)
 
     def get_settings_filepath(self):
         fn, ext = os.path.splitext(self.get_filepath())
-        return fn + '.set'
+        return fn + ".set"
 
     def is_file_open(self):
-        '''Return whether a file is open or not.'''
+        """Return whether a file is open or not."""
 
         if self._file is not None:
             return True
         else:
             return False
 
-# Measurement info
+    # Measurement info
 
     def add_coordinate(self, name, **kwargs):
-        '''
+        """
         Add a coordinate dimension. Use add_value() to add a value dimension.
 
         Input:
@@ -580,17 +577,17 @@ class Data:
                 precision (int): precision of stored data, default is
                     'default_precision' from config, or 12 if not defined.
                 format (string): format of stored data, not used by default
-        '''
+        """
 
-        kwargs['name'] = name
-        kwargs['type'] = 'coordinate'
-        if 'size' not in kwargs:
-            kwargs['size'] = 0
+        kwargs["name"] = name
+        kwargs["type"] = "coordinate"
+        if "size" not in kwargs:
+            kwargs["size"] = 0
         self._ncoordinates += 1
         self._dimensions.append(kwargs)
 
     def add_value(self, name, **kwargs):
-        '''
+        """
         Add a value dimension. Use add_dimension() to add a coordinate
         dimension.
 
@@ -603,33 +600,33 @@ class Data:
                 precision (int): precision of stored data, default is
                     'default_precision' from config, or 12 if not defined.
                 format (string): format of stored data, not used by default
-        '''
-        kwargs['name'] = name
-        kwargs['type'] = 'value'
+        """
+        kwargs["name"] = name
+        kwargs["type"] = "value"
         self._nvalues += 1
         self._dimensions.append(kwargs)
 
     def add_comment(self, comment):
-        '''Add comment to the Data object.'''
+        """Add comment to the Data object."""
         self._comment.append(comment)
         if self._file is not None:
-            self._file.write('# %s\n' % comment)
+            self._file.write("# %s\n" % comment)
 
     def get_comment(self):
-        '''Return the comment for the Data object.'''
+        """Return the comment for the Data object."""
         return self._comment
 
-# File writing
+    # File writing
 
     def create_file(self, name=None, filepath=None, settings_file=True):
-        '''
+        """
         Create a new data file and leave it open. In addition a
         settings file is generated, unless settings_file=False is
         specified.
 
         This function should be called after adding the comment and the
         coordinate and value metadata, because it writes the file header.
-        '''
+        """
 
         if name is None and filepath is None:
             name = self._name
@@ -642,9 +639,9 @@ class Data:
             os.makedirs(self._dir)
 
         try:
-            self._file = open(self.get_filepath(), 'w+')
+            self._file = open(self.get_filepath(), "w+")
         except:
-            logging.error('Unable to open file')
+            logging.error("Unable to open file")
             return False
 
         self._write_header()
@@ -654,17 +651,18 @@ class Data:
 
         try:
             if in_qtlab:
-                self._stop_req_hid = \
-                    qt.flow.connect('stop-request', self._stop_request_cb)
+                self._stop_req_hid = qt.flow.connect(
+                    "stop-request", self._stop_request_cb
+                )
         except:
             pass
 
         return True
 
     def close_file(self):
-        '''
+        """
         Close open data file.
-        '''
+        """
 
         if self._file is not None:
             self._file.close()
@@ -676,71 +674,70 @@ class Data:
 
     def _write_settings_file(self):
         fn = self.get_settings_filepath()
-        f = open(fn, 'w+')
-        f.write('Filename: %s\n' % self._filename)
-        f.write('Timestamp: %s\n\n' % self._timestamp)
+        f = open(fn, "w+")
+        f.write("Filename: %s\n" % self._filename)
+        f.write("Timestamp: %s\n\n" % self._timestamp)
 
         inslist = dict_to_ordered_tuples(qt.instruments.get_instruments())
         for (iname, ins) in inslist:
-            f.write('Instrument: %s\n' % iname)
+            f.write("Instrument: %s\n" % iname)
             parlist = dict_to_ordered_tuples(ins.get_parameters())
             for (param, popts) in parlist:
-                f.write('\t%s: %s\n' % (param, ins.get(param, query=False)))
+                f.write("\t%s: %s\n" % (param, ins.get(param, query=False)))
 
         f.close()
 
     def _write_header(self):
-        self._file.write('# Filename: %s\n' % self._filename)
-        self._file.write('# Timestamp: %s\n\n' % self._timestamp)
+        self._file.write("# Filename: %s\n" % self._filename)
+        self._file.write("# Timestamp: %s\n\n" % self._timestamp)
         for line in self._comment:
-            self._file.write('# %s\n' % line)
+            self._file.write("# %s\n" % line)
 
         i = 1
         for dim in self._dimensions:
-            self._file.write('# Column %d:\n' % i)
+            self._file.write("# Column %d:\n" % i)
             for key, val in dict_to_ordered_tuples(dim):
-                self._file.write('#\t%s: %s\n' % (key, val))
+                self._file.write("#\t%s: %s\n" % (key, val))
             i += 1
 
-        self._file.write('\n')
+        self._file.write("\n")
 
     def _format_data_value(self, val, colnum):
         if type(val) in self._INT_TYPES:
-            return '%d' % val
+            return "%d" % val
 
         if colnum < len(self._dimensions):
             opts = self._dimensions[colnum]
-            if 'format' in opts:
-                return opts['format'] % val
-            elif 'precision' in opts:
-                format = '%%.%de' % opts['precision']
+            if "format" in opts:
+                return opts["format"] % val
+            elif "precision" in opts:
+                format = "%%.%de" % opts["precision"]
                 return format % val
 
-        precision = config.get('default_precision', 12)
-        format = '%%.%de' % precision
+        precision = config.get("default_precision", 12)
+        format = "%%.%de" % precision
         return format % val
 
     def _write_data_line(self, args):
-        '''
+        """
         Write a line of data.
         Args can be a single value or a 1d np.array / list / tuple.
-        '''
+        """
 
-        if hasattr(args, '__len__'):
+        if hasattr(args, "__len__"):
             if len(args) > 0:
                 line = self._format_data_value(args[0], 0)
                 for colnum in range(1, len(args)):
-                    line += '\t%s' % \
-                            self._format_data_value(args[colnum], colnum)
+                    line += "\t%s" % self._format_data_value(args[colnum], colnum)
             else:
-                line = ''
+                line = ""
         else:
             line = self._format_data_value(args, 0)
 
-        line += '\n'
+        line += "\n"
 
         if self._file is None:
-            logging.info('File not opened yet, doing now')
+            logging.info("File not opened yet, doing now")
             self.create_file()
 
         self._file.write(line)
@@ -760,7 +757,7 @@ class Data:
 
     def _write_data(self):
         if not self._inmem:
-            logging.warning('Unable to _write_data() without having it memory')
+            logging.warning("Unable to _write_data() without having it memory")
             return False
 
         blockcols = self._get_block_columns()
@@ -770,26 +767,25 @@ class Data:
             if type(vals) is np.ndarray and lastvals is not None:
                 for i in range(len(vals)):
                     if blockcols[i] and vals[i] != lastvals[i]:
-                        self._file.write('\n')
+                        self._file.write("\n")
 
             self._write_data_line(vals)
             lastvals = vals
 
     def _write_binary(self):
         if not self._inmem:
-            logging.warning(
-                'Unable to _write_binary() without having it memory')
+            logging.warning("Unable to _write_binary() without having it memory")
             return False
 
         self._data.tofile(self._file.get_file())
         return True
 
-# High-level file writing
+    # High-level file writing
 
     def write_file(self, name=None, filepath=None):
-        '''
+        """
         Create and write a new data file.
-        '''
+        """
 
         if not self.create_file(name=name, filepath=filepath):
             return
@@ -798,14 +794,14 @@ class Data:
         self.close_file()
 
     def create_tempfile(self, path=None):
-        '''
+        """
         Create a temporary file, optionally called <path>.
-        '''
+        """
 
         if self._temp_binary:
-            mode = 'wb'
+            mode = "wb"
         else:
-            mode = 'w'
+            mode = "w"
         self._file = temp.File(path, mode=mode, binary=self._temp_binary)
         try:
             if self._temp_binary:
@@ -817,18 +813,18 @@ class Data:
             self._file.close()
             self._tempfile = True
         except Exception as e:
-            logging.warning('Error creating temporary file: %s', e)
-            self._dir = ''
-            self._filename = ''
+            logging.warning("Error creating temporary file: %s", e)
+            self._dir = ""
+            self._filename = ""
             self._tempfile = False
 
     def rewrite_tempfile(self):
-        '''
+        """
         Rewrite the temporary file with the current data.
-        '''
+        """
 
         if not self._tempfile:
-            logging.warning('Data object has no temporary file to rewrite')
+            logging.warning("Data object has no temporary file to rewrite")
             return
 
         self._file.reopen()
@@ -839,18 +835,18 @@ class Data:
         self._file.close()
 
     def copy_file(self, fn):
-        '''
+        """
         Copy a relevant file to the directory where the main data file is
         located.
-        '''
+        """
         p, n = os.path.split(fn)
         newfn = os.path.join(self.get_dir(), n)
         shutil.copyfile(fn, newfn)
 
-# Adding data
+    # Adding data
 
     def add_data_point(self, *args, **kwargs):
-        '''
+        """
 
         Add new data point(s) to the data set (in memory and/or on disk).
         Note that one data point can consist of multiple coordinates and values.
@@ -876,13 +872,13 @@ class Data:
 
         Output:
             None
-        '''
+        """
         # check what type of data are being added
         shapes = [np.shape(i) for i in args]
         dims = np.array([len(i) for i in shapes])
 
         if len(args) == 0:
-            logging.warning('add_data_point(): no data specified')
+            logging.warning("add_data_point(): no data specified")
             return
         elif len(args) == 1:
             if dims[0] == 2:
@@ -897,15 +893,15 @@ class Data:
                 ncols = 1
                 npoints = 1
             else:
-                logging.warning(
-                    'add_data_point(): adding >2d data not supported')
+                logging.warning("add_data_point(): adding >2d data not supported")
                 return
         else:
             # Check if all arguments have same shape
             for i in range(1, len(args)):
-                if shapes[i] != shapes[i-1]:
+                if shapes[i] != shapes[i - 1]:
                     logging.warning(
-                        'add_data_point(): not all provided data arguments have same shape')
+                        "add_data_point(): not all provided data arguments have same shape"
+                    )
                     return
 
             if sum(dims != 1) == 0:
@@ -917,8 +913,7 @@ class Data:
                 ncols = len(args)
                 npoints = 1
             else:
-                logging.warning(
-                    'add_data_point(): addint >2d data not supported')
+                logging.warning("add_data_point(): addint >2d data not supported")
                 return
 
         # Check if the number of columns is correct.
@@ -927,16 +922,21 @@ class Data:
 
         if len(self._dimensions) == 0:
             logging.warning(
-                'add_data_point(): no dimensions specified, adding according to data')
+                "add_data_point(): no dimensions specified, adding according to data"
+            )
             self._add_missing_dimensions(ncols)
 
         if ncols < len(self._dimensions):
-            logging.warning('add_data_point(): missing columns (%d < %d)' %
-                            (ncols, len(self._dimensions)))
+            logging.warning(
+                "add_data_point(): missing columns (%d < %d)"
+                % (ncols, len(self._dimensions))
+            )
             return
         elif ncols > len(self._dimensions):
-            logging.warning('add_data_point(): too many columns (%d > %d)' %
-                            (ncols, len(self._dimensions)))
+            logging.warning(
+                "add_data_point(): too many columns (%d > %d)"
+                % (ncols, len(self._dimensions))
+            )
             return
 
         # At this point 'args' is either:
@@ -960,16 +960,16 @@ class Data:
         if self._npoints_last_block > self._npoints_max_block:
             self._npoints_max_block = self._npoints_last_block
 
-        if 'newblock' in kwargs and kwargs['newblock']:
+        if "newblock" in kwargs and kwargs["newblock"]:
             self.new_block()
         # else:
         #    self.emit('new-data-point')
 
     def new_block(self):
-        '''Start a new data block.'''
+        """Start a new data block."""
 
         if self._infile:
-            self._file.write('\n')
+            self._file.write("\n")
 
         self._block_sizes.append(self._npoints_last_block)
         self._npoints_last_block = 0
@@ -977,32 +977,32 @@ class Data:
         # self.emit('new-data-block')
 
     def _add_missing_dimensions(self, nfields):
-        '''
+        """
         Add extra dimensions so that the total equals nfields.
         Only the last field will be tagged as a value, the rest will be
         coordinates.
-        '''
+        """
 
         # Add info for (assumed coordinate) columns that had no metadata
         while self.get_ndimensions() < nfields - 1:
-            self.add_coordinate('col%d' % (self.get_ndimensions() + 1))
+            self.add_coordinate("col%d" % (self.get_ndimensions() + 1))
 
         # Add info for (assumed value) column that had no metadata
         if self.get_ndimensions() < nfields:
-            self.add_value('col%d' % (self.get_ndimensions() + 1))
+            self.add_value("col%d" % (self.get_ndimensions() + 1))
 
         # If types are not specified assume all except one are coordinates
         if self.get_ncoordinates() == 0 and nfields > 1:
             self._ncoordinates = nfields - 1
             self._nvalues = 1
 
-# Set array data
+    # Set array data
 
     def set_data(self, data):
-        '''
+        """
         Set data, can be a np.array or a list / tuple. The latter will be
         converted to a np.array.
-        '''
+        """
 
         if not isinstance(data, np.ndarray):
             data = np.array(data)
@@ -1014,55 +1014,55 @@ class Data:
 
         # Add dimension information
         if len(data.shape) == 1:
-            self.add_value('Y')
+            self.add_value("Y")
         elif len(data.shape) == 2:
             if data.shape[1] == 2:
-                self.add_coordinate('X')
-                self.add_value('Y')
+                self.add_coordinate("X")
+                self.add_value("Y")
             elif data.shape[1] == 3:
-                self.add_coordinate('X')
-                self.add_coordinate('Y')
-                self.add_value('Z')
+                self.add_coordinate("X")
+                self.add_coordinate("Y")
+                self.add_value("Z")
             else:
                 for i in range(data.shape[1] - 1):
-                    self.add_coordinate('col%d' % (i + 1))
-                self.add_value('col%d' % data.shape[1])
+                    self.add_coordinate("col%d" % (i + 1))
+                self.add_value("col%d" % data.shape[1])
 
             try:
                 self._detect_dimensions_size()
             except Exception as e:
-                logging.warning('Error while detecting dimension size')
+                logging.warning("Error while detecting dimension size")
 
             # For more than 2 dimensions also look at detected size
             if self.get_ndimensions() > 2:
                 for info in reversed(self._dimensions[2:]):
                     # More likely to be a value than a coordinate
-                    if 'size' in info:
-                        if info['size'] == 0:
+                    if "size" in info:
+                        if info["size"] == 0:
                             self._ncoordinates -= 1
                             self._nvalues += 1
-                            info['type'] = 'value'
-                            del info['size']
+                            info["type"] = "value"
+                            del info["size"]
                         else:
                             break
 
     def update_data(self, data):
-        '''
+        """
         Update this Data object with a new data set.
         No checks are performed on dimensions etc.
         If the data is associated with a temporary file, it will be updated.
-        '''
+        """
         self._data = data
         if self._tempfile:
             self.rewrite_tempfile()
 
-# File reading
+    # File reading
 
     def _count_coord_val_dims(self):
         self._ncoordinates = 0
         self._nvalues = 0
         for info in self._dimensions:
-            if info.get('type', 'coordinate') == 'coordinate':
+            if info.get("type", "coordinate") == "coordinate":
                 self._ncoordinates += 1
             else:
                 self._nvalues += 1
@@ -1076,9 +1076,9 @@ class Data:
         """
 
         try:
-            f = file(self.get_filepath(), 'r')
+            f = file(self.get_filepath(), "r")
         except:
-            logging.warning('Unable to open file %s' % self.get_filepath())
+            logging.warning("Unable to open file %s" % self.get_filepath())
             return False
 
         self._dimensions = []
@@ -1095,7 +1095,7 @@ class Data:
         blocksize = 0
 
         for line in f:
-            line = line.rstrip(' \n\t\r')
+            line = line.rstrip(" \n\t\r")
 
             # Count blocks
             if len(line) == 0 and len(data) > 0:
@@ -1105,7 +1105,7 @@ class Data:
                 blocksize = 0
 
             # Strip comment
-            commentpos = line.find('#')
+            commentpos = line.find("#")
             if commentpos != -1:
                 self._parse_meta_data(line)
                 line = line[:commentpos]
@@ -1131,20 +1131,20 @@ class Data:
         try:
             self._detect_dimensions_size()
         except Exception as e:
-            logging.warning('Error while detecting dimension size')
+            logging.warning("Error while detecting dimension size")
 
         return True
 
     def _type_added(self, name):
-        if name == 'coordinate':
+        if name == "coordinate":
             self._ncoordinates += 1
-        elif name == 'values':
+        elif name == "values":
             self._nvalues += 1
 
     def _parse_meta_data(self, line):
         m = self._META_STEPRE.match(line)
         if m is not None:
-            self._dimensions.append({'size': int(m.group(1))})
+            self._dimensions.append({"size": int(m.group(1))})
             return True
 
         m = self._META_COLRE.match(line)
@@ -1157,11 +1157,11 @@ class Data:
         colnum = len(self._dimensions) - 1
 
         for tagname, metainfo in self._METADATA_INFO.iteritems():
-            m = metainfo['re'].match(line)
+            m = metainfo["re"].match(line)
             if m is not None:
-                if metainfo['type'] == float:
+                if metainfo["type"] == float:
                     self._dimensions[colnum][tagname] = float(m.group(1))
-                elif metainfo['type'] == int:
+                elif metainfo["type"] == int:
                     self._dimensions[colnum][tagname] = int(m.group(1))
                 else:
                     try:
@@ -1169,8 +1169,8 @@ class Data:
                     except:
                         self._dimensions[colnum][tagname] = m.group(1)
 
-                if 'function' in metainfo:
-                    metainfo['function'](self, m.group(1))
+                if "function" in metainfo:
+                    metainfo["function"](self, m.group(1))
 
                 return True
 
@@ -1179,10 +1179,10 @@ class Data:
             self._comment.append(m.group(1))
 
     def _reshape_data(self):
-        '''
+        """
         Return a reshaped version of the data. This is not guaranteed to be
         a view to the same data object.
-        '''
+        """
 
         if self._reshaped_data is not None:
             return self._reshaped_data
@@ -1202,7 +1202,7 @@ class Data:
                 cshape_ok = False
 
         if not cshape_ok and not fshape_ok:
-            logging.warning('Unable to do simple data reshape')
+            logging.warning("Unable to do simple data reshape")
         else:
             newshape.reverse()
             newshape.append(-1)
@@ -1221,7 +1221,7 @@ class Data:
         ncoords = self.get_ncoordinates()
         if len(data) < 2:
             for colnum in range(ncoords):
-                self._dimensions[colnum]['size'] = len(data)
+                self._dimensions[colnum]["size"] = len(data)
             return
 
         loopdims = []
@@ -1253,9 +1253,9 @@ class Data:
                 i += 1
 
             opt = self._dimensions[loopdim]
-            opt['start'] = loopstart
-            opt['size'] = i
-            opt['end'] = data[mulsize * (i - 1), loopdim]
+            opt["start"] = loopstart
+            opt["size"] = i
+            opt["end"] = data[mulsize * (i - 1), loopdim]
             newshape.append(i)
 
             mulsize *= i
@@ -1266,7 +1266,7 @@ class Data:
         self._complete = complete
 
         # Determine number of blocks
-        bs = self._dimensions[firstloopdim]['size']
+        bs = self._dimensions[firstloopdim]["size"]
         if bs > 0:
             if len(data) % bs == 0:
                 self._block_sizes = [bs] * (len(data) / bs)
@@ -1276,23 +1276,24 @@ class Data:
         return complete
 
     def set_filepath(self, fp, inmem=True):
-        '''
+        """
         Set the filepath associated with the data.
         If inmem is True it will be loaded directly.
         If fp is a directory, a file with extension .dat will be searched for.
-        '''
+        """
 
         if os.path.isdir(fp):
             files = os.listdir(fp)
             foundfile = None
             for fn in files:
-                if os.path.splitext(fn)[1] == '.dat':
+                if os.path.splitext(fn)[1] == ".dat":
                     if foundfile is not None:
                         raise ValueError(
-                            'Multiple .dat files in directory, Unable to decide which one to load')
+                            "Multiple .dat files in directory, Unable to decide which one to load"
+                        )
                     foundfile = fn
             if foundfile is None:
-                raise ValueError('No .dat file found in directory')
+                raise ValueError("No .dat file found in directory")
 
             self._dir, self._filename = fp, foundfile
 
@@ -1305,10 +1306,10 @@ class Data:
             else:
                 self._inmem = False
 
-# Misc
+    # Misc
 
     def _stop_request_cb(self, sender):
-        '''Called when qtflow emits a stop-request.'''
+        """Called when qtflow emits a stop-request."""
         self.close_file()
 
     @staticmethod
