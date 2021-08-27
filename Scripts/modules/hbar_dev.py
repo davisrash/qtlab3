@@ -116,21 +116,21 @@ def take_data(instruments, circuit, start_time, channels=None):
             y.append(lockin.get_Y())
 
         elif lockin.get_type() == "SR860":
-            x.append(lockin.get_data_param0())  # get_data_param(0)
-            y.append(lockin.get_data_param1())  # get_data_param(1)
+            x.append(lockin.get_data_param(0))  # get_data_param0()
+            y.append(lockin.get_data_param(1))  # get_data_param1()
 
     # calculate x_pros and y_pros
     x_pros = [
-        (circuit["input_voltage"] - x[i])
+        (circuit["input_voltage"] - i)
         * circuit["sense_resistance"]
-        / (1e-9 if x[i] == 0.0 else x[i])
-        for i in range(len(x))
+        / (1e-9 if i == 0.0 else i)
+        for i in x
     ]
     y_pros = [
-        (circuit["input_voltage"] - y[i])
+        (circuit["input_voltage"] - i)
         * circuit["sense_resistance"]
-        / (1e-9 if y[i] == 0.0 else y[i])
-        for i in range(len(y))
+        / (1e-9 if i == 0.0 else i)
+        for i in y
     ]
 
     # measure gate voltage and leakage current for meters
@@ -146,10 +146,14 @@ def take_data(instruments, circuit, start_time, channels=None):
             meter.set_sense_function("current")
             leaks.append(meter.read())
 
+        # TODO currently requires multiple arguments of QDAC to be
+        # consistent with the rest of the code. Use only one instrument reference and add channel references to the device itself
         elif meter.get_type() == "QDevilQdac":
-            for j in range(circuit["num_gates"] - i):
-                gates.append(meter.getDCVoltage(channels[j]))
-                leaks.append(meter.getCurrentReading(channels[j]))
+            # for j in range(circuit["num_gates"] - i):
+            #     gates.append(meter.getDCVoltage(channels[j]))
+            #     leaks.append(meter.getCurrentReading(channels[j]))
+            gates.append(meter.getDCVoltage(channels[i]))
+            leaks.append(meter.getCurrentReading(channels[i]))
 
     # get magnetic field
     if "magnets" in instruments and instruments["magnets"] not in [None, [None]]:
@@ -214,7 +218,10 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
             if circuit["compliance"] is not None:
                 for i in range(circuit["num_gates"]):
-                    if data_vals[(i - circuit["num_gates"]) * 2] > sweep["compliance"]:
+                    if (
+                        np.abs(data_vals[2 * i + 4 * len(instruments["lockins"]) + 3])
+                        > sweep["compliance"]
+                    ):
                         print("gate leakage!")
 
                         data._write_settings_file()
@@ -222,7 +229,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
                         qt.mend()
 
-                        raise SystemExit
+                        return data
 
             if circuit["threshold"] is not None:
                 for i, _ in enumerate(instruments["lockins"]):
@@ -234,7 +241,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
                         qt.mend()
 
-                        raise SystemExit
+                        return data
 
     elif dims == 2:
         for sweep in sweeps:
@@ -272,7 +279,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
                 if circuit["compliance"] is not None:
                     for i in range(circuit["num_gates"]):
                         if (
-                            data_vals[(i - circuit["num_gates"]) * 2]
+                            data_vals[2 * i + 4 * len(instruments["lockins"]) + 3]
                             > circuit["compliance"]
                         ):
                             print("gate leakage!")
@@ -282,7 +289,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
                             qt.mend()
 
-                            raise SystemExit
+                            return data
 
                 if circuit["threshold"] is not None:
                     for i, _ in enumerate(instruments["lockins"]):
@@ -294,7 +301,7 @@ def gate_sweep(filename, instruments, circuit, sweeps, channels=None):
 
                             qt.mend()
 
-                            raise SystemExit
+                            return data
 
     data._write_settings_file()
     data.close_file()
