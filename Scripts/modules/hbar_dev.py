@@ -382,15 +382,16 @@ def magnet_sweep(filename, instruments, circuit, sweeps, channels=None):
         data.add_data_point([sweeps["stop"], 0] + data_values)
 
         print("ramp ended")
-        data._write_settings_file()
-        data.close_file()
 
-        qt.mend()
+    data._write_settings_file()
+    data.close_file()
 
-        return data
+    qt.mend()
+
+    return data
 
 
-def record(filename, instruments, circuit, sweeps, duration, timestep):
+def record(filename, instruments, circuit, sweeps, duration, timestep, channels=None):
     """
     TODO add docstring
     """
@@ -403,7 +404,7 @@ def record(filename, instruments, circuit, sweeps, duration, timestep):
 
     # what meter to use?
     instruments["meters"][0].ramp_to_voltage(
-        sweeps["v_gate"], sweeps["ramp_rate"], channel=None
+        sweeps["v_gate"], sweeps["ramp_rate"], channel=sweeps["channel"]
     )
 
     qt.msleep(sweeps["intersweep_delay"])
